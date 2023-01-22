@@ -1,0 +1,109 @@
+.settings_page_woonuxt .wrap{
+    max-width: 960px;
+    margin: 40px auto;
+}
+.required-plugins-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    gap: 1rem;
+}
+
+.required-plugin {
+    padding: 1rem;
+    box-shadow: 0 3px 12px -3px #dee1e6;
+    border-radius: 5px;
+    background: #fff;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.plugin-state {
+    display: flex;
+    flex-direction: row;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.plugin-state svg {
+    fill: #41B782;
+}
+
+.required-plugin.active .plugin-state {
+    color: #18a512;
+}
+
+.required-plugins-list .plugin-name {
+    margin-bottom: -10px;
+}
+
+.required-plugin img {
+    width: 50px;
+    height: 50px;
+    margin-right: 1rem;
+}
+
+.required-plugin .plugin-description {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.global_attribute{
+    padding: 1rem;
+    box-shadow: 0 3px 12px -3px #dee1e6;
+    border-radius: 5px;
+    background: #fff;
+    margin-bottom: 1rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.global_attribute .row{
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+}
+
+.remove_global_attribute{
+    margin-left: auto;
+}
+
+.flex{
+    display: flex;
+    align-items: center;
+}
+.flex-1{
+    flex: 1;
+}
+.grid{
+    display: grid;
+    align-items: center;
+}
+.gap-1{
+    gap: 1rem;
+}
+.grid-cols-2{
+    grid-template-columns: repeat(2, 1fr);
+}
+.mb-8{
+    margin-bottom: 1rem;
+}
+.mb-16{
+    margin-bottom: 2rem;
+}
+.mb-24{
+    margin-bottom: 3rem;
+}
+.mt-8{
+    margin-top: 1rem;
+}
+.mt-16{
+    margin-top: 2rem;
+}
+.mt-24{
+    margin-top: 3rem;
+}
