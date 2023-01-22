@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.1
+Version: 1.0.2
 */
 
 // Exit if accessed directly
@@ -399,7 +399,6 @@ function global_setting_callback() {
 
                     // deploy-button FROM build_hook
                     const buildUrl = $('#build_url');
-                    console.log(buildUrl.val());
                     $('#deploy-button').click(function(e) {
                         console.log('clicked');
                         e.preventDefault();
@@ -407,7 +406,7 @@ function global_setting_callback() {
                             url: buildUrl.val(),
                             type: 'POST',
                             success: function(data) {
-                                console.log(data);
+                                alert('Build triggered successfully');
                             }
                         });
                     });
