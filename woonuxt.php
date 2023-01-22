@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: WooNuxt
-Description: A brief description of your plugin
+Plugin Name: WooNuxt Settings
+Description: This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0
+Version: 1.0.1
 */
 
 // Exit if accessed directly
@@ -17,6 +17,11 @@ function load_admin_style_woonuxt() {
     // wp_enqueue_script('admin_js', plugins_url('/assets.admin.js', __FILE__));
 }
 
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
+function woonuxt_plugin_action_links($links) {
+    $links[] = '<a href="'. esc_url( get_admin_url(null, 'options-general.php?page=woonuxt') ) .'">Settings</a>';
+    return $links;
+}
 
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -38,8 +43,13 @@ add_action( 'admin_menu', 'woonuxt_options_page' );
 function woonuxt_options_page_html() {
     ?>
     <div class="acf-admin-toolbar">
-        <a href="https://woonuxt.com/wp-admin/edit.php?post_type=acf-field-group" class="acf-logo"><img src="https://woonuxt.com/wp-content/uploads/2021/09/colored-logo.svg"></a>
+        <a href="https://woonuxt.com" class="acf-logo"><img src="<?php echo plugins_url( 'assets/colored-logo.svg', __FILE__ ); ?>" alt="WooNuxt"
+        target="_blank"></a>
         <h2 style="display: block;">WooNuxt</h2>
+        <?php if( $options['build_hook'] ) : ?>
+            <button id="build-button" class="acf-button button button-primary button-large" style="display: block;">Build</button>
+        <?php endif; ?>
+        <button id="deploy-button" class="acf-button button button-primary button-large" style="display: block;">Deploy</button>
     </div>
     <div class="acf-headerbar">
         <div class="acf-headerbar-left">
@@ -216,6 +226,7 @@ function global_setting_callback() {
         <!-- BUILD HOOK -->
         <label for="woonuxt_options[build_hook]">Build Hook</label>
         <input type="text" 
+            id="build_url"
             class="mb-16 widefat" 
             name="woonuxt_options[build_hook]" 
             value="<?php echo $options['build_hook']; ?>" 
@@ -385,6 +396,23 @@ function global_setting_callback() {
                         e.preventDefault();
                         $(this).parent().parent().remove();
                     });
+
+                    // deploy-button FROM build_hook
+                    const buildUrl = $('#build_url');
+                    console.log(buildUrl.val());
+                    $('#deploy-button').click(function(e) {
+                        console.log('clicked');
+                        e.preventDefault();
+                        $.ajax({
+                            url: buildUrl.val(),
+                            type: 'POST',
+                            success: function(data) {
+                                console.log(data);
+                            }
+                        });
+                    });
+                    
+
                 });
             </script>
 

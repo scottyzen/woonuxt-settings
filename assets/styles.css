@@ -72,6 +72,10 @@
     margin-left: auto;
 }
 
+.deploy-button{
+    margin-left: auto;
+}
+
 .flex{
     display: flex;
     align-items: center;
