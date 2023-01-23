@@ -105,7 +105,7 @@ function required_plugins_callback() {
                     Installed <?php echo $tick_svg_icon; ?>
                 <?php endif; ?>
                 <?php if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) : ?>
-                    <a href="https://wordpress.org/plugins/wp-graphql/">Install</a>
+                    <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=wp-graphql">Install</a>
                 <?php endif; ?>
             </div>
             </li>
@@ -118,7 +118,7 @@ function required_plugins_callback() {
                         Installed <?php echo $tick_svg_icon; ?>
                     <?php endif; ?>
                     <?php if ( !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) : ?>
-                        <a href="https://woonuxt.com/wp-admin/options-general.php?page=woonuxt&install_plugin=woographql">Install Now</a>
+                        <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=woographql">Install Now</a>
                     <?php endif; ?>
                 </div>
             </li>
@@ -132,7 +132,7 @@ function required_plugins_callback() {
                         Installed <?php echo $tick_svg_icon; ?>
                     <?php endif; ?>
                     <?php if ( !is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) : ?>
-                        <a href="https://woonuxt.com/wp-admin/options-general.php?page=woonuxt&install_plugin=wp-graphql-cors">Install Now</a>
+                        <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=wp-graphql-cors">Install Now</a>
                     <?php endif; ?>
                 </div>
             </li>
@@ -141,6 +141,17 @@ function required_plugins_callback() {
 <?php
     
     if ( isset( $_GET['install_plugin'] ) ) {
+
+        // https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip
+        if ( $_GET['install_plugin'] == 'wp-graphql' && ! is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) {
+            $url = 'https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip';
+            $upgrader = new Plugin_Upgrader();
+            $result = $upgrader->install( $url );
+            if ( ! is_wp_error( $result ) ) {
+                activate_plugin( 'wp-graphql/wp-graphql.php' );
+            }
+        }
+
 
         // https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip
         if ( $_GET['install_plugin'] == 'woographql' && ! is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) {
@@ -166,7 +177,6 @@ function required_plugins_callback() {
                 activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php' );
             }
         }
-
 
     }
 }
@@ -399,6 +409,7 @@ function global_setting_callback() {
 
                     // deploy-button FROM build_hook
                     const buildUrl = $('#build_url');
+                    console.log(buildUrl.val());
                     $('#deploy-button').click(function(e) {
                         console.log('clicked');
                         e.preventDefault();
@@ -406,7 +417,7 @@ function global_setting_callback() {
                             url: buildUrl.val(),
                             type: 'POST',
                             success: function(data) {
-                                alert('Build triggered successfully');
+                                console.log(data);
                             }
                         });
                     });
