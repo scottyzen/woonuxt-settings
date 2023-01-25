@@ -2,6 +2,10 @@
     max-width: 960px;
     margin: 40px auto;
 }
+
+.settings_page_woonuxt .wrap > form > div:not(.woonuxt-section){
+    display: none;
+}
 .required-plugins-list {
     display: flex;
     flex-direction: row;
@@ -19,6 +23,13 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+}
+
+button.remove_global_attribute.button.button-danger {
+    background: #e13b3d;
+    border-color: #980b0b;
+    color: white;
+    min-width: 102px;
 }
 
 .plugin-state {
@@ -51,7 +62,12 @@
     margin-bottom: 0;
 }
 
-.global_attribute{
+.global_attributes{
+    display: grid;
+    gap: 1rem;
+}
+
+/* .global_attribute{
     padding: 1rem;
     box-shadow: 0 3px 12px -3px #dee1e6;
     border-radius: 5px;
@@ -59,13 +75,13 @@
     margin-bottom: 1rem;
     display: grid;
     gap: 1rem;
-}
+} */
 
 .global_attribute .row{
     display: flex;
-    flex-direction: row;
+    /* flex-direction: row; */
     gap: 1rem;
-    align-items: center;
+    /* align-items: center; */
 }
 
 .remove_global_attribute{
@@ -74,6 +90,42 @@
 
 #deploy-button{
     margin-left: auto;
+}
+
+#wpcontent .acf-admin-toolbar {
+    box-sizing: border-box;
+    margin-left: -20px;
+    padding-top: 16px;
+    padding-right: 32px;
+    padding-bottom: 16px;
+    padding-left: 32px;
+}
+
+.acf-admin-toolbar {
+    display: flex;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+    position: unset;
+    top: 32px;
+    height: 72px;
+    z-index: 800;
+    background: #344054;
+    color: #98A2B3;
+}
+
+.acf-admin-toolbar h2 {
+    color: #F9FAFB;
+}
+
+.acf-admin-toolbar .acf-logo {
+    margin-right: 32px;
+}
+
+.acf-admin-toolbar .acf-logo img {
+    display: block;
+    max-width: 55px;
+    line-height: 0%;
 }
 
 .flex{
@@ -110,4 +162,7 @@
 }
 .mt-24{
     margin-top: 3rem;
+}
+.w-full{
+    width: 100%;
 }

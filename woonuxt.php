@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.2
+Version: 1.0.4
 */
 
 // Exit if accessed directly
@@ -51,13 +51,6 @@ function woonuxt_options_page_html() {
         <?php endif; ?>
         <button id="deploy-button" class="acf-button button button-primary button-large" style="display: block;">Deploy</button>
     </div>
-    <div class="acf-headerbar">
-        <div class="acf-headerbar-left">
-            <div class="acf-headerbar-title">
-                <h2>WooNuxt Options</h2>
-            </div>
-        </div>
-    </div>
     <div class="wrap">
         <form action="options.php" method="post">
             <?php
@@ -94,7 +87,7 @@ add_action( 'admin_init', 'woonuxt_register_settings' );
 function required_plugins_callback() {
     $tick_svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>';
 ?>
-    <div>
+    <div class="woonuxt-section">
         <ul class="required-plugins-list">
             <li class="required-plugin <?php echo is_plugin_active( 'wp-graphql/wp-graphql.php' ) ? 'active' : 'inactive'; ?>">
             <img src="https://www.wpgraphql.com/logo-wpgraphql.svg" alt="WPGraphQL" width="64" height="64">
@@ -144,22 +137,36 @@ function required_plugins_callback() {
 
         // https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip
         if ( $_GET['install_plugin'] == 'wp-graphql' && ! is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) {
-            $url = 'https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip';
-            $upgrader = new Plugin_Upgrader();
-            $result = $upgrader->install( $url );
-            if ( ! is_wp_error( $result ) ) {
+            $fileURL = WP_PLUGIN_DIR . '/wp-graphql/wp-graphql.php';
+            if ( file_exists( $fileURL ) ) {
                 activate_plugin( 'wp-graphql/wp-graphql.php' );
+                wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+            } else {
+                $url = 'https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip';
+                $upgrader = new Plugin_Upgrader();
+                $result = $upgrader->install( $url );
+                if ( ! is_wp_error( $result ) ) {
+                    activate_plugin( 'wp-graphql/wp-graphql.php' );
+                    wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                }
             }
         }
 
 
         // https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip
         if ( $_GET['install_plugin'] == 'woographql' && ! is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) {
-            $url = 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip';
-            $upgrader = new Plugin_Upgrader();
-            $result = $upgrader->install( $url );
-            if ( ! is_wp_error( $result ) ) {
+            $fileURL = WP_PLUGIN_DIR . '/wp-graphql-woocommerce/wp-graphql-woocommerce.php';
+            if ( file_exists( $fileURL ) ) {
                 activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' );
+                wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+            } else {
+                $url = 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip';
+                $upgrader = new Plugin_Upgrader();
+                $result = $upgrader->install( $url );
+                if ( ! is_wp_error( $result ) ) {
+                    activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' );
+                    wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                }
             }
         }
 
@@ -168,15 +175,19 @@ function required_plugins_callback() {
             $fileURL = WP_PLUGIN_DIR . '/wp-graphql-cors-2.1/wp-graphql-cors.php';
             if ( file_exists( $fileURL ) ) {
                 activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php' );
-                return;
-            }
-            $url = 'https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip';
-            $upgrader = new Plugin_Upgrader();
-            $result = $upgrader->install( $url );
-            if ( ! is_wp_error( $result ) ) {
-                activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php' );
+                wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+            } else {
+                $url = 'https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip';
+                $upgrader = new Plugin_Upgrader();
+                $result = $upgrader->install( $url );
+                if ( ! is_wp_error( $result ) ) {
+                    activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php' );
+                    wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                }
             }
         }
+
+        wp_redirect( admin_url( 'options-general.php?page=woonuxt' ) );
 
     }
 }
@@ -213,13 +224,36 @@ add_action( 'init', function() {
                 'logo' => [
                     'type' => 'String'
                 ],
+                'maxPrice' => [
+                    'type' => 'Int',
+                    'description' => __( 'Most expensive product price', 'woonuxt' ),
+                ],
             ],
         ]);
         register_graphql_field( 'RootQuery', 'woonuxtSettings', [
             'type' => 'woonuxtOptions',
             'description' => __( 'Woonuxt Settings', 'woonuxt' ),
             'resolve' => function() {
-                return get_option( 'woonuxt_options' );
+                $max_price = 0;
+
+                $args = [
+                    'post_type' => 'product',
+                    'posts_per_page' => 1,
+                    'orderby' => 'meta_value_num',
+                    'order' => 'DESC',
+                    'meta_key' => '_price',
+                ];
+
+                $loop = new WP_Query( $args );
+                while ( $loop->have_posts() ) : $loop->the_post();
+                    global $product;
+                    $max_price = $product->get_price();
+                endwhile;
+                wp_reset_query();
+
+                $options = get_option( 'woonuxt_options' );
+                $options['maxPrice'] = $max_price;
+                return $options;
             },
         ]);
     });
@@ -231,7 +265,7 @@ function global_setting_callback() {
     $options = get_option( 'woonuxt_options' );
     
     ?>
-    <div class="global_setting">
+    <div class="global_setting woonuxt-section">
 
         <!-- BUILD HOOK -->
         <label for="woonuxt_options[build_hook]">Build Hook</label>
@@ -269,12 +303,11 @@ function global_setting_callback() {
             name="woonuxt_options[primary_color]"
             value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
         />
-
         <br>
 
         <!-- GLOBAL ATTRIBLUES FOR FILTERS -->
         <label for="woonuxt_options[global_attributes]">Global Attributes</label>
-        <div class="global_attributes">
+        <div class="global_attributes woonuxt-section">
             <?php
             if ( $options['global_attributes'] ) {
                 $product_attributes = wc_get_attribute_taxonomies();
@@ -282,19 +315,17 @@ function global_setting_callback() {
                 foreach ( $options['global_attributes'] as $key => $value ) {
                     ?>
                     <div class="global_attribute">
-                        <div class="grid gap-1 grid-cols-2">
-                            <div class="grid">
-                                <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][label]">Label</label>
+                        <div class="flex gap-1">
+                                <!-- <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][label]">Label</label> -->
                                 <input type="text" 
-                                class="flex-1 widefat" 
+                                class="flex-1" 
                                 name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" 
                                 value="<?php echo $value['label']; ?>" 
                                 placeholder="e.g. Color"
                                 />
-                            </div>
-                            <div class="grid">
-                                <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">Slug</label>
-                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]" class="widefat">
+                                
+                                <!-- <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">Slug</label> -->
+                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]" class="flex-1">
                                     <?php
                                     foreach ( $product_attributes as $attribute ) {
                                         $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '' ;
@@ -306,9 +337,7 @@ function global_setting_callback() {
                                     }
                                     ?>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="row">
+                            
                             <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]">Show Count</label>
                             <input type="checkbox" 
                             class="widefat" 
@@ -331,7 +360,7 @@ function global_setting_callback() {
                             <?php echo $value['openByDefault']
                             ? 'checked' : ''; ?>
                             />
-                            <button class="remove_global_attribute">Remove</button>
+                            <button class="remove_global_attribute button button-danger">Remove</button>
                         </div>
                         
                     </div>
@@ -339,6 +368,7 @@ function global_setting_callback() {
                 }
             }
             ?>
+            <hr class="w-full" />
             <div class="flex gap-1 add_global_attribute_row">
                 <input class="flex-1 new-attr-label" type="text" placeholder="Label" />
                 <select class="flex-1 new-attr-slug" id="global_attribute_dropdown">
@@ -353,6 +383,15 @@ function global_setting_callback() {
                     }
                     ?>
                 </select>
+                <lable>Show Count
+                    </lable>
+                    <input type="checkbox" class="new-attr-showCount" value="1" />
+                <lable>Hide Empty
+                    </lable>
+                    <input type="checkbox" class="new-attr-hideEmpty" value="1" />
+                <lable>Open By Default
+                    </lable>
+                    <input type="checkbox" class="new-attr-openByDefault" value="1" />
                 <button class="add_global_attribute button button-primary">Add Attribute</button>
             </div>
 
@@ -368,7 +407,11 @@ function global_setting_callback() {
                         e.preventDefault();
                         var label = $('.new-attr-label').val();
                         var slug = $('.new-attr-slug').val();
-                        var html = '<div class="global_attribute">';
+                        var showCount = $('.new-attr-showCount').is(':checked') ? 1 : 0;
+                        var hideEmpty = $('.new-attr-hideEmpty').is(':checked') ? 1 : 0;
+                        var openByDefault = $('.new-attr-openByDefault').is(':checked') ? 1 : 0;
+
+                        var html = '<div class="global_attribute woonuxt-section">';
                         html += '<div class="grid gap-1 grid-cols-2">';
                         html += '<div class="grid">';
                         html += '<label for="woonuxt_options[global_attributes][' + slug + '][label]">Label</label>';
@@ -386,19 +429,22 @@ function global_setting_callback() {
                         html += '</div>';
                         html += '<div class="row">';
                         html += '<label for="woonuxt_options[global_attributes][' + slug + '][showCount]">Show Count</label>';
-                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][showCount]" value="1" />';
+                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][showCount]" value="1" ' + (showCount ? 'checked' : '') + ' />';
                         html += '<label for="woonuxt_options[global_attributes][' + slug + '][hideEmpty]">Hide Empty</label>';
-                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][hideEmpty]" value="1" />';
+                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][hideEmpty]" value="1" ' + (hideEmpty ? 'checked' : '') + ' />';
                         html += '<label for="woonuxt_options[global_attributes][' + slug + '][openByDefault]">Open By Default</label>';
-                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][openByDefault]" value="1" />';
+                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][openByDefault]" value="1" ' + (openByDefault ? 'checked' : '') + ' />';
                         html += '<button class="remove_global_attribute">Remove</button>';
                         html += '</div>';
                         html += '</div>';
+
+                        
                         
 
                         $('.add_global_attribute_row').before(html);
                         $('.new-attr-label').val('');
                         $('.new-attr-slug').val('');            
+                         
                     });
 
                     // remove global attribute
