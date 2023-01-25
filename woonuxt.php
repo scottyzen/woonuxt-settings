@@ -28,6 +28,7 @@ require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 // Add options page
+add_action( 'admin_menu', 'woonuxt_options_page' );
 function woonuxt_options_page() {
     add_options_page(
         'WooNuxt Options',
@@ -37,7 +38,6 @@ function woonuxt_options_page() {
         'woonuxt_options_page_html'
     );
 }
-add_action( 'admin_menu', 'woonuxt_options_page' );
 
 // Options page HTML
 function woonuxt_options_page_html() {
@@ -64,6 +64,7 @@ function woonuxt_options_page_html() {
 }
 
 // Register settings
+add_action( 'admin_init', 'woonuxt_register_settings' );
 function woonuxt_register_settings() {
     register_setting( 'woonuxt_options', 'woonuxt_options' );
 
@@ -81,7 +82,6 @@ function woonuxt_register_settings() {
         'woonuxt',
     );
 }
-add_action( 'admin_init', 'woonuxt_register_settings' );
 
 // Section callback
 function required_plugins_callback() {
