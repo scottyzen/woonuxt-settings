@@ -236,7 +236,7 @@ function global_setting_callback() {
         <input type="number" 
             class="min-w-xs mb-16"
             name="woonuxt_options[productsPerPage]" 
-            value="<?php echo $options['productsPerPage']; ?>" 
+            value="<?php echo $options['productsPerPage'] ? $options['productsPerPage'] : '24'; ?>" 
             placeholder="e.g. 12"
         />
         <br>
@@ -486,7 +486,6 @@ add_action( 'init', function() {
 
                 // /wp-admin/admin.php?page=graphql-settings
                 $options['publicIntrospectionEnabled'] = get_option( 'graphql_general_settings' )['public_introspection_enabled'];
-
 
                 return $options;
             },
