@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.6
+Version: 1.0.8
 */
 
 // Exit if accessed directly
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
-    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.6'));
+    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.0'));
     // wp_enqueue_script('admin_js', plugins_url('/assets.admin.js', __FILE__));
 }
 
@@ -450,8 +450,9 @@ add_action( 'init', function() {
                     'description' => __( 'Most expensive product price', 'woonuxt' ),
                 ],
                 'publicIntrospectionEnabled' => [
-                    'type' => 'Boolean',
+                    'type' => 'String',
                     'description' => __( 'Is public introspection enabled in WPGraphQL', 'woonuxt' ),
+                    'default' => 'off',
                 ],
                 'productsPerPage' => [
                     'type' => 'Int',
@@ -484,7 +485,6 @@ add_action( 'init', function() {
                 $options['maxPrice'] = $max_price;
 
                 // /wp-admin/admin.php?page=graphql-settings
-                // graphql_general_settings[public_introspection_enabled]
                 $options['publicIntrospectionEnabled'] = get_option( 'graphql_general_settings' )['public_introspection_enabled'];
 
 
