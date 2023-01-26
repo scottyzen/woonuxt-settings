@@ -26,6 +26,9 @@ query getWooNuxtSettings {
     stripe_publishable_key
     primary_color
     logo
+    publicIntrospectionEnabled
+    maxPrice
+    productsPerPage
     global_attributes {
       slug
       showCount

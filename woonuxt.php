@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.5
+Version: 1.0.6
 */
 
 // Exit if accessed directly
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
-    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.5'));
+    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.6'));
     // wp_enqueue_script('admin_js', plugins_url('/assets.admin.js', __FILE__));
 }
 
@@ -185,73 +185,6 @@ function required_plugins_callback() {
     }
 }
 
-// Add all setting to the wpgraphql schema
-add_action( 'init', function() {
-    
-    if ( !class_exists( '\WPGraphQL' ) ) { return; } // Check if WP GraphQl is Active
-    if ( !class_exists( 'WooCommerce' ) ) { return; } // Check if WooCommerce is Active
-
-    add_action( 'graphql_register_types', function() {
-        register_graphql_object_type( 'woonuxtOptionsGlobalAttributes', [
-            'description' => __( 'Woonuxt Global attributes for filtering', 'woonuxt' ),
-            'fields' => [
-                'label' => [ 'type' => 'String' ],
-                'slug' => [ 'type' => 'String' ],
-                'showCount' => [ 'type' => 'Boolean' ],
-                'hideEmpty' => [ 'type' => 'Boolean' ],
-                'openByDefault' => [ 'type' => 'Boolean' ],
-            ],
-        ]);
-        register_graphql_object_type( 'woonuxtOptions', [
-            'description' => __( 'Woonuxt Settings', 'woonuxt' ),
-            'fields' => [
-                'stripe_publishable_key' => [
-                    'type' => 'String',
-                ],
-                'primary_color' => [
-                    'type' => 'String'
-                ],
-                'global_attributes' => [
-                    'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ]
-                ],
-                'logo' => [
-                    'type' => 'String'
-                ],
-                'maxPrice' => [
-                    'type' => 'Int',
-                    'description' => __( 'Most expensive product price', 'woonuxt' ),
-                ],
-            ],
-        ]);
-        register_graphql_field( 'RootQuery', 'woonuxtSettings', [
-            'type' => 'woonuxtOptions',
-            'description' => __( 'Woonuxt Settings', 'woonuxt' ),
-            'resolve' => function() {
-                $max_price = 0;
-
-                $args = [
-                    'post_type' => 'product',
-                    'posts_per_page' => 1,
-                    'orderby' => 'meta_value_num',
-                    'order' => 'DESC',
-                    'meta_key' => '_price',
-                ];
-
-                $loop = new WP_Query( $args );
-                while ( $loop->have_posts() ) : $loop->the_post();
-                    global $product;
-                    $max_price = $product->get_price();
-                endwhile;
-                wp_reset_query();
-
-                $options = get_option( 'woonuxt_options' );
-                $options['maxPrice'] = $max_price;
-                return $options;
-            },
-        ]);
-    });
-});
-
 
 // Field callback
 function global_setting_callback() {
@@ -289,12 +222,22 @@ function global_setting_callback() {
         />
 
         <!-- PRIMARY COLOR -->
-        <label for="woonuxt_options[primary_color]">Primary Color</label>
+        <label class="min-w-xs mr-8 inline-block" for="woonuxt_options[primary_color]">Primary Color</label>
         <input 
-            class="mb-16" 
+            class="min-w-xs mb-8" 
             type="color"
             name="woonuxt_options[primary_color]"
             value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+        />
+        <br>
+
+        <!-- PRODUCTS PER PAGE -->
+        <label class="min-w-xs mr-8 inline-block" for="woonuxt_options[productsPerPage]">Products Per Page</label>
+        <input type="number" 
+            class="min-w-xs mb-16"
+            name="woonuxt_options[productsPerPage]" 
+            value="<?php echo $options['productsPerPage']; ?>" 
+            placeholder="e.g. 12"
         />
         <br>
 
@@ -467,3 +410,86 @@ function global_setting_callback() {
     </div>
     <?php
 }
+
+
+// Add all setting to the wpgraphql schema
+add_action( 'init', function() {
+    
+    if ( !class_exists( '\WPGraphQL' ) ) { return; } // Check if WP GraphQl is Active
+    if ( !class_exists( 'WooCommerce' ) ) { return; } // Check if WooCommerce is Active
+
+    add_action( 'graphql_register_types', function() {
+        register_graphql_object_type( 'woonuxtOptionsGlobalAttributes', [
+            'description' => __( 'Woonuxt Global attributes for filtering', 'woonuxt' ),
+            'fields' => [
+                'label' => [ 'type' => 'String' ],
+                'slug' => [ 'type' => 'String' ],
+                'showCount' => [ 'type' => 'Boolean' ],
+                'hideEmpty' => [ 'type' => 'Boolean' ],
+                'openByDefault' => [ 'type' => 'Boolean' ],
+            ],
+        ]);
+        register_graphql_object_type( 'woonuxtOptions', [
+            'description' => __( 'Woonuxt Settings', 'woonuxt' ),
+            'fields' => [
+                'stripe_publishable_key' => [
+                    'type' => 'String',
+                ],
+                'primary_color' => [
+                    'type' => 'String'
+                ],
+                'global_attributes' => [
+                    'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ]
+                ],
+                'logo' => [
+                    'type' => 'String',
+                    'description' => __( 'Logo URL', 'woonuxt' ),
+                ],
+                'maxPrice' => [
+                    'type' => 'Int',
+                    'description' => __( 'Most expensive product price', 'woonuxt' ),
+                ],
+                'publicIntrospectionEnabled' => [
+                    'type' => 'Boolean',
+                    'description' => __( 'Is public introspection enabled in WPGraphQL', 'woonuxt' ),
+                ],
+                'productsPerPage' => [
+                    'type' => 'Int',
+                    'description' => __( 'Number of products per page', 'woonuxt' ),
+                ],
+            ],
+        ]);
+        register_graphql_field( 'RootQuery', 'woonuxtSettings', [
+            'type' => 'woonuxtOptions',
+            'description' => __( 'Woonuxt Settings', 'woonuxt' ),
+            'resolve' => function() {
+                $max_price = 0;
+
+                $args = [
+                    'post_type' => 'product',
+                    'posts_per_page' => 1,
+                    'orderby' => 'meta_value_num',
+                    'order' => 'DESC',
+                    'meta_key' => '_price',
+                ];
+
+                $loop = new WP_Query( $args );
+                while ( $loop->have_posts() ) : $loop->the_post();
+                    global $product;
+                    $max_price = $product->get_price();
+                endwhile;
+                wp_reset_query();
+
+                $options = get_option( 'woonuxt_options' );
+                $options['maxPrice'] = $max_price;
+
+                // /wp-admin/admin.php?page=graphql-settings
+                // graphql_general_settings[public_introspection_enabled]
+                $options['publicIntrospectionEnabled'] = get_option( 'graphql_general_settings' )['public_introspection_enabled'];
+
+
+                return $options;
+            },
+        ]);
+    });
+});
