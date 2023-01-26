@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.4
+Version: 1.0.5
 */
 
 // Exit if accessed directly
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
-    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.0'));
+    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.5'));
     // wp_enqueue_script('admin_js', plugins_url('/assets.admin.js', __FILE__));
 }
 
@@ -66,14 +66,18 @@ function woonuxt_options_page_html() {
 // Register settings
 add_action( 'admin_init', 'woonuxt_register_settings' );
 function woonuxt_register_settings() {
+
     register_setting( 'woonuxt_options', 'woonuxt_options' );
 
-    add_settings_section(
-        'required_plugins',
-        'Required Plugins',
-        'required_plugins_callback',
-        'woonuxt'
-    );
+    // if all plugins are active don't show required plugins section
+    if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) || !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) || !is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) {
+        add_settings_section(
+            'required_plugins',
+            'Required Plugins',
+            'required_plugins_callback',
+            'woonuxt'
+        );
+    }
 
     add_settings_section(
         'global_setting',
@@ -134,38 +138,32 @@ function required_plugins_callback() {
 <?php
     
     if ( isset( $_GET['install_plugin'] ) ) {
+        $upgrader = new Plugin_Upgrader();
 
         // https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip
         if ( $_GET['install_plugin'] == 'wp-graphql' && ! is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) {
             $fileURL = WP_PLUGIN_DIR . '/wp-graphql/wp-graphql.php';
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( 'wp-graphql/wp-graphql.php' );
-                wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                activate_plugin( 'wp-graphql/wp-graphql.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
             } else {
                 $url = 'https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip';
-                $upgrader = new Plugin_Upgrader();
                 $result = $upgrader->install( $url );
                 if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( 'wp-graphql/wp-graphql.php' );
-                    wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                    activate_plugin( 'wp-graphql/wp-graphql.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
                 }
             }
         }
-
 
         // https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip
         if ( $_GET['install_plugin'] == 'woographql' && ! is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) {
             $fileURL = WP_PLUGIN_DIR . '/wp-graphql-woocommerce/wp-graphql-woocommerce.php';
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' );
-                wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
             } else {
                 $url = 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip';
-                $upgrader = new Plugin_Upgrader();
                 $result = $upgrader->install( $url );
                 if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' );
-                    wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                    activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
                 }
             }
         }
@@ -174,20 +172,15 @@ function required_plugins_callback() {
         if ( $_GET['install_plugin'] == 'wp-graphql-cors' && ! is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) {
             $fileURL = WP_PLUGIN_DIR . '/wp-graphql-cors-2.1/wp-graphql-cors.php';
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php' );
-                wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
             } else {
                 $url = 'https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip';
-                $upgrader = new Plugin_Upgrader();
                 $result = $upgrader->install( $url );
                 if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php' );
-                    wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );
+                    activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
                 }
             }
         }
-
-        wp_redirect( admin_url( 'options-general.php?page=woonuxt' ) );
 
     }
 }
@@ -455,15 +448,13 @@ function global_setting_callback() {
 
                     // deploy-button FROM build_hook
                     const buildUrl = $('#build_url');
-                    console.log(buildUrl.val());
                     $('#deploy-button').click(function(e) {
-                        console.log('clicked');
                         e.preventDefault();
                         $.ajax({
                             url: buildUrl.val(),
                             type: 'POST',
                             success: function(data) {
-                                console.log(data);
+                                alert('Build triggered successfully');
                             }
                         });
                     });
