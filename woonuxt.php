@@ -5,15 +5,18 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.11
+Version: 1.0.15
+Text Domain: woonuxt
 */
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.15' );
+
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
-    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.11'));
+    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, WOONUXT_SETTINGS_VERSION));
     // wp_enqueue_script('admin_js', plugins_url('/assets.admin.js', __FILE__));
 }
 
@@ -116,23 +119,23 @@ function woonuxt_register_settings() {
 
 // Section callback
 function required_plugins_callback() {
-    $tick_svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>';
     global $plugin_list;
 ?>
     <div class="woonuxt-section">
         <ul class="required-plugins-list">
             <?php foreach ( $plugin_list as $plugin ) : ?>
-                <li class="required-plugin <?php echo is_plugin_active( ['file'] ) ? 'active' : 'inactive'; ?>">
+                <li class="required-plugin">
                     <img src="<?php echo $plugin['icon']; ?>" alt="<?php echo $plugin['name']; ?>" width="64" height="64">
-                    <h4 class="plugin-name"><?php echo $plugin['name']; ?></h4>
-                    <p class="plugin-description"><?php echo $plugin['description']; ?></p>
-                    <div class="plugin-state">
-                        <?php if ( is_plugin_active( $plugin['file'] ) ) : ?>
-                            Installed <?php echo $tick_svg_icon; ?>
-                        <?php endif; ?>
-                        <?php if ( !is_plugin_active( $plugin['file'] ) ) : ?>
-                            <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
-                        <?php endif; ?>
+                    <div>
+                        <h4 class="plugin-name"><?php echo $plugin['name']; ?></h4>
+                        <p class="plugin-description"><?php echo $plugin['description']; ?></p>
+                        <div class="plugin-state">
+                            <?php if ( is_plugin_active( $plugin['file'] ) ) : ?>
+                                <span style="color: #41b782;">Installed</span> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>
+                            <?php else : ?>
+                                <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </li>
             <?php endforeach; ?>
@@ -169,125 +172,178 @@ function required_plugins_callback() {
 // Field callback
 function global_setting_callback() {
     $options = get_option( 'woonuxt_options' );
-    
     ?>
+
+
     <div class="global_setting woonuxt-section">
 
-        <!-- BUILD HOOK -->
-        <label for="woonuxt_options[build_hook]">Build Hook</label>
-        <input type="text" 
-            id="build_url"
-            class="mb-16 widefat" 
-            name="woonuxt_options[build_hook]" 
-            value="<?php echo $options['build_hook']; ?>" 
-            placeholder="e.g. https://api.netlify.com/build_hooks/1234567890"
-        />
-
-        <!-- STRIPE_PUBLISHABLE_KEY -->
-        <label for="woonuxt_options[stripe_publishable_key]">Stripe Publishable Key</label>
-        <input type="text" 
-            class="mb-16 widefat" 
-            name="woonuxt_options[stripe_publishable_key]" 
-            value="<?php echo $options['stripe_publishable_key']; ?>" 
-            placeholder="e.g. pk_test_1234567890"
-        />
-
-        <!-- LOGO -->
-        <label for="woonuxt_options[logo]">Logo</label>
-        <input type="text" 
-            class="mb-16 widefat" 
-            name="woonuxt_options[logo]" 
-            value="<?php echo $options['logo']; ?>" 
-            placeholder="e.g. https://example.com/logo.png"
-        />
-
-        <!-- PRIMARY COLOR -->
-        <label class="min-w-xs mr-8 inline-block" for="woonuxt_options[primary_color]">Primary Color</label>
-        <input 
-            class="min-w-xs mb-8" 
-            type="color"
-            name="woonuxt_options[primary_color]"
-            value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
-        />
-        <br>
-
-        <!-- PRODUCTS PER PAGE -->
-        <label class="min-w-xs mr-8 inline-block" for="woonuxt_options[productsPerPage]">Products Per Page</label>
-        <input type="number" 
-            class="min-w-xs mb-16"
-            name="woonuxt_options[productsPerPage]" 
-            value="<?php echo $options['productsPerPage'] ? $options['productsPerPage'] : '24'; ?>" 
-            placeholder="e.g. 12"
-        />
-        <br>
-
-        <!-- GLOBAL ATTRIBLUES FOR FILTERS -->
-        <label for="woonuxt_options[global_attributes]">Global Attributes</label>
-        <div class="global_attributes woonuxt-section">
-            <?php
-            if ( $options['global_attributes'] ) {
+        <table class="form-table" role="presentation">
+            <tbody>
                 
-                $product_attributes = wc_get_attribute_taxonomies();
+                <!-- FRONTEND URL -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[frontEndUrl]">Frontend URL</label></th>
+                    <td>
+                        <input type="text" 
+                            class="widefat" 
+                            name="woonuxt_options[frontEndUrl]" 
+                            value="<?php echo $options['frontEndUrl']; ?>" 
+                            placeholder="e.g. https://example.com"
+                        />
+                        <p class="description">The URL of your frontend. This is where the build files will be deployed to.</p>
+                    </td>
+                </tr>
 
-                foreach ( $options['global_attributes'] as $key => $value ) {
-                    ?>
-                    <div class="global_attribute">
-                        <div class="flex gap-1">
-                            <input type="text" 
-                            class="flex-1" 
-                            name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" 
-                            value="<?php echo $value['label']; ?>" 
-                            placeholder="e.g. Filter by Color"
-                            />
+                <!-- STRIPE_PUBLISHABLE_KEY -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[stripe_publishable_key]">Stripe Publishable Key</label></th>
+                    <td>
+                        <input type="text" 
+                            class="widefat" 
+                            name="woonuxt_options[stripe_publishable_key]" 
+                            value="<?php echo $options['stripe_publishable_key']; ?>" 
+                            placeholder="e.g. pk_test_1234567890"
+                        />
+                        <p class="description">You can find the Stripe Publishable Key in your Stripe dashboard under Developers > API Keys.</p>
+                    </td>
+                </tr>
+
+                <!-- LOGO -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[logo]">Logo</label></th>
+                    <td>
+                        <input type="text" 
+                            class="widefat" 
+                            name="woonuxt_options[logo]" 
+                            value="<?php echo $options['logo']; ?>" 
+                            placeholder="e.g. https://example.com/logo.png"
+                        />
+                        <p class="description">You can upload the logo in the Media Library and copy the URL here.</p>
+                    </td>
+                </tr>
+
+                <!-- PRIMARY COLOR -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[primary_color]">Primary Color</label></th>
+                    <td>
+                        <input 
+                            id="woonuxt_options[primary_color]"
+                            type="text"
+                            name="woonuxt_options[primary_color]"
+                            value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+                            oninput="document.getElementById('primary_color_picker').value = this.value"
+                        />
+                        <input type="color"
+                            id="primary_color_picker"
+                            name="woonuxt_options[primary_color]" 
+                            value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+                            oninput="document.getElementById('woonuxt_options[primary_color]').value = this.value"
+                        />
+                    </td>
+                </tr>
+
+                <!-- PRODUCTS PER PAGE -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[productsPerPage]">Products Per Page</label></th>
+                    <td>
+                        <input type="number"
+                            name="woonuxt_options[productsPerPage]" 
+                            value="<?php echo $options['productsPerPage'] ? $options['productsPerPage'] : '24'; ?>" 
+                            placeholder="e.g. 12"
+                        />
+                    </td>
+                </tr>
+
+                <!-- BUILD HOOK -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[build_hook]">Build Hook</label></th>
+                    <td>
+                        <input type="text" 
+                            id="build_url"
+                            class="widefat" 
+                            name="woonuxt_options[build_hook]" 
+                            value="<?php echo $options['build_hook']; ?>" 
+                            placeholder="e.g. https://api.netlify.com/build_hooks/1234567890"
+                        />
+                        <p class="description">The build hook is used to trigger a build on Netlify or Vercel. You can find the build hook in your Netlify or Vercel dashboard.</p>
+                    </td>
+                </tr>
+
+                <!-- GLOBAL ATTRIBLUES FOR FILTERS -->
+                <tr>
+                    <th scope="row"><label for="woonuxt_options[global_attributes]">Global Attributes</label></th>
+                    <td>
+                        <div class="global_attributes woonuxt-section">
+                        <?php
+                        if ( $options['global_attributes'] ) {
                             
-                            <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]" class="flex-1">
-                                <?php
-                                foreach ( $product_attributes as $attribute ) {
-                                    $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '' ;
-                                    ?>
-                                    <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
-                                        <?php echo $attribute->attribute_label; ?>
-                                    </option>
-                                    <?php
-                                }
+                            $product_attributes = wc_get_attribute_taxonomies();
+
+                            foreach ( $options['global_attributes'] as $key => $value ) {
                                 ?>
-                            </select>
-                            
-                            <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]">Show Count</label>
-                            <input type="checkbox" 
-                            class="widefat" 
-                            name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" 
-                            value="1" 
-                            <?php echo $value['showCount'] ? 'checked' : ''; ?>
-                            />
-                            <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]">Hide Empty</label>
-                            <input type="checkbox" 
-                            class="widefat" 
-                            name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" 
-                            value="1" 
-                            <?php echo $value['hideEmpty'] ? 'checked' : ''; ?>
-                            />
-                            <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]">Open By Default</label>
-                            <input type="checkbox" 
-                            class="widefat" 
-                            name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" 
-                            value="1" 
-                            <?php echo $value['openByDefault']
-                            ? 'checked' : ''; ?>
-                            />
-                            <button class="remove_global_attribute button button-danger">
-                                <img width="18" height="18" src="<?php echo plugins_url( 'assets/bin.svg', __FILE__ ); ?>">
-                            </button>
+                                <div class="global_attribute">
+                                    <div class="flex gap-1">
+                                        <input type="text" 
+                                        class="flex-1" 
+                                        name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" 
+                                        value="<?php echo $value['label']; ?>" 
+                                        placeholder="e.g. Filter by Color"
+                                        />
+                                        
+                                        <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]" class="flex-1">
+                                            <?php
+                                            foreach ( $product_attributes as $attribute ) {
+                                                $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '' ;
+                                                ?>
+                                                <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
+                                                    <?php echo $attribute->attribute_label; ?>
+                                                </option>
+                                                <?php
+                                            }
+                                            ?>
+                                        </select>
+                                        
+                                        <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]">Show Count</label>
+                                        <input type="checkbox" 
+                                        class="widefat" 
+                                        name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" 
+                                        value="1" 
+                                        <?php echo $value['showCount'] ? 'checked' : ''; ?>
+                                        />
+                                        <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]">Hide Empty</label>
+                                        <input type="checkbox" 
+                                        class="widefat" 
+                                        name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" 
+                                        value="1" 
+                                        <?php echo $value['hideEmpty'] ? 'checked' : ''; ?>
+                                        />
+                                        <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]">Open By Default</label>
+                                        <input type="checkbox" 
+                                        class="widefat" 
+                                        name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" 
+                                        value="1" 
+                                        <?php echo $value['openByDefault']
+                                        ? 'checked' : ''; ?>
+                                        />
+                                        <button class="remove_global_attribute button button-danger">
+                                            <img width="18" height="18" src="<?php echo plugins_url( 'assets/bin.svg', __FILE__ ); ?>">
+                                        </button>
+                                    </div>
+                                    
+                                </div>
+                                <?php
+                            }
+                        }
+                        ?>
+                        <div class="flex gap-1 add_global_attribute_row justify-end">
+                            <button class="add_global_attribute button button-primary">Add New Attribute</button>
                         </div>
-                        
-                    </div>
-                    <?php
-                }
-            }
-            ?>
-            <div class="flex gap-1 add_global_attribute_row justify-end">
-                <button class="add_global_attribute button button-primary">Add New Attribute</button>
-            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table> 
+
+        
 
             <script>
                 jQuery(document).ready(function($) {
@@ -425,6 +481,7 @@ add_action( 'init', function() {
                 'logo'                          => [ 'type' => 'String' ],
                 'maxPrice'                      => [ 'type' => 'Int' ],
                 'productsPerPage'               => [ 'type' => 'Int' ],
+                'frontEndUrl'                   => [ 'type' => 'String' ],
                 'global_attributes'             => [ 'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ] ],
                 'publicIntrospectionEnabled'    => [ 'type' => 'String', 'default' => 'off' ],
             ],
