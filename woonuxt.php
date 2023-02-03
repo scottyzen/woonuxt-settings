@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.8
+Version: 1.0.11
 */
 
 // Exit if accessed directly
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
-    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.0'));
+    wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, '1.0.11'));
     // wp_enqueue_script('admin_js', plugins_url('/assets.admin.js', __FILE__));
 }
 
@@ -26,6 +26,33 @@ function woonuxt_plugin_action_links($links) {
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+$plugin_list = [
+    'wp-graphql' => [
+        'name' => 'WPGraphQL',
+        'description' => 'A GraphQL API for WordPress and installs the WPGraphQL playground (GraphiQL)',
+        'url' => 'https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip',
+        'file' => 'wp-graphql/wp-graphql.php',
+        'icon' => 'https://www.wpgraphql.com/logo-wpgraphql.svg',
+        'slug' => 'wp-graphql',
+    ],
+    'woographql' => [
+        'name' => 'WooGraphQL',
+        'description' => 'Extend WPGraphQL with WooCommerce types, mutations, and queries',
+        'url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip',
+        'file' => 'wp-graphql-woocommerce/wp-graphql-woocommerce.php',
+        'icon' => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
+        'slug' => 'woographql',
+    ],
+    'wp-graphql-cors' => [
+        'name' => 'WPGraphQL CORS',
+        'description' => 'Add CORS headers to your WPGraphQL API & the login/logout mutataions.',
+        'url' => 'https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip',
+        'file' => 'wp-graphql-cors-2.1/wp-graphql-cors.php',
+        'icon' => 'https://avatars.githubusercontent.com/u/8369076?s=200&v=4',
+        'slug' => 'wp-graphql-cors',
+    ],
+];
 
 // Add options page
 add_action( 'admin_menu', 'woonuxt_options_page' );
@@ -90,97 +117,50 @@ function woonuxt_register_settings() {
 // Section callback
 function required_plugins_callback() {
     $tick_svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M9 16.17l-3.59-3.59L4 14l5 5 9-9-1.41-1.41L9 16.17z"/></svg>';
+    global $plugin_list;
 ?>
     <div class="woonuxt-section">
         <ul class="required-plugins-list">
-            <li class="required-plugin <?php echo is_plugin_active( 'wp-graphql/wp-graphql.php' ) ? 'active' : 'inactive'; ?>">
-            <img src="https://www.wpgraphql.com/logo-wpgraphql.svg" alt="WPGraphQL" width="64" height="64">
-            <h4 class="plugin-name">WPGraphQL</h4>
-            <p class="plugin-description">A GraphQL API for WordPress and installs the WPGraphQL playground (GraphiQL)</p>
-            <div class="plugin-state">
-                <?php if ( is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) : ?>
-                    Installed <?php echo $tick_svg_icon; ?>
-                <?php endif; ?>
-                <?php if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) : ?>
-                    <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=wp-graphql">Install</a>
-                <?php endif; ?>
-            </div>
-            </li>
-                <li class="required-plugin <?php echo is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ? 'active' : 'inactive'; ?>">
-                <img src="https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75" alt="WooGraphQL" width="64" height="64">
-                <h4 class="plugin-name">WooGraphQL</h4>
-                <p class="plugin-description">Extend WPGraphQL with WooCommerce types, mutations, and queries</p>
-                <div class="plugin-state">
-                    <?php if ( is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) : ?>
-                        Installed <?php echo $tick_svg_icon; ?>
-                    <?php endif; ?>
-                    <?php if ( !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) : ?>
-                        <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=woographql">Install Now</a>
-                    <?php endif; ?>
-                </div>
-            </li>
-            </li>
-                <li class="required-plugin <?php echo is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ? 'active' : 'inactive'; ?>">
-                <img src="https://avatars.githubusercontent.com/u/8369076?s=200&v=4" alt="WPGraphQL CORS" width="64" height="64">
-                <h4 class="plugin-name">WPGraphQL CORS</h4>
-                <p class="plugin-description">Add CORS headers to your WPGraphQL API & the login/logout mutataions.</p>
-                <div class="plugin-state">
-                    <?php if ( is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) : ?>
-                        Installed <?php echo $tick_svg_icon; ?>
-                    <?php endif; ?>
-                    <?php if ( !is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) : ?>
-                        <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=wp-graphql-cors">Install Now</a>
-                    <?php endif; ?>
-                </div>
-            </li>
+            <?php foreach ( $plugin_list as $plugin ) : ?>
+                <li class="required-plugin <?php echo is_plugin_active( ['file'] ) ? 'active' : 'inactive'; ?>">
+                    <img src="<?php echo $plugin['icon']; ?>" alt="<?php echo $plugin['name']; ?>" width="64" height="64">
+                    <h4 class="plugin-name"><?php echo $plugin['name']; ?></h4>
+                    <p class="plugin-description"><?php echo $plugin['description']; ?></p>
+                    <div class="plugin-state">
+                        <?php if ( is_plugin_active( $plugin['file'] ) ) : ?>
+                            Installed <?php echo $tick_svg_icon; ?>
+                        <?php endif; ?>
+                        <?php if ( !is_plugin_active( $plugin['file'] ) ) : ?>
+                            <a href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
+                        <?php endif; ?>
+                    </div>
+                </li>
+            <?php endforeach; ?>
         </ul>
     </div>
 <?php
+
+
     
     if ( isset( $_GET['install_plugin'] ) ) {
+        global $plugin_list;
+
         $upgrader = new Plugin_Upgrader();
-
-        // https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip
-        if ( $_GET['install_plugin'] == 'wp-graphql' && ! is_plugin_active( 'wp-graphql/wp-graphql.php' ) ) {
-            $fileURL = WP_PLUGIN_DIR . '/wp-graphql/wp-graphql.php';
+        $plugin = $plugin_list[ $_GET['install_plugin'] ];
+        $fileURL = WP_PLUGIN_DIR . '/' . $plugin['file'];
+        
+        if ( ! is_plugin_active( $plugin['file'] ) ) {
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( 'wp-graphql/wp-graphql.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
+                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt', false, true );
             } else {
-                $url = 'https://downloads.wordpress.org/plugin/wp-graphql.1.13.7.zip';
-                $result = $upgrader->install( $url );
+                $result = $upgrader->install( $plugin['url'] );
                 if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( 'wp-graphql/wp-graphql.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
+                    activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt', false, true );
                 }
             }
         }
 
-        // https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip
-        if ( $_GET['install_plugin'] == 'woographql' && ! is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) ) {
-            $fileURL = WP_PLUGIN_DIR . '/wp-graphql-woocommerce/wp-graphql-woocommerce.php';
-            if ( file_exists( $fileURL ) ) {
-                activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
-            } else {
-                $url = 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip';
-                $result = $upgrader->install( $url );
-                if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
-                }
-            }
-        }
-
-        // https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip
-        if ( $_GET['install_plugin'] == 'wp-graphql-cors' && ! is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) {
-            $fileURL = WP_PLUGIN_DIR . '/wp-graphql-cors-2.1/wp-graphql-cors.php';
-            if ( file_exists( $fileURL ) ) {
-                activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
-            } else {
-                $url = 'https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip';
-                $result = $upgrader->install( $url );
-                if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( 'wp-graphql-cors-2.1/wp-graphql-cors.php', '/wp-admin/options-general.php?page=woonuxt', false, true );
-                }
-            }
-        }
+        wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );  
 
     }
 }
@@ -246,33 +226,32 @@ function global_setting_callback() {
         <div class="global_attributes woonuxt-section">
             <?php
             if ( $options['global_attributes'] ) {
+                
                 $product_attributes = wc_get_attribute_taxonomies();
 
                 foreach ( $options['global_attributes'] as $key => $value ) {
                     ?>
                     <div class="global_attribute">
                         <div class="flex gap-1">
-                                <!-- <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][label]">Label</label> -->
-                                <input type="text" 
-                                class="flex-1" 
-                                name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" 
-                                value="<?php echo $value['label']; ?>" 
-                                placeholder="e.g. Color"
-                                />
-                                
-                                <!-- <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">Slug</label> -->
-                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]" class="flex-1">
-                                    <?php
-                                    foreach ( $product_attributes as $attribute ) {
-                                        $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '' ;
-                                        ?>
-                                        <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
-                                            <?php echo $attribute->attribute_label; ?>
-                                        </option>
-                                        <?php
-                                    }
+                            <input type="text" 
+                            class="flex-1" 
+                            name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" 
+                            value="<?php echo $value['label']; ?>" 
+                            placeholder="e.g. Filter by Color"
+                            />
+                            
+                            <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]" class="flex-1">
+                                <?php
+                                foreach ( $product_attributes as $attribute ) {
+                                    $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '' ;
                                     ?>
-                                </select>
+                                    <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
+                                        <?php echo $attribute->attribute_label; ?>
+                                    </option>
+                                    <?php
+                                }
+                                ?>
+                            </select>
                             
                             <label for="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]">Show Count</label>
                             <input type="checkbox" 
@@ -296,7 +275,9 @@ function global_setting_callback() {
                             <?php echo $value['openByDefault']
                             ? 'checked' : ''; ?>
                             />
-                            <button class="remove_global_attribute button button-danger">Remove</button>
+                            <button class="remove_global_attribute button button-danger">
+                                <img width="18" height="18" src="<?php echo plugins_url( 'assets/bin.svg', __FILE__ ); ?>">
+                            </button>
                         </div>
                         
                     </div>
@@ -304,82 +285,74 @@ function global_setting_callback() {
                 }
             }
             ?>
-            <hr class="w-full" />
-            <div class="flex gap-1 add_global_attribute_row">
-                <input class="flex-1 new-attr-label" type="text" placeholder="Label" />
-                <select class="flex-1 new-attr-slug" id="global_attribute_dropdown">
-                    <?php
-                    $product_attributes = wc_get_attribute_taxonomies();
-                    foreach ( $product_attributes as $attribute ) {
-                        ?>
-                        <option value="pa_<?php echo $attribute->attribute_name; ?>">
-                            <?php echo $attribute->attribute_label; ?>
-                        </option>
-                        <?php
-                    }
-                    ?>
-                </select>
-                <lable>Show Count
-                    </lable>
-                    <input type="checkbox" class="new-attr-showCount" value="1" />
-                <lable>Hide Empty
-                    </lable>
-                    <input type="checkbox" class="new-attr-hideEmpty" value="1" />
-                <lable>Open By Default
-                    </lable>
-                    <input type="checkbox" class="new-attr-openByDefault" value="1" />
-                <button class="add_global_attribute button button-primary">Add Attribute</button>
+            <div class="flex gap-1 add_global_attribute_row justify-end">
+                <button class="add_global_attribute button button-primary">Add New Attribute</button>
             </div>
 
             <script>
                 jQuery(document).ready(function($) {
-
-                    // global_attribute_dropdown
-                    const globalAttributeList = $('#global_attribute_dropdown');
-
+                    
+                    const globalAttributes = $('.global_attributes');
+                    let uniqueId = Math.random().toString(36).substr(2, 9);
 
                     // add global attribute
                     $('.add_global_attribute').click(function(e) {
                         e.preventDefault();
-                        var label = $('.new-attr-label').val();
-                        var slug = $('.new-attr-slug').val();
-                        var showCount = $('.new-attr-showCount').is(':checked') ? 1 : 0;
-                        var hideEmpty = $('.new-attr-hideEmpty').is(':checked') ? 1 : 0;
-                        var openByDefault = $('.new-attr-openByDefault').is(':checked') ? 1 : 0;
+                        const newAttribute = `
+                            <div class="global_attribute">
+                                <div class="flex gap-1">
+                                    <input type="text" 
+                                    class="flex-1" 
+                                    name="woonuxt_options[global_attributes][${uniqueId}][label]" 
+                                    value="" 
+                                    placeholder="e.g. Filter by Color"
+                                    />
+                                    
+                                    <select name="woonuxt_options[global_attributes][${uniqueId}][slug]" class="flex-1">
+                                        <option selected value="null" disabled>Select Attribute</option>
+                                        <?php
+                                        foreach ( $product_attributes as $attribute ) {
+                                            ?>
+                                            <option value="pa_<?php echo $attribute->attribute_name; ?>">
+                                                <?php echo $attribute->attribute_label; ?>
+                                            </option>
+                                            <?php
+                                        }
+                                        ?>
 
-                        var html = '<div class="global_attribute woonuxt-section">';
-                        html += '<div class="grid gap-1 grid-cols-2">';
-                        html += '<div class="grid">';
-                        html += '<label for="woonuxt_options[global_attributes][' + slug + '][label]">Label</label>';
-                        html += '<input type="text" class="flex-1 widefat" name="woonuxt_options[global_attributes][' + slug + '][label]" value="' + label + '" placeholder="e.g. Color" />';
-                        html += '</div>';
-                        html += '<div class="grid">';
-                        html += '<label for="woonuxt_options[global_attributes][' + slug + '][slug]">Slug</label>';
-                        html += '<select name="woonuxt_options[global_attributes][' + slug + '][slug]" class="widefat">';
-                        globalAttributeList.find('option').each(function() {
-                            var selected = $(this).val() == slug ? 'selected' : '';
-                            html += '<option value="' + $(this).val() + '" ' + selected + '>' + $(this).text() + '</option>';
-                        });
-                        html += '</select>';
-                        html += '</div>';
-                        html += '</div>';
-                        html += '<div class="row">';
-                        html += '<label for="woonuxt_options[global_attributes][' + slug + '][showCount]">Show Count</label>';
-                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][showCount]" value="1" ' + (showCount ? 'checked' : '') + ' />';
-                        html += '<label for="woonuxt_options[global_attributes][' + slug + '][hideEmpty]">Hide Empty</label>';
-                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][hideEmpty]" value="1" ' + (hideEmpty ? 'checked' : '') + ' />';
-                        html += '<label for="woonuxt_options[global_attributes][' + slug + '][openByDefault]">Open By Default</label>';
-                        html += '<input type="checkbox" class="widefat" name="woonuxt_options[global_attributes][' + slug + '][openByDefault]" value="1" ' + (openByDefault ? 'checked' : '') + ' />';
-                        html += '<button class="remove_global_attribute">Remove</button>';
-                        html += '</div>';
-                        html += '</div>';
+                                    </select>
+                                    
+                                    <label for="woonuxt_options[global_attributes][${uniqueId}][showCount]">Show Count</label>
+                                    <input type="checkbox" 
+                                    class="widefat" 
+                                    name="woonuxt_options[global_attributes][${uniqueId}][showCount]" 
+                                    value="1" 
+                                    />
+                                    <label for="woonuxt_options[global_attributes][${uniqueId}][hideEmpty]">Hide Empty</label>
+                                    <input type="checkbox" 
+                                    class="widefat" 
+                                    name="woonuxt_options[global_attributes][${uniqueId}][hideEmpty]" 
+                                    value="1" 
+                                    />
+                                    <label for="woonuxt_options[global_attributes][${uniqueId}][openByDefault]">Open By Default</label>
+                                    <input type="checkbox" 
+                                    class="widefat" 
+                                    name="woonuxt_options[global_attributes][${uniqueId}][openByDefault]" 
+                                    value="1" 
+                                    />
+                                    <button class="remove_global_attribute button button-danger">
+                                        <img width="18" height="18" src="<?php echo plugins_url( 'assets/bin.svg', __FILE__ ); ?>">
+                                    </button>
+                                </div>
+                                
+                            </div>
+                        `;
 
+                        $('.add_global_attribute_row').before(newAttribute);
+
+                        uniqueId = Math.random().toString(36).substr(2, 9);
                         
                         
-
-                        $('.add_global_attribute_row').before(html);
-                        $('.new-attr-label').val('');
-                        $('.new-attr-slug').val('');            
                          
                     });
 
@@ -400,6 +373,21 @@ function global_setting_callback() {
                                 alert('Build triggered successfully');
                             }
                         });
+                    });
+
+                    // move global attribute
+                    globalAttributes.on('click', '.move_global_attribute', function(e) {
+                        e.preventDefault();
+                        console.log('move');
+                        const $this = $(this);
+                        const $parent = $this.parent();
+                        const $prev = $parent.prev();
+                        const $next = $parent.next();
+                        if ($this.hasClass('up')) {
+                            $prev.before($parent);
+                        } else {
+                            $next.after($parent);
+                        }
                     });
                     
 
@@ -422,69 +410,42 @@ add_action( 'init', function() {
         register_graphql_object_type( 'woonuxtOptionsGlobalAttributes', [
             'description' => __( 'Woonuxt Global attributes for filtering', 'woonuxt' ),
             'fields' => [
-                'label' => [ 'type' => 'String' ],
-                'slug' => [ 'type' => 'String' ],
-                'showCount' => [ 'type' => 'Boolean' ],
-                'hideEmpty' => [ 'type' => 'Boolean' ],
-                'openByDefault' => [ 'type' => 'Boolean' ],
+                'label'                         => [ 'type' => 'String' ],
+                'slug'                          => [ 'type' => 'String' ],
+                'showCount'                     => [ 'type' => 'Boolean' ],
+                'hideEmpty'                     => [ 'type' => 'Boolean' ],
+                'openByDefault'                 => [ 'type' => 'Boolean' ],
             ],
         ]);
         register_graphql_object_type( 'woonuxtOptions', [
             'description' => __( 'Woonuxt Settings', 'woonuxt' ),
             'fields' => [
-                'stripe_publishable_key' => [
-                    'type' => 'String',
-                ],
-                'primary_color' => [
-                    'type' => 'String'
-                ],
-                'global_attributes' => [
-                    'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ]
-                ],
-                'logo' => [
-                    'type' => 'String',
-                    'description' => __( 'Logo URL', 'woonuxt' ),
-                ],
-                'maxPrice' => [
-                    'type' => 'Int',
-                    'description' => __( 'Most expensive product price', 'woonuxt' ),
-                ],
-                'publicIntrospectionEnabled' => [
-                    'type' => 'String',
-                    'description' => __( 'Is public introspection enabled in WPGraphQL', 'woonuxt' ),
-                    'default' => 'off',
-                ],
-                'productsPerPage' => [
-                    'type' => 'Int',
-                    'description' => __( 'Number of products per page', 'woonuxt' ),
-                ],
+                'stripe_publishable_key'        => [ 'type' => 'String' ],
+                'primary_color'                 => [ 'type' => 'String' ],
+                'logo'                          => [ 'type' => 'String' ],
+                'maxPrice'                      => [ 'type' => 'Int' ],
+                'productsPerPage'               => [ 'type' => 'Int' ],
+                'global_attributes'             => [ 'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ] ],
+                'publicIntrospectionEnabled'    => [ 'type' => 'String', 'default' => 'off' ],
             ],
         ]);
         register_graphql_field( 'RootQuery', 'woonuxtSettings', [
             'type' => 'woonuxtOptions',
-            'description' => __( 'Woonuxt Settings', 'woonuxt' ),
             'resolve' => function() {
+                $options = get_option( 'woonuxt_options' );
+
+                // Get max price
                 $max_price = 0;
-
-                $args = [
-                    'post_type' => 'product',
-                    'posts_per_page' => 1,
-                    'orderby' => 'meta_value_num',
-                    'order' => 'DESC',
-                    'meta_key' => '_price',
-                ];
-
-                $loop = new WP_Query( $args );
+                $loop = new WP_Query( [ 'post_type' => 'product', 'posts_per_page' => 1, 'orderby' => 'meta_value_num', 'order' => 'DESC', 'meta_key' => '_price' ]);
                 while ( $loop->have_posts() ) : $loop->the_post();
                     global $product;
                     $max_price = $product->get_price();
                 endwhile;
                 wp_reset_query();
 
-                $options = get_option( 'woonuxt_options' );
-                $options['maxPrice'] = $max_price;
 
-                // /wp-admin/admin.php?page=graphql-settings
+                // Extra options
+                $options['maxPrice'] = $max_price;
                 $options['publicIntrospectionEnabled'] = get_option( 'graphql_general_settings' )['public_introspection_enabled'];
 
                 return $options;
