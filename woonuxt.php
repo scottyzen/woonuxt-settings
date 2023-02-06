@@ -7,6 +7,8 @@ Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
 Version: 1.0.20
 Text Domain: woonuxt
+GitHub Plugin URI: scottyzen/woonuxt-settings
+GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 */
 
 // Exit if accessed directly
