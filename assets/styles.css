@@ -194,3 +194,27 @@ button.remove_global_attribute.button.button-danger:hover {
 .justify-end {
 	justify-content: flex-end;
 }
+
+.text-right {
+	text-align: right;
+}
+
+.text-danger {
+	color: #e13b3d;
+}
+
+.global_attribute_table.widefat td,
+.global_attribute_table.widefat th {
+	padding: 8px 10px;
+}
+
+.global_attribute_table .row-actions {
+	display: none;
+}
+.global_attribute_table tr:hover .row-actions {
+	display: inline-block;
+}
+
+.global_attribute_table.widefat th:last-child {
+	text-align: right;
+}
