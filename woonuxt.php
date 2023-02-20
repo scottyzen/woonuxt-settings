@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.20
+Version: 1.0.25
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.20' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.25' );
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
@@ -109,6 +109,13 @@ function woonuxt_register_settings() {
             'required_plugins_callback',
             'woonuxt'
         );
+    } else {
+        add_settings_section(
+            'deploy_button',
+            'Deploy',
+            'deploy_button_callback',
+            'woonuxt'
+        );
     }
 
     add_settings_section(
@@ -168,6 +175,28 @@ function required_plugins_callback() {
     }
 }
 
+function deploy_button_callback() {
+    $endpoint = get_site_url() . '/graphql';
+
+    ?>
+
+    <table class="form-table" role="presentation">
+        <tbody>
+            <tr>
+                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy to Netlify</label></th>
+                <td>
+                    <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>" >
+                        <img src="<?php echo plugins_url( 'assets/netlify.svg', __FILE__ ); ?>" alt="Deploy to Netlify" width="160" height="40">
+                    </a>
+                    <p class="description">When all the required plugins are installed, click the button above to deploy your frontend to Netlify. You will need to create a Netlify account if you don't already have one.</p>
+                    <p class="description">Once your frontend is deployed, copy the URL and add it to the <strong>Extend "Access-Control-Allow-Origin” header</strong> field below in the <a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL CORS settings</a> page.</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <?php
+}
+
 
 // Field callback
 function global_setting_callback() {
@@ -209,22 +238,28 @@ function global_setting_callback() {
                 </tr>
 
                 <!-- PRIMARY COLOR -->
-                <tr>
+                <tr id="primary-color-setting">
                     <th scope="row"><label for="woonuxt_options[primary_color]">Primary Color</label></th>
                     <td>
-                        <input 
-                            id="woonuxt_options[primary_color]"
-                            type="text"
-                            name="woonuxt_options[primary_color]"
-                            value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
-                            oninput="document.getElementById('primary_color_picker').value = this.value"
-                        />
-                        <input type="color"
-                            id="primary_color_picker"
-                            name="woonuxt_options[primary_color]" 
-                            value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
-                            oninput="document.getElementById('woonuxt_options[primary_color]').value = this.value"
-                        />
+                        <div>
+                            <input 
+                                id="woonuxt_options[primary_color]"
+                                type="text"
+                                name="woonuxt_options[primary_color]"
+                                value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+                                oninput="document.getElementById('primary_color_picker').value = this.value; document.getElementById('color-preview').style.backgroundColor = this.value;"
+                            />
+                            <input type="color"
+                                id="primary_color_picker"
+                                name="woonuxt_options[primary_color]" 
+                                value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+                                oninput="document.getElementById('woonuxt_options[primary_color]').value = this.value; document.getElementById('color-preview').style.backgroundColor = this.value;"
+                            />
+                            <p>
+                                This is an example of how the elements on the frontend will look like with the selected color. 
+                            </p>
+                        </div>
+                        <img id="color-preview" src="<?php echo plugins_url( 'assets/preview.png', __FILE__ ); ?>" alt="Color Picker" width="600" style="background-color: <?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>;">
                     </td>
                 </tr>
 
@@ -373,6 +408,14 @@ add_action( 'init', function() {
                 'publishable_key'               => [ 'type' => 'String' ],
             ],
         ]);
+        register_graphql_object_type( 'woonuxtOptionsStripeSettings', [
+            'fields' => [
+                'enabled'                       => [ 'type' => 'String' ],
+                'testmode'                      => [ 'type' => 'String' ],
+                'test_publishable_key'          => [ 'type' => 'String' ],
+                'publishable_key'               => [ 'type' => 'String' ],
+            ],
+        ]);
         register_graphql_object_type( 'woonuxtOptions', [
             'description' => __( 'Woonuxt Settings', 'woonuxt' ),
             'fields' => [
@@ -411,6 +454,12 @@ add_action( 'init', function() {
                 $array_restored_from_db = unserialize( $stripe_settings[0]->option_value );
                 $stripe_settings = json_decode( json_encode( $array_restored_from_db ), true );
                 $options['stripeSettings'] = $stripe_settings;
+
+                // Get graphql_general_settings from wp_options
+                $graphql_general_settings = $wpdb->get_results( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = 'graphql_general_settings'" );
+                $array_restored_from_db = unserialize( $graphql_general_settings[0]->option_value );
+                $graphql_general_settings = json_decode( json_encode( $array_restored_from_db ), true );
+                $gql_endpoint = $graphql_general_settings['graphql_endpoint'];
 
                 return $options;
             },
