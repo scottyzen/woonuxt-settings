@@ -435,6 +435,7 @@ add_action( 'init', function() {
                 'global_attributes'             => [ 'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ] ],
                 'publicIntrospectionEnabled'    => [ 'type' => 'String', 'default' => 'off' ],
                 'stripeSettings'                => [ 'type' => 'woonuxtOptionsStripeSettings' ],
+                'wooCommerceSettingsVersion'    => [ 'type' => 'String' ],
             ],
         ]);
         register_graphql_field( 'RootQuery', 'woonuxtSettings', [
@@ -460,7 +461,7 @@ add_action( 'init', function() {
                 $options['stripeSettings'] = $stripe_settings;
 
                 $options['domain'] = $_SERVER['HTTP_HOST'];
-
+                $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
                 return $options;
             },
         ]);

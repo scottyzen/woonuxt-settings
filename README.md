@@ -37,6 +37,7 @@ query getWooNuxtSettings {
     domain
     maxPrice
     productsPerPage
+    wooCommerceSettingsVersion
     global_attributes {
       slug
       showCount
