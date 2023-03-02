@@ -191,7 +191,7 @@ function required_plugins_callback() {
 }
 
 function deploy_button_callback() {
-    $gql_endpoint = get_option( 'graphql_general_settings' )['graphql_endpoint'];
+    $gql_endpoint = isset( get_option( 'graphql_general_settings' )['graphql_endpoint'] ) ? get_option( 'graphql_general_settings' )['graphql_endpoint'] : 'graphql';
     $endpoint = get_site_url() . '/' . $gql_endpoint;
     ?>
 
