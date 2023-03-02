@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.25
+Version: 1.0.26
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.25' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.26' );
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
@@ -161,29 +161,32 @@ function required_plugins_callback() {
         
         if ( ! is_plugin_active( $plugin['file'] ) ) {
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt', false, true );
+                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt' );
             } else {
                 $result = $upgrader->install( $plugin['url'] );
                 if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt', false, true );
+                    activate_plugin( $plugin['file']);
+                    ?>
+                    <script>
+                        window.location.href = '/wp-admin/options-general.php?page=woonuxt&prepare=true';
+                    </script>
+                    <?php
                 }
             }
         }
-
-        wp_redirect( '/wp-admin/options-general.php?page=woonuxt' );  
-
     }
+
 }
 
 function deploy_button_callback() {
-    $endpoint = get_site_url() . '/graphql';
-
+    $gql_endpoint = get_option( 'graphql_general_settings' )['graphql_endpoint'];
+    $endpoint = get_site_url() . '/' . $gql_endpoint;
     ?>
 
     <table class="form-table" role="presentation">
         <tbody>
             <tr>
-                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy to Netlify</label></th>
+                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy to Netlify.</label></th>
                 <td>
                     <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>" >
                         <img src="<?php echo plugins_url( 'assets/netlify.svg', __FILE__ ); ?>" alt="Deploy to Netlify" width="160" height="40">
@@ -201,8 +204,19 @@ function deploy_button_callback() {
 // Field callback
 function global_setting_callback() {
     $options = get_option( 'woonuxt_options' );
-    ?>
 
+    if ( isset( $_GET['prepare'] ) ) {
+        $cors_settings = get_option( 'graphql_cors_settings' );
+        $cors_settings['login_mutation'] = 'on';
+        $cors_settings['logout_mutation'] = 'on';
+        $cors_settings['acao'] = 'http://localhost:3000';
+        update_option( 'graphql_cors_settings', $cors_settings );
+
+        $graph_settings = get_option( 'graphql_general_settings' );
+        $graph_settings['public_introspection_enabled'] = 'on';
+        update_option( 'graphql_general_settings', $graph_settings );
+    }
+    ?>
 
     <div class="global_setting woonuxt-section">
 
@@ -432,8 +446,6 @@ add_action( 'init', function() {
         register_graphql_field( 'RootQuery', 'woonuxtSettings', [
             'type' => 'woonuxtOptions',
             'resolve' => function() {
-                global $wpdb;
-                
                 // woonuxt_options
                 $options = get_option( 'woonuxt_options' );
                 
@@ -450,16 +462,8 @@ add_action( 'init', function() {
                 wp_reset_query();                
 
                 // // Get woocommerce_stripe_settings from wp_options
-                $stripe_settings = $wpdb->get_results( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = 'woocommerce_stripe_settings'" );
-                $array_restored_from_db = unserialize( $stripe_settings[0]->option_value );
-                $stripe_settings = json_decode( json_encode( $array_restored_from_db ), true );
+                $stripe_settings = get_option( 'woocommerce_stripe_settings' );
                 $options['stripeSettings'] = $stripe_settings;
-
-                // Get graphql_general_settings from wp_options
-                $graphql_general_settings = $wpdb->get_results( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = 'graphql_general_settings'" );
-                $array_restored_from_db = unserialize( $graphql_general_settings[0]->option_value );
-                $graphql_general_settings = json_decode( json_encode( $array_restored_from_db ), true );
-                $gql_endpoint = $graphql_general_settings['graphql_endpoint'];
 
                 return $options;
             },
@@ -468,5 +472,4 @@ add_action( 'init', function() {
 });
 
 add_shortcode( 'woonuxt_settings_testing', function() {
-
 });
