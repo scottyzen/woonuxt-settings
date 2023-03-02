@@ -14,10 +14,10 @@ Go to the settings page to quickly help you install the required plugins.
 
 The plugin has the following settings:
 
--  **Build Hook**: The build hook URL from your Netlify or Vercel site.
--  **Logo**: The logo for your site. This will be used in the header and footer.
--  **Primary Color**: The primary color for your site. This will be used for buttons, links and other elements.
--  **Global Attributes**: The global attributes for your site. These will be used fot the product filters.
+- **Build Hook**: The build hook URL from your Netlify or Vercel site.
+- **Logo**: The logo for your site. This will be used in the header and footer.
+- **Primary Color**: The primary color for your site. This will be used for buttons, links and other elements.
+- **Global Attributes**: The global attributes for your site. These will be used fot the product filters.
 
 ## Stripe Settings
 
@@ -29,26 +29,27 @@ The plugin will automatically add the woonuxtSettings field to the GraphQL schem
 
 ```graphql
 query getWooNuxtSettings {
-	woonuxtSettings {
-		primary_color
-		logo
-		publicIntrospectionEnabled
-		frontEndUrl
-		maxPrice
-		productsPerPage
-		global_attributes {
-			slug
-			showCount
-			openByDefault
-			label
-			hideEmpty
-		}
-		stripeSettings {
-			enabled
-			testmode
-			test_publishable_key
-			publishable_key
-		}
-	}
+  woonuxtSettings {
+    primary_color
+    logo
+    publicIntrospectionEnabled
+    frontEndUrl
+    domain
+    maxPrice
+    productsPerPage
+    global_attributes {
+      slug
+      showCount
+      openByDefault
+      label
+      hideEmpty
+    }
+    stripeSettings {
+      enabled
+      testmode
+      test_publishable_key
+      publishable_key
+    }
+  }
 }
 ```

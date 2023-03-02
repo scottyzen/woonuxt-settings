@@ -431,6 +431,7 @@ add_action( 'init', function() {
                 'maxPrice'                      => [ 'type' => 'Int' ],
                 'productsPerPage'               => [ 'type' => 'Int' ],
                 'frontEndUrl'                   => [ 'type' => 'String' ],
+                'domain'                        => [ 'type' => 'String' ],
                 'global_attributes'             => [ 'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ] ],
                 'publicIntrospectionEnabled'    => [ 'type' => 'String', 'default' => 'off' ],
                 'stripeSettings'                => [ 'type' => 'woonuxtOptionsStripeSettings' ],
@@ -457,6 +458,8 @@ add_action( 'init', function() {
                 // // Get woocommerce_stripe_settings from wp_options
                 $stripe_settings = get_option( 'woocommerce_stripe_settings' );
                 $options['stripeSettings'] = $stripe_settings;
+
+                $options['domain'] = $_SERVER['HTTP_HOST'];
 
                 return $options;
             },
