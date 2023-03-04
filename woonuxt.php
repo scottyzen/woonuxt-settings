@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.27
+Version: 1.0.29
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.27' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.29' );
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
@@ -58,18 +58,6 @@ $plugin_list = [
         'slug' => 'wp-graphql-cors',
     ],
 ];
-
-function prepareSettingsAfterPluginInstall(){
-    $cors_settings = get_option( 'graphql_cors_settings' );
-    $cors_settings['login_mutation'] = 'on';
-    $cors_settings['logout_mutation'] = 'on';
-    $cors_settings['acao'] = 'http://localhost:3000';
-    update_option( 'graphql_cors_settings', $cors_settings );
-
-    $graph_settings = get_option( 'graphql_general_settings' );
-    $graph_settings['public_introspection_enabled'] = 'on';
-    update_option( 'graphql_general_settings', $graph_settings );
-}
 
 // Add options page
 add_action( 'admin_menu', 'woonuxt_options_page' );
@@ -178,11 +166,6 @@ function required_plugins_callback() {
                 $result = $upgrader->install( $plugin['url'] );
                 if ( ! is_wp_error( $result ) ) {
                     activate_plugin( $plugin['file']);
-                    ?>
-                    <script>
-                        window.location.href = '/wp-admin/options-general.php?page=woonuxt&prepare=true';
-                    </script>
-                    <?php
                 }
             }
         }
@@ -191,19 +174,37 @@ function required_plugins_callback() {
 }
 
 function deploy_button_callback() {
+    $site_name = get_bloginfo( 'name' );
     $gql_endpoint = isset( get_option( 'graphql_general_settings' )['graphql_endpoint'] ) ? get_option( 'graphql_general_settings' )['graphql_endpoint'] : 'graphql';
     $endpoint = get_site_url() . '/' . $gql_endpoint;
+    $cors_settings = get_option( 'graphql_cors_settings' );
+    $login_mutation_is_enabled = isset( $cors_settings['login_mutation'] ) ? $cors_settings['login_mutation'] : false;
+    $logout_mutation_is_enabled = isset( $cors_settings['logout_mutation'] ) ? $cors_settings['logout_mutation'] : false;
+    $both_login_and_logout_mutation_is_enabled = $login_mutation_is_enabled === 'on' && $logout_mutation_is_enabled === 'on' ? true : false;
     ?>
 
     <table class="form-table" role="presentation">
         <tbody>
             <tr>
-                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy to Netlify.</label></th>
+                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy your Site.</label></th>
                 <td>
-                    <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>" >
-                        <img src="<?php echo plugins_url( 'assets/netlify.svg', __FILE__ ); ?>" alt="Deploy to Netlify" width="160" height="40">
-                    </a>
-                    <p class="description">When all the required plugins are installed, click the button above to deploy your frontend to Netlify. You will need to create a Netlify account if you don't already have one.</p>
+                    <?php if ( !$both_login_and_logout_mutation_is_enabled ) : ?>
+                    <div class="warning">
+                        <p>Before you deploy your site, you need to enable the login and logout mutation in the WP GraphQL CORS plugin. Go to <strong><a href="/wp-admin/admin.php?page=graphql-settings">WP GraphQL Setting > CORS Settings</a></strong> and enable the login and logout mutation.</p>
+                    </div>
+                    <?php endif; ?>
+                    <div class="flex">
+                        <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>" 
+                            target="_blank"
+                            class="mr-8"
+                            >
+                            <img src="<?php echo plugins_url( 'assets/netlify.svg', __FILE__ ); ?>" alt="Deploy to Netlify" width="160" height="40">
+                        </a>
+                        <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fscottyzen%2FWooNuxt3&repository-name=<?php echo $site_name; ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
+                            <svg data-testid="geist-icon" fill="none" height="15" width="15" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L2 19.7778H22L12 2Z" fill="#fff" stroke="#fff" stroke-width="1.5"></path></svg>
+                            <span>Deploy to Vercel</span>
+                        </a>
+                    </div>
                     <p class="description">Once your frontend is deployed, copy the URL and add it to the <strong>Extend "Access-Control-Allow-Origin” header</strong> field below in the <a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL CORS settings</a> page.</p>
                 </td>
             </tr>
@@ -217,13 +218,7 @@ function deploy_button_callback() {
 function global_setting_callback() {
     $options = get_option( 'woonuxt_options' );
     $product_attributes = wc_get_attribute_taxonomies();
-    echo '<script>var product_attributes = ' . json_encode( $product_attributes ) . ';</script>';
-
-
-    if ( isset( $_GET['prepare'] ) ) {
-        prepareSettingsAfterPluginInstall();
-    }
-    
+    echo '<script>var product_attributes = ' . json_encode( $product_attributes ) . ';</script>';    
     ?>
 
     <div class="global_setting woonuxt-section">
