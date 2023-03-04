@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: http://woonuxt.com
-Version: 1.0.29
+Version: 1.0.30
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.29' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.30' );
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
@@ -194,7 +194,7 @@ function deploy_button_callback() {
                     </div>
                     <?php endif; ?>
                     <div class="flex">
-                        <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>" 
+                        <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>&NUXT_IMAGE_DOMAINS=<?php echo $_SERVER['HTTP_HOST']; ?>"
                             target="_blank"
                             class="mr-8"
                             >
