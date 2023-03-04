@@ -161,11 +161,15 @@ function required_plugins_callback() {
         
         if ( ! is_plugin_active( $plugin['file'] ) ) {
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt' );
+                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
             } else {
                 $result = $upgrader->install( $plugin['url'] );
-                if ( ! is_wp_error( $result ) ) {
-                    activate_plugin( $plugin['file']);
+                if ( $result ) {
+                    ?>
+                    <script>
+                        window.location.href = '/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $_GET['install_plugin']; ?>';
+                    </script>
+                    <?php
                 }
             }
         }
@@ -186,7 +190,7 @@ function deploy_button_callback() {
     <table class="form-table" role="presentation">
         <tbody>
             <tr>
-                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy your Site.</label></th>
+                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy your Site</label></th>
                 <td>
                     <?php if ( !$both_login_and_logout_mutation_is_enabled ) : ?>
                     <div class="warning">
