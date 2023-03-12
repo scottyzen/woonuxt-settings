@@ -4,8 +4,8 @@ Plugin Name: WooNuxt Settings
 Description: This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
-Plugin URI: http://woonuxt.com
-Version: 1.0.31
+Plugin URI: https://github.com/scottyzen/woonuxt-settings
+Version: 1.0.32
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,13 +14,17 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.31' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.32' );
+
+// Define Globals
+global $plugin_list;
+global $github_version;
 
 add_action('admin_enqueue_scripts', 'load_admin_style_woonuxt');
 function load_admin_style_woonuxt() {
     wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__, false, WOONUXT_SETTINGS_VERSION));
-    wp_enqueue_script('admin_js', plugins_url('/assets/admin.js', __FILE__), array('jquery'), WOONUXT_SETTINGS_VERSION, true);
-}
+    wp_enqueue_script('admin_js', plugins_url('/assets/admin.js', __FILE__), array('jquery'), WOONUXT_SETTINGS_VERSION, true);}
+
 
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
 function woonuxt_plugin_action_links($links) {
@@ -57,7 +61,34 @@ $plugin_list = [
         'icon' => 'https://avatars.githubusercontent.com/u/8369076?s=200&v=4',
         'slug' => 'wp-graphql-cors',
     ],
+    'woonuxt-settings' => [
+        'name' => 'WooNuxt Settings',
+        'description' => 'This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.',
+        'url' => 'https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.29/woonuxt-settings.zip',
+        'file' => 'woonuxt-settings/woonuxt.php',
+        'icon' => 'https://woonuxt.com/wp-content/uploads/2021/09/colored-logo.svg',
+        'slug' => 'woonuxt-settings',
+    ],
 ];
+
+function github_version_number( ) {
+    $github_url = 'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/woonuxt.php';
+    $github_file = file_get_contents( $github_url );
+    preg_match( '/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches );
+    $github_version = $matches[1];
+    return $github_version;
+}
+
+function WooNuxtUpdateAvailable() {
+    $current_version = WOONUXT_SETTINGS_VERSION;
+    $github_version = github_version_number();
+
+    if ( $current_version < $github_version ) {
+        return true;
+    }
+    return false;
+}
+
 
 // Add options page
 add_action( 'admin_menu', 'woonuxt_options_page' );
@@ -79,7 +110,7 @@ function woonuxt_options_page_html() {
         <a href="https://woonuxt.com" class="acf-logo"><img src="<?php echo plugins_url( 'assets/colored-logo.svg', __FILE__ ); ?>" alt="WooNuxt"
         target="_blank"></a>
         <h2 style="display: block;">WooNuxt</h2>
-        <?php if( $options['build_hook'] ) : ?>
+        <?php if( isset( $options['build_hook'] )) : ?>
             <button id="deploy-button" class="acf-button button button-primary button-large" style="display: block;">Deploy</button>
         <?php endif; ?>
     </div>
@@ -95,11 +126,48 @@ function woonuxt_options_page_html() {
     <?php
 }
 
+/* AJAX funtions to update this plugin from Gethub
+Trigger Button = update_woonuxt_plugin
+Plugin url = https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.29/woonuxt-settings.zip
+*/
+add_action( 'wp_ajax_update_woonuxt_plugin', 'update_woonuxt_plugin' );
+function update_woonuxt_plugin() {
+    // $plugin_url = 'https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.29/woonuxt-settings.zip';
+    $plugin_url = 'https://github.com/scottyzen/woonuxt-settings/releases/download/' . github_version_number() . '/woonuxt-settings.zip';
+    $plugin_slug = 'woonuxt-settings/woonuxt.php';
+    $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_slug;
+    $plugin_file = $plugin_path . '/woonuxt.php';
+    
+    // Disable and delete the plugin
+    deactivate_plugins( $plugin_slug );
+    delete_plugins( [ $plugin_slug ] );
+
+    $upgrader = new Plugin_Upgrader();
+    $result = $upgrader->install( $plugin_url );
+    if ( $result ) {
+        activate_plugin( $plugin_slug );
+        wp_send_json_success( 'Plugin updated' );
+    } else {
+        wp_send_json_error( 'Plugin update failed' );
+    }
+}
+
+
+
 // Register settings
 add_action( 'admin_init', 'woonuxt_register_settings' );
 function woonuxt_register_settings() {
 
     register_setting( 'woonuxt_options', 'woonuxt_options' );
+
+    if (WooNuxtUpdateAvailable()) {
+        add_settings_section(
+            'update_available',
+            'Update Available',
+            'update_available_callback',
+            'woonuxt'
+        );
+    }
 
     // if all plugins are active don't show required plugins section
     if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) || !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) || !is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) ) {
@@ -124,6 +192,32 @@ function woonuxt_register_settings() {
         'global_setting_callback',
         'woonuxt',
     );
+}
+
+function update_available_callback() {
+    $github_plgin_zip = 'https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.29/woonuxt-settings.zip';
+    echo '<div class="notice notice-warning woonuxt-section"><p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin">here</a></strong></u> to update to update <strong>'. WOONUXT_SETTINGS_VERSION .'</strong> to <strong>'. github_version_number() .'</strong></p></div>';
+    ?>
+    <script>
+        jQuery(document).ready(function($) {
+            $('#update_woonuxt_plugin').click(function(e) {
+                e.preventDefault();
+                $(this).text('Updating...');
+                $.ajax({ url: ajaxurl, type: 'POST',
+                    data: { action: 'update_woonuxt_plugin' },
+                    success(response) {
+                        alert('Plugin updated successfully');
+                        location.reload();
+                    },
+                    error(error) {
+                        alert('Plugin update failed');
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+    <?php
 }
 
 // Section callback
@@ -161,20 +255,15 @@ function required_plugins_callback() {
         
         if ( ! is_plugin_active( $plugin['file'] ) ) {
             if ( file_exists( $fileURL ) ) {
-                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
+                activate_plugin( $plugin['file'], '/wp-admin/options-general.php?page=woonuxt' );
             } else {
                 $result = $upgrader->install( $plugin['url'] );
-                if ( $result ) {
-                    ?>
-                    <script>
-                        window.location.href = '/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $_GET['install_plugin']; ?>';
-                    </script>
-                    <?php
+                if ( ! is_wp_error( $result ) ) {
+                    activate_plugin( $plugin['file']);
                 }
             }
         }
     }
-
 }
 
 function deploy_button_callback() {
@@ -190,7 +279,7 @@ function deploy_button_callback() {
     <table class="form-table" role="presentation">
         <tbody>
             <tr>
-                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy your Site</label></th>
+                <th scope="row"><label for="woonuxt_options[build_hook]">Deploy your Site.</label></th>
                 <td>
                     <?php if ( !$both_login_and_logout_mutation_is_enabled ) : ?>
                     <div class="warning">
@@ -237,7 +326,7 @@ function global_setting_callback() {
                         <input type="text" 
                             class="widefat" 
                             name="woonuxt_options[frontEndUrl]" 
-                            value="<?php echo $options['frontEndUrl']; ?>" 
+                            value="<?php echo isset($options['frontEndUrl']) ? $options['frontEndUrl'] : ''; ?>"
                             placeholder="e.g. https://example.com"
                         />
                         <p class="description">The URL of your frontend. This is where the build files will be deployed to.</p>
@@ -251,7 +340,7 @@ function global_setting_callback() {
                         <input type="text" 
                             class="widefat" 
                             name="woonuxt_options[logo]" 
-                            value="<?php echo $options['logo']; ?>" 
+                            value="<?php echo isset($options['logo'] ) ? $options['logo'] : ''; ?>"
                             placeholder="e.g. https://example.com/logo.png"
                         />
                         <p class="description">You can upload the logo in the Media Library and copy the URL here.</p>
@@ -267,13 +356,13 @@ function global_setting_callback() {
                                 id="woonuxt_options[primary_color]"
                                 type="text"
                                 name="woonuxt_options[primary_color]"
-                                value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+                                value="<?php echo isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2'; ?>"
                                 oninput="document.getElementById('primary_color_picker').value = this.value; document.getElementById('color-preview').style.backgroundColor = this.value;"
                             />
                             <input type="color"
                                 id="primary_color_picker"
                                 name="woonuxt_options[primary_color]" 
-                                value="<?php echo $options['primary_color'] ? $options['primary_color'] : '#7F54B2'; ?>"
+                                value="<?php echo isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2'; ?>"
                                 oninput="document.getElementById('woonuxt_options[primary_color]').value = this.value; document.getElementById('color-preview').style.backgroundColor = this.value;"
                             />
                             <p>
@@ -304,7 +393,7 @@ function global_setting_callback() {
                             id="build_url"
                             class="widefat" 
                             name="woonuxt_options[build_hook]" 
-                            value="<?php echo $options['build_hook']; ?>" 
+                            value="<?php echo isset($options['build_hook']) ? $options['build_hook'] : ''; ?>"
                             placeholder="e.g. https://api.netlify.com/build_hooks/1234567890"
                         />
                         <p class="description">The build hook is used to trigger a build on Netlify or Vercel. You can find the build hook in your Netlify or Vercel dashboard.</p>
@@ -461,3 +550,6 @@ add_action( 'init', function() {
 
 add_shortcode( 'woonuxt_settings_testing', function() {
 });
+
+
+
