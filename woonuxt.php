@@ -414,14 +414,6 @@ add_action( 'init', function() {
                 'publishable_key'               => [ 'type' => 'String' ],
             ],
         ]);
-        register_graphql_object_type( 'woonuxtOptionsStripeSettings', [
-            'fields' => [
-                'enabled'                       => [ 'type' => 'String' ],
-                'testmode'                      => [ 'type' => 'String' ],
-                'test_publishable_key'          => [ 'type' => 'String' ],
-                'publishable_key'               => [ 'type' => 'String' ],
-            ],
-        ]);
         register_graphql_object_type( 'woonuxtOptions', [
             'description' => __( 'Woonuxt Settings', 'woonuxt' ),
             'fields' => [
