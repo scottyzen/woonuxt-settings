@@ -515,6 +515,7 @@ add_action( 'init', function() {
                 'global_attributes'             => [ 'type' => [ 'list_of' => 'woonuxtOptionsGlobalAttributes' ] ],
                 'publicIntrospectionEnabled'    => [ 'type' => 'String', 'default' => 'off' ],
                 'stripeSettings'                => [ 'type' => 'woonuxtOptionsStripeSettings' ],
+                'currency'                      => [ 'type' => 'String' ],
                 'wooCommerceSettingsVersion'    => [ 'type' => 'String' ],
             ],
         ]);
@@ -539,6 +540,12 @@ add_action( 'init', function() {
                 // // Get woocommerce_stripe_settings from wp_options
                 $stripe_settings = get_option( 'woocommerce_stripe_settings' );
                 $options['stripeSettings'] = $stripe_settings;
+
+                // Get WooCommerce currency code
+                if ( ! function_exists( 'get_woocommerce_currency' ) && function_exists( 'WC' ) ) {
+                    require_once WC()->plugin_path() . '/includes/wc-core-functions.php';
+                }
+                $options['currency'] = get_woocommerce_currency();
 
                 $options['domain'] = $_SERVER['HTTP_HOST'];
                 $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
