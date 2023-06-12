@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.33
+Version: 1.0.34
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.33' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.34' );
 
 // Define Globals
 global $plugin_list;
@@ -48,7 +48,7 @@ $plugin_list = [
     'woographql' => [
         'name' => 'WooGraphQL',
         'description' => 'Extend WPGraphQL with WooCommerce types, mutations, and queries',
-        'url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.12.0/wp-graphql-woocommerce.zip',
+        'url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v0.13.0/wp-graphql-woocommerce.zip',
         'file' => 'wp-graphql-woocommerce/wp-graphql-woocommerce.php',
         'icon' => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
         'slug' => 'woographql',
