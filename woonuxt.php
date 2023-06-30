@@ -29,14 +29,14 @@ function load_admin_style_woonuxt() {
     wp_enqueue_script('admin_js', plugins_url('/assets/admin.js', __FILE__), array('jquery'), WOONUXT_SETTINGS_VERSION, true);
 }
 
-// require 'path/to/plugin-update-checker/plugin-update-checker.php';
-// use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+require 'path/to/plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-// $myUpdateChecker = PucFactory::buildUpdateChecker(
-// 	'https://example.com/path/to/details.json',
-// 	__FILE__, //Full path to the main plugin file or functions.php.
-// 	'unique-plugin-or-theme-slug'
-// );
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/details.json',
+	__FILE__, //Full path to the main plugin file or functions.php.
+	'woonuxt-settings'
+);
 
 
 // Add filter to add the settings link to the plugins page
