@@ -204,7 +204,7 @@ function woonuxt_register_settings() {
     }
 
     // if all plugins are active don't show required plugins section
-    if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) || !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) || !_actiis_pluginve( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) 
+    if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) || !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) || !is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) 
         ) {
         add_settings_section( 'required_plugins', 'Required Plugins', 'required_plugins_callback', 'woonuxt' );
     } else {
