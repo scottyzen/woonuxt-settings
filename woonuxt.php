@@ -33,7 +33,7 @@ require 'plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/details.json',
+	'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/plugin.json',
 	__FILE__, //Full path to the main plugin file or functions.php.
 	'woonuxt-settings',
     6 // <-- Check every 6 hours.
