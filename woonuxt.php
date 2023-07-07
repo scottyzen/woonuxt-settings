@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.40
+Version: 1.0.41
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.40' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.41' );
 define( 'WPGraphQL_version', '1.13.8' );
 define( 'WooGraphQL_version', '0.13.0' );
 define( 'WPGraphQL_CORS_version', '2.1' );
@@ -65,7 +65,7 @@ $plugin_list = [
     'wp-graphql' => [
         'name' => 'WPGraphQL',
         'description' => 'A GraphQL API for WordPress and installs the WPGraphQL playground (GraphiQL)',
-        'url' => 'https://downloads.wordpress.org/plugin/wp-graphql.'.$WPGraphQL_version.'.zip',
+        'url' => 'https://downloads.wordpress.org/plugin/wp-graphql.'. WPGraphQL_version.'.zip',
         'file' => 'wp-graphql/wp-graphql.php',
         'icon' => 'https://www.wpgraphql.com/logo-wpgraphql.svg',
         'slug' => 'wp-graphql',
@@ -73,7 +73,7 @@ $plugin_list = [
     'woographql' => [
         'name' => 'WooGraphQL',
         'description' => 'Extend WPGraphQL with WooCommerce types, mutations, and queries',
-        'url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v'.$WooGraphQL_version.'/wp-graphql-woocommerce.zip',
+        'url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v'. WooGraphQL_version.'/wp-graphql-woocommerce.zip',
         'file' => 'wp-graphql-woocommerce/wp-graphql-woocommerce.php',
         'icon' => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
         'slug' => 'woographql',
@@ -196,6 +196,7 @@ add_action( 'admin_init', 'woonuxt_register_settings' );
 function woonuxt_register_settings() {
 
     global $WPGraphQL_CORS_version;
+    global $plugin_list;
 
     register_setting( 'woonuxt_options', 'woonuxt_options' );
 
@@ -203,9 +204,14 @@ function woonuxt_register_settings() {
         add_settings_section( 'update_available', 'Update Available', 'update_available_callback', 'woonuxt' );
     }
 
+    // Return true if all plugins are active
+    $is_all_plugins_active = array_reduce( $plugin_list, function( $carry, $plugin ) {
+        return $carry && is_plugin_active( $plugin['file'] );
+    }, true );
+
+
     // if all plugins are active don't show required plugins section
-    if ( !is_plugin_active( 'wp-graphql/wp-graphql.php' ) || !is_plugin_active( 'wp-graphql-woocommerce/wp-graphql-woocommerce.php' ) || !is_plugin_active( 'wp-graphql-cors-2.1/wp-graphql-cors.php' ) 
-        ) {
+    if (!$is_all_plugins_active ) {
         add_settings_section( 'required_plugins', 'Required Plugins', 'required_plugins_callback', 'woonuxt' );
     } else {
         add_settings_section( 'deploy_button', 'Deploy', 'deploy_button_callback', 'woonuxt' );
@@ -589,7 +595,7 @@ add_action( 'init', function() {
                 endwhile;
                 wp_reset_query();                
 
-                // // Get woocommerce_stripe_settings from wp_options
+                // Get woocommerce_stripe_settings from wp_options
                 $stripe_settings = get_option( 'woocommerce_stripe_settings' );
                 $options['stripeSettings'] = $stripe_settings;
 
