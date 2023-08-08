@@ -5,7 +5,7 @@
 
   "homepage": "https//woonuxt.com/",
   "tested": "6.2.2",
-  "upgrade_notice": "Here's why you should upgrade...",
+  "upgrade_notice": "Fix error when WooCommerce is disabled or not installed",
 
   "author": "Scott Kennedy",
   "author_homepage": "https://scottyzen.com/",
