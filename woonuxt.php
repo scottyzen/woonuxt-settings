@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.41
+Version: 1.0.42
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,10 +14,11 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.41' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.42' );
 define( 'WPGraphQL_version', '1.13.8' );
 define( 'WooGraphQL_version', '0.13.0' );
 define( 'WPGraphQL_CORS_version', '2.1' );
+define( 'WooCommerce_version', '7.9.0' );
 
 // Define Globals
 global $plugin_list;
@@ -85,6 +86,14 @@ $plugin_list = [
         'file' => 'wp-graphql-cors-2.1/wp-graphql-cors.php',
         'icon' => 'https://avatars.githubusercontent.com/u/8369076?s=200&v=4',
         'slug' => 'wp-graphql-cors',
+    ],
+    'woocommerce' => [
+        'name' => 'WooCommerce',
+        'description' => 'An eCommerce toolkit that helps you sell anything. Beautifully.',
+        'url' => 'https://downloads.wordpress.org/plugin/woocommerce.7.9.0.zip',
+        'file' => 'woocommerce/woocommerce.php',
+        'icon' => 'https://ps.w.org/woocommerce/assets/icon-256x256.gif',
+        'slug' => 'woocommerce',
     ],
 ];
 
@@ -210,14 +219,16 @@ function woonuxt_register_settings() {
     }, true );
 
 
-    // if all plugins are active don't show required plugins section
+    // if all plugins are active don't show required plugins section 
     if (!$is_all_plugins_active ) {
         add_settings_section( 'required_plugins', 'Required Plugins', 'required_plugins_callback', 'woonuxt' );
     } else {
         add_settings_section( 'deploy_button', 'Deploy', 'deploy_button_callback', 'woonuxt' );
     }
 
-    add_settings_section( 'global_setting', 'Global Settings', 'global_setting_callback', 'woonuxt');
+    if ( class_exists( 'WooCommerce' ) ) {
+        add_settings_section( 'global_setting', 'Global Settings', 'global_setting_callback', 'woonuxt');
+    }   
 }
 
 
@@ -367,6 +378,7 @@ function deploy_button_callback() {
 
 // Field callback
 function global_setting_callback() {
+    
     $options = get_option( 'woonuxt_options' );
     $product_attributes = wc_get_attribute_taxonomies();
     echo '<script>var product_attributes = ' . json_encode( $product_attributes ) . ';</script>';    
