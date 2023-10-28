@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.44
+Version: 1.0.45
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.44' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.45' );
 define( 'WPGraphQL_version', '1.17.0' );
 define( 'WooGraphQL_version', '0.18.2' );
 define( 'WPGraphQL_CORS_version', '2.1' );
