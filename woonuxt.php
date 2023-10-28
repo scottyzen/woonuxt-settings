@@ -623,6 +623,13 @@ add_action( 'init', function() {
             },
         ]);
     });
+
+    add_filter( 'graphql_data_is_private', function( $is_private, $model_name, $data, $visibility, $owner, $current_user ) {
+
+        if ( 'PluginObject' === $model_name ) { return false; }
+        return $is_private;
+
+    }, 10, 6 );
 });
 
 
