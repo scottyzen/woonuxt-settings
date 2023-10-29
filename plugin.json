@@ -22,7 +22,7 @@
   },
 
   "banners": {
-    "low": "banner-small.jpg",
-    "high": "banner-big.jpg"
+    "low": "assets/banner-small.jpg",
+    "high": "assets/banner-big.jpg"
   }
 }
