@@ -22,7 +22,7 @@
   },
 
   "banners": {
-    "low": "assets/banner-small.jpg",
-    "high": "assets/banner-big.jpg"
+    "low": "https://woonuxt.com/wp-content/plugins/woonuxt-settings/assets/banner-small.jpg",
+    "high": "https://woonuxt.com/wp-content/plugins/woonuxt-settings/assets/banner-big.jpg"
   }
 }
