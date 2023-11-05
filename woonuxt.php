@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.45
+Version: 1.0.46
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -14,7 +14,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOONUXT_SETTINGS_VERSION', '1.0.45' );
+define( 'WOONUXT_SETTINGS_VERSION', '1.0.46' );
 define( 'WPGraphQL_version', '1.17.0' );
 define( 'WooGraphQL_version', '0.18.2' );
 define( 'WPGraphQL_CORS_version', '2.1' );
@@ -624,12 +624,17 @@ add_action( 'init', function() {
         ]);
     });
 
+    // Allow plugins to be queried by id
     add_filter( 'graphql_data_is_private', function( $is_private, $model_name, $data, $visibility, $owner, $current_user ) {
-
         if ( 'PluginObject' === $model_name ) { return false; }
         return $is_private;
-
     }, 10, 6 );
+
+    // Increase the max query amount if there are more than 100 products
+    add_filter( 'graphql_connection_max_query_amount', function( $amount, $source, $args, $context, $info  ) {
+        $total_number_of_products = wp_count_posts( 'product' )->publish;
+        return $amount = $total_number_of_products > 100 ? $total_number_of_products : $amount;
+    }, 10, 5 );
 });
 
 
