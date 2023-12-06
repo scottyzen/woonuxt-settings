@@ -1,26 +1,26 @@
 jQuery(document).ready(function ($) {
-  const globalAttributes = $('.global_attribute_table');
-  let uniqueId = Math.random().toString(36).substr(2, 9);
+  const globalAttributes = $(".global_attribute_table");
+  let uniqueId = Math.random().toString(36).slice(2, 11);
 
-  //   product_attributes is an object that contains the product attributes
+  // product_attributes is an object that contains the product attributes
 
   // deploy-button FROM build_hook
-  const buildUrl = $('#build_url');
-  $('#deploy-button').click(function (e) {
+  const buildUrl = $("#build_url");
+  $("#deploy-button").click(function (e) {
     e.preventDefault();
     $.ajax({
       url: buildUrl.val(),
-      type: 'POST',
-      success: function (data) {
-        alert('Build triggered successfully');
+      type: "POST",
+      success(data) {
+        alert("Build triggered successfully");
       },
     });
   });
 
   // add global attribute
-  $('.add_global_attribute').click(function (e) {
+  $(".add_global_attribute").click(function (e) {
     e.preventDefault();
-    console.log('add global attribute');
+    console.log("add global attribute");
     const newAttribute = `
 	<tr>
 		<td>
@@ -52,37 +52,40 @@ jQuery(document).ready(function ($) {
 	</tr>
 `;
 
-    globalAttributes.find('tbody').append(newAttribute);
+    globalAttributes.find("tbody").append(newAttribute);
 
-    uniqueId = Math.random().toString(36).substr(2, 9);
+    uniqueId = Math.random().toString(36).slice(2, 11);
   });
 
   // remove global attribute
-  $(document).on('click', '.remove_global_attribute', function (e) {
+  $(document).on("click", ".remove_global_attribute", function (e) {
     e.preventDefault();
-    console.log('remove');
-    // find parent tr
-    $(this).closest('tr').remove();
+    $(this).closest("tr").remove();
   });
 
   // move global attribute
-  $(document).on('click', '.move_global_attribute_up', function (e) {
+  $(document).on("click", ".move_global_attribute_up", function (e) {
     e.preventDefault();
-    console.log('move up');
-    const currentRow = $(this).closest('tr');
+    const currentRow = $(this).closest("tr");
     const prevRow = currentRow.prev();
     if (prevRow.length) {
       currentRow.insertBefore(prevRow);
     }
   });
 
-  $(document).on('click', '.move_global_attribute_down', function (e) {
+  $(document).on("click", ".move_global_attribute_down", function (e) {
     e.preventDefault();
-    console.log('move down');
-    const currentRow = $(this).closest('tr');
+    const currentRow = $(this).closest("tr");
     const nextRow = currentRow.next();
     if (nextRow.length) {
       currentRow.insertAfter(nextRow);
     }
+  });
+
+  // Handle color picker
+  $("#primary-color-setting input").on("change, input", function () {
+    $("#woonuxt_options\\[primary_color\\]").val($(this).val());
+    $("#color-preview").css("background-color", $(this).val());
+    $("#primary_color_picker").val($(this).val());
   });
 });
