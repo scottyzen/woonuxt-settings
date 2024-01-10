@@ -204,7 +204,9 @@ button.remove_global_attribute.button.button-danger:hover {
 }
 
 .global_attribute_table.widefat td,
-.global_attribute_table.widefat th {
+.global_attribute_table.widefat th,
+.woo-seo-table.widefat td,
+.woo-seo-table.widefat th {
   padding: 8px 10px;
 }
 
@@ -228,7 +230,7 @@ button.remove_global_attribute.button.button-danger:hover {
   width: 100%;
   margin-bottom: 20px;
 }
-#primary-color-setting td input[type='color'] {
+#primary-color-setting td input[type="color"] {
   width: 100%;
   height: 40px;
 }
