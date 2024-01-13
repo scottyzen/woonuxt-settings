@@ -1,23 +1,20 @@
 <?php
-
 /*
 Plugin Name: WooNuxt Settings
 Description: This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.49
+Version: 1.0.50
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
  */
 
 // Exit if accessed directly
-if (!defined('ABSPATH')) {
-    exit();
-}
+if (!defined('ABSPATH')) { exit(); }
 
-define('WOONUXT_SETTINGS_VERSION', '1.0.49');
+define('WOONUXT_SETTINGS_VERSION', '1.0.50');
 define('MY_WOOCOMMERCE_VERSION', '8.4.0');
 define('WP_GRAPHQL_VERSION', '1.19.0');
 define('WOO_GRAPHQL_VERSION', '0.19.0');
@@ -27,44 +24,21 @@ define('WP_GRAPHQL_CORS_VERSION', '2.1');
 global $plugin_list;
 global $github_version;
 
-include plugin_dir_path(__FILE__) . 'views/required-plugins.php';
-
-$plugin_updater = new Plugin_Updater();
-$plugin_activator = new Plugin_Activator();
-
-
 add_action('admin_enqueue_scripts', function() {
     if (isset($_GET['page']) && $_GET['page'] === 'woonuxt') {
-        wp_enqueue_style(
-            'admin_css_woonuxt',
-            plugins_url('assets/styles.css', __FILE__),
-            false,
-            WOONUXT_SETTINGS_VERSION,
-        );
-        wp_enqueue_script(
-            'admin_js',
-            plugins_url('/assets/admin.js', __FILE__),
-            ['jquery'],
-            WOONUXT_SETTINGS_VERSION,
-            true,
-        );
+        wp_enqueue_style('admin_css_woonuxt', plugins_url('assets/styles.css', __FILE__), false, WOONUXT_SETTINGS_VERSION);
+        wp_enqueue_script('admin_js', plugins_url('/assets/admin.js', __FILE__), ['jquery'], WOONUXT_SETTINGS_VERSION, true);
     }
 });
 
 require_once 'plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-$myUpdateChecker = PucFactory::buildUpdateChecker(
-    'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/plugin.json',
-    __FILE__, //Full path to the main plugin file or functions.php.
-    'woonuxt-settings',
-    6, // <-- Check every 6 hours.
-);
+$myUpdateChecker = PucFactory::buildUpdateChecker('https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/plugin.json', __FILE__, 'woonuxt-settings', 6);
 
 // Add filter to add the settings link to the plugins page
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'pluginActionLinksWoonuxt');
-function pluginActionLinksWoonuxt($links)
-{
+function pluginActionLinksWoonuxt($links){
     $admin_url = get_admin_url(null, 'options-general.php?page=woonuxt');
     if (is_array($links)) {
         if (is_string($admin_url)) {
@@ -103,12 +77,9 @@ $plugin_list = [
         'name' => 'WooGraphQL',
         'description' => 'Enables GraphQL to work with WooCommerce.',
         'url' =>
-        'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v' .
-        WOO_GRAPHQL_VERSION .
-        '/wp-graphql-woocommerce.zip',
+        'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/v' . WOO_GRAPHQL_VERSION . '/wp-graphql-woocommerce.zip',
         'file' => 'wp-graphql-woocommerce/wp-graphql-woocommerce.php',
-        'icon' =>
-        'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
+        'icon' => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
         'slug' => 'woographql',
     ],
     'wp-graphql-cors' => [
@@ -128,13 +99,9 @@ $plugin_list = [
 function getGithubVersionNumber(){
     $github_url = 'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/woonuxt.php';
     $github_file = file_get_contents($github_url);
-    if (false === $github_file) {
-        return '0.0.0';
-    }
+    if (false === $github_file) { return '0.0.0'; }
     preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
-    if (!isset($matches[1])) {
-        return '0.0.0';
-    }
+    if (!isset($matches[1])) { return '0.0.0'; }
     return $matches[1];
 }
 
@@ -172,11 +139,7 @@ function wooNuxtOptionsPageHtml(){
     </div>
     <div class="wrap">
         <form action="options.php" method="post">
-        <?php
-            settings_fields('woonuxt_options');
-            do_settings_sections('woonuxt');
-            submit_button();
-        ?>
+            <?php settings_fields('woonuxt_options'); do_settings_sections('woonuxt'); submit_button(); ?>
         </form>
     </div>
     <?php
@@ -217,13 +180,9 @@ function registerWoonuxtSettings(){
     }
 
     // Return true if all plugins are active
-    $is_all_plugins_active = array_reduce(
-        $plugin_list,
-        function ($carry, $plugin) {
-            return $carry && is_plugin_active($plugin['file']);
-        },
-        true,
-    );
+    $is_all_plugins_active = array_reduce( $plugin_list, function ($carry, $plugin) {
+        return $carry && is_plugin_active($plugin['file']);
+    }, true );
 
     // if all plugins are active don't show required plugins section
     if (!$is_all_plugins_active) {
@@ -243,28 +202,17 @@ function registerWoonuxtSettings(){
 function updateAvailableCallback(){
     $github_version = github_version_number();
 
-    if (empty($github_version)) {
-        return;
-    }
+    if (empty($github_version)) { return; }
 
     $current_version = WOONUXT_SETTINGS_VERSION;
 
-    if (version_compare($current_version, $github_version, '>=')) {
-        return;
-    }
+    if (version_compare($current_version, $github_version, '>=')) { return; }
 
-    $update_url =
-        'https://github.com/scottyzen/woonuxt-settings/releases/download/' . $github_version . '/woonuxt-settings.zip';
+    $update_url = "https://github.com/scottyzen/woonuxt-settings/releases/download/{$github_version}/woonuxt-settings.zip";
     $update_text = 'Update WooNuxt Settings Plugin';
 
     echo '<div class="notice notice-warning woonuxt-section">';
-    printf(
-        '<p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin" href="%s">%s</a></strong></u> to update from version <strong>%s</strong> to <strong>%s</strong></p>',
-        esc_url($update_url),
-        esc_html($update_text),
-        esc_html($current_version),
-        esc_html($github_version),
-    );
+        printf('<p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin" href="%s">%s</a></strong></u> to update from version <strong>%s</strong> to <strong>%s</strong></p>', esc_url($update_url), esc_html($update_text), esc_html($current_version), esc_html($github_version) );
     echo '</div>';?>
     <script>
         jQuery(document).ready(function($) {
@@ -298,9 +246,7 @@ function requiredPluginsCallback(){
         <ul class="required-plugins-list">
             <?php foreach ($plugin_list as $plugin): ?>
                 <li class="required-plugin">
-                    <img src="<?php echo $plugin['icon']; ?>" alt="<?php echo $plugin[
-        'name'
-    ]; ?>" width="64" height="64">
+                    <img src="<?php echo $plugin['icon']; ?>" width="64" height="64">
                     <div>
                         <h4 class="plugin-name"><?php echo $plugin['name']; ?></h4>
                         <p class="plugin-description"><?php echo $plugin['description']; ?></p>
@@ -315,74 +261,74 @@ function requiredPluginsCallback(){
                                 style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;" />
                                 Checking
                             </div>
+
                             <!-- Installed -->
                             <div class="plugin-state_installed" style="display:none;">
                                 <span style="color: #41b782">Installed</span>
                             </div>
+
                             <!-- Not Installed -->
                             <a class="plugin-state_install"
                             style="display:none;"
-                            href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin[
-        'slug'
-    ]; ?>">Install Now</a>
+                            href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
                             <script>
-                        jQuery(document).ready(function ($) {
-                            $.ajax({
-                                url: ajaxurl,
-                                type: 'POST',
-                                data: {
-                                    action: 'check_plugin_status',
-                                    security: '<?=wp_create_nonce('my_nonce_action')?>',
-                                    plugin: '<?=esc_attr($plugin['slug'])?>',
-                                    file: '<?=esc_attr($plugin['file'])?>',
-                                },
-                                success (response) {
-                                    console.log({response});
-                                    if (response === 'installed') {
-                                        $('.plugin-state_<?php echo $plugin[
-        'slug'
-    ]; ?> .plugin-state_installed').show();
-
-                                    } else {
-                                        $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_install').show();
-                                    }
-
-                                    $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_loading').hide();
-                                },
-                                error (error) {
-                                    console.log(error);
-                                }
-                            });
-                        });
-                    </script>
+                                jQuery(document).ready(function ($) {
+                                    $.ajax({
+                                        url: ajaxurl,
+                                        type: 'POST',
+                                        data: {
+                                            action: 'check_plugin_status',
+                                            security: '<?=wp_create_nonce('my_nonce_action')?>',
+                                            plugin: '<?=esc_attr($plugin['slug'])?>',
+                                            file: '<?=esc_attr($plugin['file'])?>',
+                                        },
+                                        success (response) {
+                                            if (response === 'installed') {
+                                                $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_installed').show();
+                                            } else {
+                                                $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_install').show();
+                                            }
+                                            $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_loading').hide();
+                                        },
+                                        error (error) {
+                                            console.log(error);
+                                        }
+                                    });
+                                });
+                            </script>
                         </div>
                     </div>
                 </li>
             <?php endforeach;?>
         </ul>
     </div>
-<?php if (isset($_GET['install_plugin'])) {
-        global $plugin_list;
+<?php 
+    /**
+     * Check if the plugin is installed.
+     */
+    if (isset($_GET['install_plugin'])) {
+            global $plugin_list;
 
-        $upgrader = new Plugin_Upgrader();
-        $plugin = $plugin_list[$_GET['install_plugin']];
-        $fileURL = WP_PLUGIN_DIR . '/' . $plugin['file'];
+            $upgrader = new Plugin_Upgrader();
+            $plugin = $plugin_list[$_GET['install_plugin']];
+            $fileURL = WP_PLUGIN_DIR . '/' . $plugin['file'];
 
-        if (!is_plugin_active($plugin['file'])) {
-            if (file_exists($fileURL)) {
-                activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
-            } else {
-                $result = $upgrader->install($plugin['url']);
-                if (!is_wp_error($result)) {
-                    activate_plugin($plugin['file']);
+            if (!is_plugin_active($plugin['file'])) {
+                if (file_exists($fileURL)) {
+                    activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
+                } else {
+                    $result = $upgrader->install($plugin['url']);
+                    if (!is_wp_error($result)) {
+                        activate_plugin($plugin['file']);
+                    }
                 }
             }
         }
     }
-}
+?>
 
-function deployButtonCallback()
-{
+<?php
+function deployButtonCallback(){
     $site_name = get_bloginfo('name');
     $gql_settings = get_option('graphql_general_settings');
     $gql_endpoint = isset($gql_settings['graphql_endpoint']) ? $gql_settings['graphql_endpoint'] : 'graphql';
@@ -422,33 +368,25 @@ function deployButtonCallback()
                 <th scope="row"><label for="woonuxt_options[build_hook]">Deploy your Site.</label></th>
                 <td>
                     <div class="flex">
-                        <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>&NUXT_IMAGE_DOMAINS=<?php echo $_SERVER[
-        'HTTP_HOST'
-    ]; ?>"
+                        <a 
+                            id="netlify-button" 
+                            href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>&NUXT_IMAGE_DOMAINS=<?php echo $_SERVER['HTTP_HOST']; ?>"
                             target="_blank"
-                            class="mr-8"
-                            >
-                            <img src="<?php echo plugins_url(
-        'assets/netlify.svg',
-        __FILE__,
-    ); ?>" alt="Deploy to Netlify" width="160" height="40">
+                            class="mr-8" >
+                            <img src="<?php echo plugins_url( 'assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="160" height="40">
                         </a>
                         <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fscottyzen%2FWooNuxt3&repository-name=<?php echo $site_name; ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
                             <svg data-testid="geist-icon" fill="none" height="15" width="15" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L2 19.7778H22L12 2Z" fill="#fff" stroke="#fff" stroke-width="1.5"></path></svg>
                             <span>Deploy to Vercel</span>
                         </a>
                     </div>
-                    <details
-                        <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?>
-                        style="margin-top: 20px;"
-                    >
+                    <details <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;" >
                         <summary>Required settings for WooNuxt</summary>
                         <p>These settings are required for WooNuxt to work properly. Click the links below to go to the respective settings page.</p>
                         <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL settings</a></h4>
                         <ul style="font-weight: 600; list-style: disc; padding-left: 20px;">
                             <li>Enable Public Introspection. <span style="color: #D63638;"><?php echo $publicIntrospectionEnabled ? '✅' : '(disabled)'; ?></span></li>
                         </ul>
-
 
                         <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL CORS settings</a></h4>
                         <ul style="font-weight: 600; list-style: disc; padding-left: 20px;">
@@ -472,8 +410,7 @@ function deployButtonCallback()
 }
 
 // Field callback
-function globalSettingCallback()
-{
+function globalSettingCallback() {
     $options = get_option('woonuxt_options');
     $product_attributes = wc_get_attribute_taxonomies();
     echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
@@ -532,7 +469,8 @@ function globalSettingCallback()
                         <table class="wp-list-table widefat striped table-view-list woo-seo-table" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th class="manage-column column-primary" style="width: 30%">Social Media</th>
+                                    <th class="manage-column column-primary" style="width: 15%">Social Media</th>
+                                    <th class="manage-column column-primary" style="width: 25%">Handle</th>
                                     <th class="manage-column column-primary">URL</th>
                                 </tr>
                             </thead>
@@ -543,9 +481,16 @@ function globalSettingCallback()
                                         <input
                                         type="text"
                                         class="w-full"
-                                        name="woonuxt_options[wooNuxtSEO][facebook]"
-                                        value="<?php echo isset($options['wooNuxtSEO']['facebook']) ? $options['wooNuxtSEO']['facebook'] : ''; ?>"
-                                        placeholder="e.g. https://facebook.com/woonuxt"
+                                        name="woonuxt_options[wooNuxtSEO][facebook][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['facebook']['handle']) ? $options['wooNuxtSEO']['facebook']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][facebook][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['facebook']['url']) ? $options['wooNuxtSEO']['facebook']['url'] : ''; ?>"
                                         />
                                     </td>
                                 </tr>
@@ -555,9 +500,16 @@ function globalSettingCallback()
                                         <input
                                         type="text"
                                         class="w-full"
-                                        name="woonuxt_options[wooNuxtSEO][twitter]"
-                                        value="<?php echo isset($options['wooNuxtSEO']['twitter']) ? $options['wooNuxtSEO']['twitter'] : ''; ?>"
-                                        placeholder="e.g. https://twitter.com/woonuxt"
+                                        name="woonuxt_options[wooNuxtSEO][twitter][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['twitter']['handle']) ? $options['wooNuxtSEO']['twitter']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][twitter][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['twitter']['url']) ? $options['wooNuxtSEO']['twitter']['url'] : ''; ?>"
                                         />
                                     </td>
                                 </tr>
@@ -567,9 +519,16 @@ function globalSettingCallback()
                                         <input
                                         type="text"
                                         class="w-full"
-                                        name="woonuxt_options[wooNuxtSEO][instagram]"
-                                        value="<?php echo isset($options['wooNuxtSEO']['instagram']) ? $options['wooNuxtSEO']['instagram'] : ''; ?>"
-                                        placeholder="e.g. https://instagram.com/woonuxt"
+                                        name="woonuxt_options[wooNuxtSEO][instagram][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['instagram']['handle']) ? $options['wooNuxtSEO']['instagram']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][instagram][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['instagram']['url']) ? $options['wooNuxtSEO']['instagram']['url'] : ''; ?>"
                                         />
                                     </td>
                                 </tr>
@@ -579,9 +538,16 @@ function globalSettingCallback()
                                         <input
                                         type="text"
                                         class="w-full"
-                                        name="woonuxt_options[wooNuxtSEO][linkedin]"
-                                        value="<?php echo isset($options['wooNuxtSEO']['linkedin']) ? $options['wooNuxtSEO']['linkedin'] : ''; ?>"
-                                        placeholder="e.g. https://linkedin.com/woonuxt"
+                                        name="woonuxt_options[wooNuxtSEO][linkedin][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['linkedin']['handle']) ? $options['wooNuxtSEO']['linkedin']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][linkedin][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['linkedin']['url']) ? $options['wooNuxtSEO']['linkedin']['url'] : ''; ?>"
                                         />
                                     </td>
                                 </tr>
@@ -591,9 +557,16 @@ function globalSettingCallback()
                                         <input
                                         type="text"
                                         class="w-full"
-                                        name="woonuxt_options[wooNuxtSEO][pinterest]"
-                                        value="<?php echo isset($options['wooNuxtSEO']['pinterest']) ? $options['wooNuxtSEO']['pinterest'] : ''; ?>"
-                                        placeholder="e.g. https://pinterest.com/woonuxt"
+                                        name="woonuxt_options[wooNuxtSEO][pinterest][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['pinterest']['handle']) ? $options['wooNuxtSEO']['pinterest']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][pinterest][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['pinterest']['url']) ? $options['wooNuxtSEO']['pinterest']['url'] : ''; ?>"
                                         />
                                     </td>
                                 </tr>
@@ -603,14 +576,60 @@ function globalSettingCallback()
                                         <input
                                         type="text"
                                         class="w-full"
-                                        name="woonuxt_options[wooNuxtSEO][youtube]"
-                                        value="<?php echo isset($options['wooNuxtSEO']['youtube']) ? $options['wooNuxtSEO']['youtube'] : ''; ?>"
-                                        placeholder="e.g. https://youtube.com/woonuxt"
+                                        name="woonuxt_options[wooNuxtSEO][youtube][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['youtube']['handle']) ? $options['wooNuxtSEO']['youtube']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][youtube][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['youtube']['url']) ? $options['wooNuxtSEO']['youtube']['url'] : ''; ?>"
+                                        />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Reddit</td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][reddit][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['reddit']['handle']) ? $options['wooNuxtSEO']['reddit']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][reddit][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['reddit']['url']) ? $options['wooNuxtSEO']['reddit']['url'] : ''; ?>"
+                                        />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>GitHub</td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][github][handle]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['github']['handle']) ? $options['wooNuxtSEO']['github']['handle'] : ''; ?>"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                        type="text"
+                                        class="w-full"
+                                        name="woonuxt_options[wooNuxtSEO][github][url]"
+                                        value="<?php echo isset($options['wooNuxtSEO']['github']['url']) ? $options['wooNuxtSEO']['github']['url'] : ''; ?>"
                                         />
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                        <p class="description">These settings are used to generate the meta tags for social media.</p>
                     </td>
                 </tr>
 
@@ -687,15 +706,13 @@ function globalSettingCallback()
 	                                    <td>
 	                                        <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
 	                                            <?php foreach ($product_attributes as $attribute):
-            $slected_attribute =
-            $value['slug'] == 'pa_' . $attribute->attribute_name
-            ? 'selected'
-            : '';?>
+                                                    $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
+                                                ?>
 		                                                <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
 		                                                    <?php echo $attribute->attribute_label; ?>
 		                                                </option>
 		                                            <?php
-    endforeach;?>
+                                                endforeach;?>
 	                                        </select>
 	                                    </td>
 	                                    <td>
@@ -730,7 +747,7 @@ function globalSettingCallback()
 	                                </tr>
 	                                <?php endforeach;?>
                             <?php
-endif;?>
+            endif;?>
                         </tbody>
                         <tfoot>
                             <tr>
@@ -740,10 +757,7 @@ endif;?>
                                 <th class="manage-column column-primary" scope="col"></th>
                                 <th class="manage-column column-primary" scope="col"></th>
                                 <th class="manage-column column-primary" scope="col">
-                                    <button
-                                    class="add_global_attribute button button-primary"
-                                    type="button"
-                                    >Add New</button>
+                                    <button class="add_global_attribute button button-primary" type="button" >Add New</button>
                                 </th>
                             </tr>
                     </table>
@@ -758,10 +772,8 @@ endif;?>
 
 // Add all setting to the wpgraphql schema
 add_action('init', function () {
-    if (!class_exists('\WPGraphQL')) {
-        return;
-    if (!class_exists('WooCommerce')) {
-        return;
+    if (!class_exists('\WPGraphQL'))    { return; }
+    if (!class_exists('WooCommerce'))   { return; }
 
     add_action('graphql_register_types', function () {
         register_graphql_object_type('woonuxtOptionsGlobalAttributes', [
@@ -782,15 +794,13 @@ add_action('init', function () {
                 'publishable_key' => ['type' => 'String'],
             ],
         ]);
-
         register_graphql_object_type('wooNuxtSocialItems', [
             'description' => __('Woonuxt Social Items', 'woonuxt'),
             'fields' => [
                 'url' => ['type' => 'String'],
                 'handle' => ['type' => 'String'],
             ],
-        ]);
-        
+        ]);   
         register_graphql_object_type('woonuxtOptionsWooNuxtSEO', [
             'description' => __('Woonuxt SEO', 'woonuxt'),
             'fields' => [
@@ -803,7 +813,6 @@ add_action('init', function () {
                 'github' => ['type' => 'wooNuxtSocialItems'],
             ],
         ]);
-
         register_graphql_object_type('woonuxtOptions', [
             'description' => __('Woonuxt Settings', 'woonuxt'),
             'fields' => [
