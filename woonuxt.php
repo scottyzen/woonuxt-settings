@@ -325,9 +325,7 @@ function requiredPluginsCallback(){
             }
         }
     }
-?>
 
-<?php
 function deployButtonCallback(){
     $site_name = get_bloginfo('name');
     $gql_settings = get_option('graphql_general_settings');
