@@ -258,3 +258,11 @@ button.remove_global_attribute.button.button-danger:hover {
   margin-bottom: 20px;
   color: #4b3109;
 }
+
+.seo_item .remove_seo_item {
+  display: none;
+  cursor: pointer;
+}
+.seo_item:hover .remove_seo_item {
+  display: block;
+}
