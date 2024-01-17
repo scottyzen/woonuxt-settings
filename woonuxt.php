@@ -340,7 +340,9 @@ function requiredPluginsCallback()
         }
     }
 }
+?>
 
+<?php
 function deployButtonCallback()
 {
     $site_name = get_bloginfo('name');
