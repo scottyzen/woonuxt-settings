@@ -488,15 +488,14 @@ function global_setting_callback()
                                             <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
                                         </tr>
                                     <?php endforeach; ?>
-                                    <!-- Add new line -->
-                                    <tr class="seo_item seo_item_new">
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td><button class="add_new_seo_item button button-primary" type="button">Add new</button></td>
-                                    </tr>
-                                <?php
-                                endif; ?>
+                                <?php endif; ?>
+                                <!-- Add new line -->
+                                <tr class="seo_item seo_item_new">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td><button class="add_new_seo_item button button-primary" type="button">Add new</button></td>
+                                </tr>
                             </tbody>
                             <script>
                                 jQuery(document).ready(function($) {
