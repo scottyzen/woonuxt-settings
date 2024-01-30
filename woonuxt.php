@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.51
+Version: 1.0.52
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -16,9 +16,9 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-define('WOONUXT_SETTINGS_VERSION', '1.0.51');
-define('MY_WOOCOMMERCE_VERSION', '8.5.1');
-define('WP_GRAPHQL_VERSION', '1.19.0');
+define('WOONUXT_SETTINGS_VERSION', '1.0.52');
+define('MY_WOOCOMMERCE_VERSION', '8.5.2');
+define('WP_GRAPHQL_VERSION', '1.20.0');
 define('WOO_GRAPHQL_VERSION', '0.19.0');
 define('WP_GRAPHQL_CORS_VERSION', '2.1');
 
@@ -317,7 +317,7 @@ function requiredPluginsCallback()
             <?php endforeach; ?>
         </ul>
     </div>
-<?php
+    <?php
     /**
      * Check if the plugin is installed.
      */
@@ -340,9 +340,7 @@ function requiredPluginsCallback()
         }
     }
 }
-?>
 
-<?php
 function deployButtonCallback()
 {
     $site_name = get_bloginfo('name');
@@ -376,7 +374,7 @@ function deployButtonCallback()
         $acao &&
         $extendHeaders &&
         $hasProductAttributes;
-?>
+    ?>
 
     <table class="form-table" role="presentation">
         <tbody>
