@@ -1,6 +1,6 @@
 {
   "name": "woonuxt Settings",
-  "version": "1.0.52",
+  "version": "1.0.53",
   "download_url": "https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.52/woonuxt-settings.zip",
 
   "homepage": "https://woonuxt.com/",
@@ -13,7 +13,7 @@
   "sections": {
     "description": "WooNuxt is unmatched when it comes to performance and scalability. Reap the benefits of having a online store that out performs all of your competitors.",
     "installation": "(Recommended) Installation instructions.",
-    "changelog": "<h2>1.0.52</h2>Bump version.<p></p><h2>1.0.51</h2><p>Inhance Social media fileds and schema.</p><<h2>1.0.50</h2><p>Add SEO settings</p><h2>1.0.49</h2><p>Add functionality to increase max query amount if there are more than 100 products</p><h2>1.0.45</h2><p>Fix error when WooCommerce is disabled or not installed</p>"
+    "changelog": "<h2>1.0.53</h2>Add stripePaymentIntent for 3d secure.<p></p><h2>1.0.52</h2>Bump version.<p></p><h2>1.0.51</h2><p>Inhance Social media fileds and schema.</p><<h2>1.0.50</h2><p>Add SEO settings</p><h2>1.0.49</h2><p>Add functionality to increase max query amount if there are more than 100 products</p><h2>1.0.45</h2><p>Fix error when WooCommerce is disabled or not installed</p>"
   },
 
   "icons": {
