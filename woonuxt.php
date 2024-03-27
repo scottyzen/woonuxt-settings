@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.53
+Version: 1.0.54
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-define('WOONUXT_SETTINGS_VERSION', '1.0.53');
+define('WOONUXT_SETTINGS_VERSION', '1.0.54');
 define('MY_WOOCOMMERCE_VERSION', '8.5.2');
 define('WP_GRAPHQL_VERSION', '1.20.0');
 define('WOO_GRAPHQL_VERSION', '0.19.0');
@@ -478,16 +478,16 @@ function global_setting_callback()
                             <tbody id="the-list">
                                 <?php if (isset($options['wooNuxtSEO'])):
         foreach ($options['wooNuxtSEO'] as $key => $value): ?>
-			                                        <tr class="seo_item">
-			                                            <td>
-			                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
-			                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
-			                                            </td>
-			                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
-			                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
-			                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
-			                                        </tr>
-			                                    <?php endforeach;?>
+						                                        <tr class="seo_item">
+						                                            <td>
+						                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
+						                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
+						                                            </td>
+						                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
+						                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
+						                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
+						                                        </tr>
+						                                    <?php endforeach;?>
                                 <?php endif;?>
                                 <!-- Add new line -->
                                 <tr class="seo_item seo_item_new">
@@ -584,40 +584,40 @@ function global_setting_callback()
                             <tbody id="the-list">
                                 <?php if (isset($options['global_attributes'])):
         foreach ($options['global_attributes'] as $key => $value): ?>
-			                                        <tr>
-			                                            <td>
-			                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
-			                                            </td>
-			                                            <td>
-			                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
-			                                                    <?php foreach ($product_attributes as $attribute):
+						                                        <tr>
+						                                            <td>
+						                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
+						                                            </td>
+						                                            <td>
+						                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
+						                                                    <?php foreach ($product_attributes as $attribute):
             $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
             ?>
-						                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
-						                                                            <?php echo $attribute->attribute_label; ?>
-						                                                        </option>
-						                                                    <?php
+												                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
+												                                                            <?php echo $attribute->attribute_label; ?>
+												                                                        </option>
+												                                                    <?php
     endforeach;?>
-			                                                </select>
-			                                            </td>
-			                                            <td>
-			                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1" <?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
-			                                            </td>
-			                                            <td>
-			                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1" <?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
-			                                            </td>
-			                                            <td>
-			                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1" <?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
-			                                            </td>
-			                                            <td>
-			                                                <div class="text-right row-actions">
-			                                                    <a class="text-danger remove_global_attribute">Delete</a> |
-			                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
-			                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
-			                                                </div>
-			                                            </td>
-			                                        </tr>
-			                                    <?php endforeach;?>
+						                                                </select>
+						                                            </td>
+						                                            <td>
+						                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1" <?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
+						                                            </td>
+						                                            <td>
+						                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1" <?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
+						                                            </td>
+						                                            <td>
+						                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1" <?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
+						                                            </td>
+						                                            <td>
+						                                                <div class="text-right row-actions">
+						                                                    <a class="text-danger remove_global_attribute">Delete</a> |
+						                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
+						                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
+						                                                </div>
+						                                            </td>
+						                                        </tr>
+						                                    <?php endforeach;?>
                                 <?php
 endif;?>
                             </tbody>
@@ -754,6 +754,7 @@ add_action('init', function () {
         'resolve' => function () {
             $amount = floatval(WC()->cart->get_total(false)) * 100;
             $currency = get_woocommerce_currency();
+            $currency = strtoupper($currency);
             $payment_intent = create_payment_intent($amount, $currency);
 
             return [
@@ -809,23 +810,20 @@ function create_payment_intent($amount, $currency)
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
     }
 
-    $payment_intent = WC_Stripe_API::request(
+    $setup_intent = WC_Stripe_API::request(
         [
-            'amount' => $amount,
-            'currency' => $currency,
             'payment_method_types' => ['card'],
-            'capture_method' => 'automatic',
         ],
-        'payment_intents'
-    );
+        'setup_intents');
 
-    if (!empty($payment_intent->error)) {
+    if (!empty($setup_intent->error)) {
         throw new Exception($payment_intent->error->message);
     }
 
     return [
         'id' => $payment_intent->id,
-        'client_secret' => $payment_intent->client_secret,
+        // 'client_secret' => $payment_intent->client_secret,
+        'client_secret' => $setup_intent->client_secret,
         'error' => $payment_intent->error,
     ];
 }
