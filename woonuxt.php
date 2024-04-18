@@ -716,7 +716,7 @@ add_action('init', function () {
                 while ($loop->have_posts()):
                     $loop->the_post();
                     global $product;
-                    $options['maxPrice'] = $product->get_price();
+                    $options['maxPrice'] = ceil($product->get_price());
                 endwhile;
                 wp_reset_query();
 
