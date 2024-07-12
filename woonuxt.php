@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 1.0.55
+Version: 1.0.56
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -16,10 +16,10 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-define('WOONUXT_SETTINGS_VERSION', '1.0.55');
-define('MY_WOOCOMMERCE_VERSION', '8.5.2');
-define('WP_GRAPHQL_VERSION', '1.20.0');
-define('WOO_GRAPHQL_VERSION', '0.19.0');
+define('WOONUXT_SETTINGS_VERSION', '1.0.56');
+define('MY_WOOCOMMERCE_VERSION', '9.1.2');
+define('WP_GRAPHQL_VERSION', '1.27.2');
+define('WOO_GRAPHQL_VERSION', '0.20.0');
 define('WP_GRAPHQL_CORS_VERSION', '2.1');
 
 // Define Globals
@@ -385,7 +385,8 @@ function deployButtonCallback()
                         <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>&NUXT_IMAGE_DOMAINS=<?php echo $_SERVER['HTTP_HOST']; ?>" target="_blank" class="mr-8">
                             <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="160" height="40">
                         </a>
-                        <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fscottyzen%2FWooNuxt3&repository-name=<?php echo $site_name; ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
+                        <a href="https://vercel.com/new/clone?repository-url=https://github.com/scottyzen/woonuxt
+&repository-name=<?php echo $site_name; ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
                             <svg data-testid="geist-icon" fill="none" height="15" width="15" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L2 19.7778H22L12 2Z" fill="#fff" stroke="#fff" stroke-width="1.5"></path>
                             </svg>
@@ -478,16 +479,16 @@ function global_setting_callback()
                             <tbody id="the-list">
                                 <?php if (isset($options['wooNuxtSEO'])):
         foreach ($options['wooNuxtSEO'] as $key => $value): ?>
-						                                        <tr class="seo_item">
-						                                            <td>
-						                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
-						                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
-						                                            </td>
-						                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
-						                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
-						                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
-						                                        </tr>
-						                                    <?php endforeach;?>
+																								                                        <tr class="seo_item">
+																								                                            <td>
+																								                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
+																								                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
+																								                                            </td>
+																								                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
+																								                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
+																								                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
+																								                                        </tr>
+																								                                    <?php endforeach;?>
                                 <?php endif;?>
                                 <!-- Add new line -->
                                 <tr class="seo_item seo_item_new">
@@ -584,40 +585,40 @@ function global_setting_callback()
                             <tbody id="the-list">
                                 <?php if (isset($options['global_attributes'])):
         foreach ($options['global_attributes'] as $key => $value): ?>
-						                                        <tr>
-						                                            <td>
-						                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
-						                                            </td>
-						                                            <td>
-						                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
-						                                                    <?php foreach ($product_attributes as $attribute):
+																								                                        <tr>
+																								                                            <td>
+																								                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
+																								                                            </td>
+																								                                            <td>
+																								                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
+																								                                                    <?php foreach ($product_attributes as $attribute):
             $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
             ?>
-												                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
-												                                                            <?php echo $attribute->attribute_label; ?>
-												                                                        </option>
-												                                                    <?php
+																																																                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>" <?php echo $slected_attribute; ?>>
+																																																                                                            <?php echo $attribute->attribute_label; ?>
+																																																                                                        </option>
+																																																                                                    <?php
     endforeach;?>
-						                                                </select>
-						                                            </td>
-						                                            <td>
-						                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1" <?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
-						                                            </td>
-						                                            <td>
-						                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1" <?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
-						                                            </td>
-						                                            <td>
-						                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1" <?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
-						                                            </td>
-						                                            <td>
-						                                                <div class="text-right row-actions">
-						                                                    <a class="text-danger remove_global_attribute">Delete</a> |
-						                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
-						                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
-						                                                </div>
-						                                            </td>
-						                                        </tr>
-						                                    <?php endforeach;?>
+																								                                                </select>
+																								                                            </td>
+																								                                            <td>
+																								                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1" <?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
+																								                                            </td>
+																								                                            <td>
+																								                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1" <?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
+																								                                            </td>
+																								                                            <td>
+																								                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1" <?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
+																								                                            </td>
+																								                                            <td>
+																								                                                <div class="text-right row-actions">
+																								                                                    <a class="text-danger remove_global_attribute">Delete</a> |
+																								                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
+																								                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
+																								                                                </div>
+																								                                            </td>
+																								                                        </tr>
+																								                                    <?php endforeach;?>
                                 <?php
 endif;?>
                             </tbody>
@@ -691,6 +692,7 @@ add_action('init', function () {
                 'publicIntrospectionEnabled' => ['type' => 'String', 'default' => 'off'],
                 'stripeSettings' => ['type' => 'woonuxtOptionsStripeSettings'],
                 'currencyCode' => ['type' => 'String'],
+                'currencySymbol' => ['type' => 'String'],
                 'wooCommerceSettingsVersion' => ['type' => 'String'],
                 'wooNuxtSEO' => ['type' => ['list_of' => 'wooNuxtSocialItems']],
             ],
@@ -728,7 +730,8 @@ add_action('init', function () {
                 if (!function_exists('get_woocommerce_currency') && function_exists('WC')) {
                     require_once WC()->plugin_path() . '/includes/wc-core-functions.php';
                 }
-                $options['currencyCode'] = get_woocommerce_currency();
+                $options['currencyCode'] = get_woocommerce_currency(); // EUR
+                $options['currencySymbol'] = html_entity_decode(get_woocommerce_currency_symbol()); // €
 
                 $options['domain'] = $_SERVER['HTTP_HOST'];
                 $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
