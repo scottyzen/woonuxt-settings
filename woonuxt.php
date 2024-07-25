@@ -758,7 +758,7 @@ add_action('init', function () {
             $amount = floatval(WC()->cart->get_total(false)) * 100;
             $currency = get_woocommerce_currency();
             $currency = strtoupper($currency);
-            $payment_intent = create_payment_intent($amount, $currency);
+            $payment_intent = create_setup_intent($amount, $currency);
 
             return [
                 'amount' => $amount,
@@ -806,27 +806,23 @@ add_action('wp_ajax_check_plugin_status', function () {
 /**
  * Stripe
  */
-function create_payment_intent($amount, $currency)
+function create_setup_intent($amount, $currency)
 {
     // check if WC_Stripe class exists
     if (!class_exists('WC_Stripe_API')) {
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
     }
 
-    $setup_intent = WC_Stripe_API::request(
-        [
-            'payment_method_types' => ['card'],
-        ],
-        'setup_intents');
+    $setup_intent = WC_Stripe_API::request([], 'setup_intents');
 
     if (!empty($setup_intent->error)) {
-        throw new Exception($payment_intent->error->message);
+        throw new Exception($setup_intent->error->message);
     }
 
     return [
-        'id' => $payment_intent->id,
+        'id' => $setup_intent->id,
         // 'client_secret' => $payment_intent->client_secret,
         'client_secret' => $setup_intent->client_secret,
-        'error' => $payment_intent->error,
+        'error' => $setup_intent->error,
     ];
 }
