@@ -777,7 +777,7 @@ add_action('init', function () {
             ],
         ],
         'resolve' => function ($source, $args, $context, $info) {
-            $amount = floatval(WC()->cart->get_total(false)) * 100;
+            $amount = floatval(WC()->cart->get_total(false));
             $currency = get_woocommerce_currency();
             $currency = strtoupper($currency);
 
@@ -790,7 +790,7 @@ add_action('init', function () {
             }
 
             return [
-                'amount' => $amount,
+                'amount' => $amount * 100,
                 'currency' => $currency,
                 'clientSecret' => $stripe['client_secret'],
                 'id' => $stripe['id'],
