@@ -874,7 +874,6 @@ function create_setup_intent($amount, $currency)
 
     return [
         'id' => $setup_intent->id,
-        // 'client_secret' => $payment_intent->client_secret,
         'client_secret' => $setup_intent->client_secret,
         'error' => $setup_intent->error,
     ];
