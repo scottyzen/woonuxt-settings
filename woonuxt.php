@@ -777,7 +777,7 @@ add_action('init', function () {
             ],
         ],
         'resolve' => function ($source, $args, $context, $info) {
-            $amount = floatval(WC()->cart->get_total(false)) * 100;
+            $amount = floatval(WC()->cart->get_total(false));
             $currency = get_woocommerce_currency();
             $currency = strtoupper($currency);
 
@@ -790,7 +790,7 @@ add_action('init', function () {
             }
 
             return [
-                'amount' => $amount,
+                'amount' => $amount * 100,
                 'currency' => $currency,
                 'clientSecret' => $stripe['client_secret'],
                 'id' => $stripe['id'],
@@ -826,39 +826,35 @@ add_action('wp_ajax_check_plugin_status', function () {
 });
 
 /**
- * Creates payment intent using current cart or order and store details.
- *
- * @param {int} $order_id The id of the order if intent created from Order.
- * @throws Exception - If the create intent call returns with an error.
- * @return array
- */
-// public function create_payment_intent( $order_id = null ) {
-
-/**
  * Stripe
  */
-function create_payment_intent($amount, $currency)
-{
-    // check if WC_Stripe class exists
+function create_payment_intent( $amount, $currency ) {
+
     if (!class_exists('WC_Stripe_API')) {
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
     }
 
-    $setup_intent = WC_Stripe_API::request(
-        [
-            'payment_method_types' => ['card'],
-        ],
-        'setup_intents'
-    );
+    $gateways = WC()->payment_gateways()->payment_gateways();
+    $gateway = $gateways[ WC_Gateway_Stripe::ID ];
+    $capture = empty( $gateway->get_option( 'capture' ) ) || $gateway->get_option( 'capture' ) === 'yes';
 
-    if (!empty($setup_intent->error)) {
-        throw new Exception($payment_intent->error->message);
+    // Prepare the request parameters
+    $request_params = [
+        'amount' => WC_Stripe_Helper::get_stripe_amount( $amount, strtolower( $currency ) ),
+		'currency' => strtolower( $currency ),
+        'capture_method' => $capture ? 'automatic' : 'manual',
+    ];
+
+    // Create the Payment Intent
+    $payment_intent = WC_Stripe_API::request( $request_params, 'payment_intents' );
+
+    if ( ! empty( $payment_intent->error ) ) {
+        throw new Exception( $payment_intent->error->message );
     }
 
     return [
         'id' => $payment_intent->id,
-        // 'client_secret' => $payment_intent->client_secret,
-        'client_secret' => $setup_intent->client_secret,
+        'client_secret' => $payment_intent->client_secret,
         'error' => $payment_intent->error,
     ];
 }
