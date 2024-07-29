@@ -772,8 +772,14 @@ add_action('init', function () {
         'type' => 'PaymentIntent',
         'args' => [
             'stripePaymentMethod' => [
-                'description' => 'The Stripe Payment Method. Payment or Setup.',
+                'description' => 'The Stripe Payment Method. PAYMENT or SETUP.',
                 'type' => 'StripePaymentMethodEnum',
+            ],
+            'stripePaymentMethodTypes' => [
+                'description' => 'The Stripe Payment Method types to use. Available options could be: card, paypal. Leave empty for automatic',
+                'type' => [
+                    'list_of' => 'String',
+                ],
             ],
         ],
         'resolve' => function ($source, $args, $context, $info) {
@@ -783,10 +789,12 @@ add_action('init', function () {
 
             $stripe = null;
             $stripePaymentMethod = $args['stripePaymentMethod'] ?? 'SETUP';
+            $stripePaymentMethodTypes = $args['stripePaymentMethodTypes'] ?? [];
+
             if ($stripePaymentMethod === 'payment') {
-                $stripe = create_payment_intent($amount, $currency);
+                $stripe = create_payment_intent($amount, $currency, $stripePaymentMethodTypes);
             } else {
-                $stripe = create_setup_intent($amount, $currency);
+                $stripe = create_setup_intent($amount, $currency, $stripePaymentMethodTypes);
             }
 
             return [
@@ -808,6 +816,7 @@ add_action('init', function () {
             'id' => ['type' => 'String'],
             'error' => ['type' => 'String'],
             'stripePaymentMethod' => ['type' => 'String'],
+            'stripePaymentMethodTypes' => ['list_of' => 'String'],
         ],
     ]);
 });
@@ -828,7 +837,8 @@ add_action('wp_ajax_check_plugin_status', function () {
 /**
  * Stripe
  */
-function create_payment_intent( $amount, $currency ) {
+function create_payment_intent( $amount, $currency, $payment_method_types )
+{
 
     if (!class_exists('WC_Stripe_API')) {
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
@@ -845,6 +855,10 @@ function create_payment_intent( $amount, $currency ) {
         'capture_method' => $capture ? 'automatic' : 'manual',
     ];
 
+    if ( ! empty($payment_method_types)) {
+        $request_params['payment_method_types'] = $payment_method_types;
+    }
+
     // Create the Payment Intent
     $payment_intent = WC_Stripe_API::request( $request_params, 'payment_intents' );
 
@@ -859,14 +873,15 @@ function create_payment_intent( $amount, $currency ) {
     ];
 }
 
-function create_setup_intent($amount, $currency)
+function create_setup_intent( $amount, $currency, $payment_method_types )
 {
     // check if WC_Stripe class exists
     if (!class_exists('WC_Stripe_API')) {
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
     }
 
-    $setup_intent = WC_Stripe_API::request([], 'setup_intents');
+    $request_params = !empty($payment_method_types) ? ['payment_method_types' => $payment_method_types] : [];
+    $setup_intent = WC_Stripe_API::request( $request_params, 'setup_intents' );
 
     if (!empty($setup_intent->error)) {
         throw new Exception($setup_intent->error->message);
