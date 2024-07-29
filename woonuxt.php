@@ -791,7 +791,7 @@ add_action('init', function () {
             $stripePaymentMethod = $args['stripePaymentMethod'] ?? 'SETUP';
             $stripePaymentMethodTypes = $args['stripePaymentMethodTypes'] ?? [];
 
-            if ($stripePaymentMethod === 'payment') {
+            if ($stripePaymentMethod === 'PAYMENT') {
                 $stripe = create_payment_intent($amount, $currency, $stripePaymentMethodTypes);
             } else {
                 $stripe = create_setup_intent($amount, $currency, $stripePaymentMethodTypes);
