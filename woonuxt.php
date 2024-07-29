@@ -831,7 +831,7 @@ add_action('wp_ajax_check_plugin_status', function () {
  */
 function create_payment_intent( $amount, $currency )
 {
-
+    // check if WC_Stripe class exists
     if (!class_exists('WC_Stripe_API')) {
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
     }
