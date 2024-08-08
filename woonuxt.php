@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 define('WOONUXT_SETTINGS_VERSION', '1.0.56');
 define('MY_WOOCOMMERCE_VERSION', '9.1.2');
 define('WP_GRAPHQL_VERSION', '1.27.2');
-define('WOO_GRAPHQL_VERSION', '0.20.0');
+define('WOO_GRAPHQL_VERSION', '0.21.0');
 define('WP_GRAPHQL_CORS_VERSION', '2.1');
 
 // Define Globals
