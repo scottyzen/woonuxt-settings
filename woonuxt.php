@@ -138,21 +138,21 @@ add_action('admin_menu', function () {
 
 function wooNuxtOptionsPageHtml()
 {
-    $options = get_option('woonuxt_options');?>
+    $options = get_option('woonuxt_options'); ?>
     <div class="acf-admin-toolbar">
         <a href="https://woonuxt.com" class="acf-logo">
-            <img src="<?php echo plugins_url('assets/colored-logo.svg', __FILE__, ); ?>" alt="WooNuxt" target="_blank">
+            <img src="<?php echo plugins_url('assets/colored-logo.svg', __FILE__,); ?>" alt="WooNuxt" target="_blank">
         </a>
         <h2 style="display: block;">WooNuxt</h2>
-        <?php if (isset($options['build_hook'])): ?>
+        <?php if (isset($options['build_hook'])) : ?>
             <button id="deploy-button" class="acf-button button button-primary button-large">Deploy</button>
-        <?php endif;?>
+        <?php endif; ?>
     </div>
     <div class="wrap">
         <form action="options.php" method="post">
             <?php settings_fields('woonuxt_options');
-    do_settings_sections('woonuxt');
-    submit_button();?>
+            do_settings_sections('woonuxt');
+            submit_button(); ?>
         </form>
     </div>
 <?php
@@ -232,7 +232,7 @@ function updateAvailableCallback()
 
     echo '<div class="notice notice-warning woonuxt-section">';
     printf('<p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin" href="%s">%s</a></strong></u> to update from version <strong>%s</strong> to <strong>%s</strong></p>', esc_url($update_url), esc_html($update_text), esc_html($current_version), esc_html($github_version));
-    echo '</div>';?>
+    echo '</div>'; ?>
     <script>
         jQuery(document).ready(function($) {
             $('#update_woonuxt_plugin').click(function(e) {
@@ -263,10 +263,10 @@ function updateAvailableCallback()
 // Section callback
 function requiredPluginsCallback()
 {
-    global $plugin_list;?>
+    global $plugin_list; ?>
     <div class="woonuxt-section">
         <ul class="required-plugins-list">
-            <?php foreach ($plugin_list as $plugin): ?>
+            <?php foreach ($plugin_list as $plugin) : ?>
                 <li class="required-plugin">
                     <img src="<?php echo $plugin['icon']; ?>" width="64" height="64">
                     <div>
@@ -293,9 +293,9 @@ function requiredPluginsCallback()
                                         type: 'POST',
                                         data: {
                                             action: 'check_plugin_status',
-                                            security: '<?=wp_create_nonce('my_nonce_action')?>',
-                                            plugin: '<?=esc_attr($plugin['slug'])?>',
-                                            file: '<?=esc_attr($plugin['file'])?>',
+                                            security: '<?= wp_create_nonce('my_nonce_action') ?>',
+                                            plugin: '<?= esc_attr($plugin['slug']) ?>',
+                                            file: '<?= esc_attr($plugin['file']) ?>',
                                         },
                                         success(response) {
                                             if (response === 'installed') {
@@ -314,11 +314,11 @@ function requiredPluginsCallback()
                         </div>
                     </div>
                 </li>
-            <?php endforeach;?>
+            <?php endforeach; ?>
         </ul>
     </div>
     <?php
-/**
+    /**
      * Check if the plugin is installed.
      */
     if (isset($_GET['install_plugin'])) {
@@ -383,7 +383,7 @@ function deployButtonCallback()
                 <td>
                     <div class="flex">
                         <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo $endpoint; ?>&NUXT_IMAGE_DOMAINS=<?php echo $_SERVER['HTTP_HOST']; ?>" target="_blank" class="mr-8">
-                            <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="160" height="40">
+                            <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__,); ?>" alt="Deploy to Netlify" width="160" height="40">
                         </a>
                         <a href="https://vercel.com/new/clone?repository-url=https://github.com/scottyzen/woonuxt
 &repository-name=<?php echo $site_name; ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
@@ -429,7 +429,7 @@ function global_setting_callback()
     $product_attributes = wc_get_attribute_taxonomies();
     echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
     $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
-    ?>
+?>
 
     <div class="global_setting woonuxt-section">
         <table class="form-table" role="presentation">
@@ -620,7 +620,7 @@ function global_setting_callback()
 																										                                        </tr>
 																										                                    <?php endforeach;?>
                                 <?php
-endif;?>
+                                endif; ?>
                             </tbody>
                             <tfoot>
                                 <tr>
@@ -715,7 +715,7 @@ add_action('init', function () {
                     'order' => 'DESC',
                     'meta_key' => '_price',
                 ]);
-                while ($loop->have_posts()):
+                while ($loop->have_posts()) :
                     $loop->the_post();
                     global $product;
                     $options['maxPrice'] = ceil($product->get_price());
@@ -752,20 +752,51 @@ add_action('init', function () {
         return $amount = $total_number_of_products > 100 ? $total_number_of_products : $amount;
     }, 10, 5);
 
+    register_graphql_enum_type(
+        'StripePaymentMethodEnum',
+        [
+            'description' => __('The Stripe Payment Method. Payment or Setup.', 'wp-graphql'),
+            'defaultValue' => 'SETUP',
+            'values' => [
+                'PAYMENT' => [
+                    'value' => 'PAYMENT',
+                ],
+                'SETUP' => [
+                    'value' => 'SETUP',
+                ],
+            ],
+        ]
+    );
+
     register_graphql_field('RootQuery', 'stripePaymentIntent', [
         'type' => 'PaymentIntent',
-        'resolve' => function () {
-            $amount = floatval(WC()->cart->get_total(false)) * 100;
+        'args' => [
+            'stripePaymentMethod' => [
+                'description' => 'The Stripe Payment Method. PAYMENT or SETUP.',
+                'type' => 'StripePaymentMethodEnum',
+            ],
+        ],
+        'resolve' => function ($source, $args, $context, $info) {
+            $amount = floatval(WC()->cart->get_total(false));
             $currency = get_woocommerce_currency();
             $currency = strtoupper($currency);
-            $payment_intent = create_payment_intent($amount, $currency);
+
+            $stripe = null;
+            $stripePaymentMethod = $args['stripePaymentMethod'] ?? 'SETUP';
+
+            if ($stripePaymentMethod === 'PAYMENT') {
+                $stripe = create_payment_intent($amount, $currency);
+            } else {
+                $stripe = create_setup_intent($amount, $currency);
+            }
 
             return [
-                'amount' => $amount,
+                'amount' => $amount * 100,
                 'currency' => $currency,
-                'clientSecret' => $payment_intent['client_secret'],
-                'id' => $payment_intent['id'],
-                'error' => $payment_intent['error'],
+                'clientSecret' => $stripe['client_secret'],
+                'id' => $stripe['id'],
+                'error' => $stripe['error'],
+                'stripePaymentMethod' => $stripePaymentMethod,
             ];
         },
     ]);
@@ -777,6 +808,7 @@ add_action('init', function () {
             'clientSecret' => ['type' => 'String'],
             'id' => ['type' => 'String'],
             'error' => ['type' => 'String'],
+            'stripePaymentMethod' => ['type' => 'String'],
         ],
     ]);
 });
@@ -795,38 +827,56 @@ add_action('wp_ajax_check_plugin_status', function () {
 });
 
 /**
- * Creates payment intent using current cart or order and store details.
- *
- * @param {int} $order_id The id of the order if intent created from Order.
- * @throws Exception - If the create intent call returns with an error.
- * @return array
- */
-// public function create_payment_intent( $order_id = null ) {
-
-/**
  * Stripe
  */
-function create_payment_intent($amount, $currency)
+function create_payment_intent( $amount, $currency )
 {
     // check if WC_Stripe class exists
     if (!class_exists('WC_Stripe_API')) {
         return new WP_Error('stripe_not_installed', 'Stripe is not installed');
     }
 
-    $setup_intent = WC_Stripe_API::request(
-        [
-            'payment_method_types' => ['card'],
-        ],
-        'setup_intents');
+    $gateways = WC()->payment_gateways()->payment_gateways();
+    $gateway = $gateways[ WC_Gateway_Stripe::ID ];
+    $capture = empty( $gateway->get_option( 'capture' ) ) || $gateway->get_option( 'capture' ) === 'yes';
 
-    if (!empty($setup_intent->error)) {
-        throw new Exception($payment_intent->error->message);
+    // Prepare the request parameters
+    $request_params = [
+        'amount' => WC_Stripe_Helper::get_stripe_amount( $amount, strtolower( $currency ) ),
+		'currency' => strtolower( $currency ),
+        'capture_method' => $capture ? 'automatic' : 'manual',
+    ];
+
+    // Create the Payment Intent
+    $payment_intent = WC_Stripe_API::request( $request_params, 'payment_intents' );
+
+    if ( ! empty( $payment_intent->error ) ) {
+        throw new Exception( $payment_intent->error->message );
     }
 
     return [
         'id' => $payment_intent->id,
-        // 'client_secret' => $payment_intent->client_secret,
-        'client_secret' => $setup_intent->client_secret,
+        'client_secret' => $payment_intent->client_secret,
         'error' => $payment_intent->error,
+    ];
+}
+
+function create_setup_intent( $amount, $currency )
+{
+    // check if WC_Stripe class exists
+    if (!class_exists('WC_Stripe_API')) {
+        return new WP_Error('stripe_not_installed', 'Stripe is not installed');
+    }
+
+    $setup_intent = WC_Stripe_API::request( [], 'setup_intents' );
+
+    if (!empty($setup_intent->error)) {
+        throw new Exception($setup_intent->error->message);
+    }
+
+    return [
+        'id' => $setup_intent->id,
+        'client_secret' => $setup_intent->client_secret,
+        'error' => $setup_intent->error,
     ];
 }
