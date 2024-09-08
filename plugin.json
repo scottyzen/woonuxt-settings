@@ -1,26 +1,21 @@
 {
   "name": "woonuxt Settings",
-  "version": "1.0.57",
-  "download_url": "https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.57/woonuxt-settings.zip",
-
+  "version": "1.0.58",
+  "download_url": "https://github.com/scottyzen/woonuxt-settings/releases/download/1.0.58/woonuxt-settings.zip",
   "homepage": "https://woonuxt.com/",
-  "tested": "6.4.3",
-  "upgrade_notice": "Fix error when WooCommerce is disabled or not installed",
-
+  "tested": "6.6.1",
+  "upgrade_notice": "Improve Stripe add payment option.",
   "author": "Scott Kennedy",
   "author_homepage": "https://scottyzen.com/",
-
   "sections": {
     "description": "WooNuxt is unmatched when it comes to performance and scalability. Reap the benefits of having a online store that out performs all of your competitors.",
     "installation": "(Recommended) Installation instructions.",
-    "changelog": "<h2>1.0.56</h2><p>Add currencySymbol. Fix Vercel url<h2>1.0.55</h2><p>Ceil maxPrice value.<h2>1.0.54</h2><p>Change to setup_intents.<h2>1.0.53</h2><p>Add stripePaymentIntent for 3d secure.<h2>1.0.52</h2><p>Bump version.<h2>1.0.51</h2><p>Inhance Social media fileds and schema.<h2>1.0.50</h2><p>Add SEO settings<h2>1.0.49</h2><p>Add functionality to increase max query amount if there are more than 100 products<h2>1.0.45</h2><p>Fix error when WooCommerce is disabled or not installed</p>"
+    "changelog": "<h2>1.0.58</h2><p>Improve Stripe add payment option.<h2>1.0.57</h2><p>Update plugin versions.<h2>1.0.56</h2><p>Add currencySymbol. Fix Vercel url<h2>1.0.55</h2><p>Ceil maxPrice value.<h2>1.0.54</h2><p>Change to setup_intents.<h2>1.0.53</h2><p>Add stripePaymentIntent for 3d secure.<h2>1.0.52</h2><p>Bump version.<h2>1.0.51</h2><p>Inhance Social media fileds and schema.<h2>1.0.50</h2><p>Add SEO settings<h2>1.0.49</h2><p>Add functionality to increase max query amount if there are more than 100 products<h2>1.0.45</h2><p>Fix error when WooCommerce is disabled or not installed</p>"
   },
-
   "icons": {
     "1x": "https://woonuxt.com/logo.svg",
     "2x": "https://woonuxt.com/logo.svg"
   },
-
   "banners": {
     "low": "https://woonuxt.com/wp-content/plugins/woonuxt-settings/assets/banner-small.jpg",
     "high": "https://woonuxt.com/wp-content/plugins/woonuxt-settings/assets/banner-big.jpg"
