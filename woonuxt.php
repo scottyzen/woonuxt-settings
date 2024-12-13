@@ -457,7 +457,7 @@ function global_setting_callback()
                 <tr>
                     <th scope="row"><label for="woonuxt_options[productsPerPage]">Products Per Page</label></th>
                     <td>
-                        <input type="number" name="woonuxt_options[productsPerPage]" value="<?php echo $options['productsPerPage'] ? $options['productsPerPage'] : '24'; ?>" placeholder="e.g. 12" />
+                        <input type="number" name="woonuxt_options[productsPerPage]" value="<?php echo isset($options['productsPerPage']) ? $options['productsPerPage'] : '24'; ?>" placeholder="e.g. 12" />
                         <p class="description">The number of products that will be displayed on the product listing page. Default is 24.</p>
                     </td>
                 </tr>
