@@ -285,7 +285,7 @@ function requiredPluginsCallback()
                             </div>
 
                             <!-- Not Installed -->
-                            <a class="plugin-state_install" style="display:none;" href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
+                            <a class="plugin-state_install" style="display:none;" href="<?php echo admin_url('options-general.php?page=woonuxt&install_plugin=' . $plugin['slug']); ?>">Install Now</a>
                             <script>
                                 jQuery(document).ready(function($) {
                                     $.ajax({
@@ -396,12 +396,12 @@ function deployButtonCallback()
                     <details <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;">
                         <summary>Required settings for WooNuxt</summary>
                         <p>These settings are required for WooNuxt to work properly. Click the links below to go to the respective settings page.</p>
-                        <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL settings</a></h4>
+                        <h4><a href="<?php echo admin_url('/wp-admin/admin.php?page=graphql-settings') ?>">WPGraphQL settings</a></h4>
                         <ul style="font-weight: 600; list-style: disc; padding-left: 20px;">
                             <li>Enable Public Introspection. <span style="color: #D63638;"><?php echo $publicIntrospectionEnabled ? '✅' : '(disabled)'; ?></span></li>
                         </ul>
 
-                        <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL CORS settings</a></h4>
+                        <h4><a href="<?php echo admin_url('/wp-admin/admin.php?page=graphql-settings') ?>">WPGraphQL CORS settings</a></h4>
                         <ul style="font-weight: 600; list-style: disc; padding-left: 20px;">
                             <li>Add Site Address to "Access-Control-Allow-Origin" header. <span style="color: #D63638;"><?php echo $acao_use_site_address ? '✅' : '(disabled)'; ?></span></li>
                             <li>Extend "Access-Control-Allow-Origin” header. <span style="color: #D63638;"><?php echo $extendHeaders ? '✅' : '(This should have at least http://localhost:3000 for the dev enviorment)'; ?></span></li>
@@ -410,7 +410,7 @@ function deployButtonCallback()
                             <li>Logout Mutation. <span style="color: #D63638;"><?php echo $logout_mutation_is_enabled ? '✅' : '(disabled)'; ?></span></li>
                         </ul>
 
-                        <h4><a href="/wp-admin/edit.php?post_type=product&page=product_attributes">Product Attributes</a></h4>
+                        <h4><a href="<?php echo admin_url('/wp-admin/edit.php?post_type=product&page=product_attributes') ?>">Product Attributes</a></h4>
                         <ul style="font-weight: 600; list-style: disc; padding-left: 20px;">
                             <li>At least one product attribute. <span style="color: #D63638;"><?php echo $hasProductAttributes ? '✅' : '(disabled)'; ?></span></li>
                         </ul>
