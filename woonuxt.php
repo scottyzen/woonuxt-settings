@@ -292,7 +292,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             </div>
 
                             <!-- Not Installed -->
-                            <a class="plugin-state_install" style="display:none;" href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
+                            <a class="plugin-state_install" style="display:none;" href="<?php echo admin_url('options-general.php?page=woonuxt&install_plugin=' . $plugin['slug']); ?>">Install Now</a>
                             <script>
                                 jQuery(document).ready(function($) {
                                     $.ajax({
@@ -382,8 +382,8 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                     <details                                                                                                                                                                                                                                 <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;">
                         <summary>Required settings for WooNuxt</summary>
                         <p>These settings are required for WooNuxt to work properly. Click the links below to go to the respective settings page.</p>
-                        <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL settings</a></h4>
-                        <h4><a href="/wp-admin/edit.php?post_type=product&page=product_attributes">Product Attributes</a></h4>
+                        <h4><a href="<?php echo admin_url('/wp-admin/admin.php?page=graphql-settings') ?>">WPGraphQL settings</a></h4>
+                        <h4><a href="<?php echo admin_url('/wp-admin/edit.php?post_type=product&page=product_attributes') ?>">Product Attributes</a></h4>
                         <ul style="font-weight: 600; list-style: disc; padding-left: 20px;">
                             <li>At least one product attribute. <span style="color: #D63638;"><?php echo $hasProductAttributes ? '✅' : '(disabled)'; ?></span></li>
                         </ul>
