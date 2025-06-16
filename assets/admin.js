@@ -8,11 +8,18 @@ jQuery(document).ready(function ($) {
   const buildUrl = $("#build_url");
   $("#deploy-button").click(function (e) {
     e.preventDefault();
+    if (!buildUrl.val()) {
+      alert("Build URL is not set.");
+      return;
+    }
     $.ajax({
       url: buildUrl.val(),
       type: "POST",
       success(data) {
         alert("Build triggered successfully");
+      },
+      error(xhr) {
+        alert("Failed to trigger build: " + xhr.statusText);
       },
     });
   });
