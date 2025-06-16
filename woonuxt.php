@@ -18,6 +18,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     require_once 'plugin-update-checker/plugin-update-checker.php';
     require_once 'includes/constants.php';
     require_once 'includes/assets.php';
+    require_once 'includes/graphql.php';
 
     // Define Globals
     global $plugin_list;
@@ -360,7 +361,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             <span>Deploy to Vercel</span>
                         </a>
                     </div>
-                    <details                                                         <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;">
+                    <details                                                                                                                 <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;">
                         <summary>Required settings for WooNuxt</summary>
                         <p>These settings are required for WooNuxt to work properly. Click the links below to go to the respective settings page.</p>
                         <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL settings</a></h4>
@@ -433,16 +434,16 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             <tbody id="the-list">
                                 <?php if (isset($options['wooNuxtSEO'])):
                                         foreach ($options['wooNuxtSEO'] as $key => $value): ?>
-		                                        <tr class="seo_item">
-		                                            <td>
-		                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
-		                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
-		                                            </td>
-		                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
-		                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
-		                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
-		                                        </tr>
-		                                    <?php endforeach; ?>
+				                                        <tr class="seo_item">
+				                                            <td>
+				                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
+				                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
+				                                            </td>
+				                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
+				                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
+				                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
+				                                        </tr>
+				                                    <?php endforeach; ?>
 <?php endif; ?>
                                 <!-- Add new line -->
                                 <tr class="seo_item seo_item_new">
@@ -539,40 +540,40 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             <tbody id="the-list">
                                 <?php if (isset($options['global_attributes'])):
                                         foreach ($options['global_attributes'] as $key => $value): ?>
-		                                        <tr>
-		                                            <td>
-		                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
-		                                            </td>
-		                                            <td>
-		                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
-		                                                    <?php foreach ($product_attributes as $attribute):
-                                                                        $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
-                                                                        ?>]
-				                                                    <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
-				                                                        <?php echo $attribute->attribute_label; ?>
-				                                                    </option>
-				                                                <?php
-                                                                    endforeach; ?>
-		                                                </select>
-		                                            </td>
-		                                            <td>
-		                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
-		                                            </td>
-		                                            <td>
-		                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
-		                                            </td>
-		                                            <td>
-		                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
-		                                            </td>
-		                                            <td>
-		                                                <div class="text-right row-actions">
-		                                                    <a class="text-danger remove_global_attribute">Delete</a> |
-		                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
-		                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
-		                                                </div>
-		                                            </td>
-		                                        </tr>
-		                                    <?php endforeach; ?>
+				                                        <tr>
+				                                            <td>
+				                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
+				                                            </td>
+				                                            <td>
+				                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
+				                                                    <?php foreach ($product_attributes as $attribute):
+                                                                                $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
+                                                                                ?>]
+								                                                    <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
+								                                                        <?php echo $attribute->attribute_label; ?>
+								                                                    </option>
+								                                                <?php
+                                                                                    endforeach; ?>
+				                                                </select>
+				                                            </td>
+				                                            <td>
+				                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
+				                                            </td>
+				                                            <td>
+				                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
+				                                            </td>
+				                                            <td>
+				                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
+				                                            </td>
+				                                            <td>
+				                                                <div class="text-right row-actions">
+				                                                    <a class="text-danger remove_global_attribute">Delete</a> |
+				                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
+				                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
+				                                                </div>
+				                                            </td>
+				                                        </tr>
+				                                    <?php endforeach; ?>
 <?php
 endif; ?>
                             </tbody>
@@ -595,238 +596,4 @@ endif; ?>
         </table>
     </div>
 <?php
-    }
-
-    // Add all setting to the wpgraphql schema
-    add_action('init', function () {
-        if (! class_exists('\WPGraphQL')) {
-            return;
-        }
-        if (! class_exists('WooCommerce')) {
-            return;
-        }
-
-        add_action('graphql_register_types', function () {
-            register_graphql_object_type('woonuxtOptionsGlobalAttributes', [
-                'description' => __('Woonuxt Global attributes for filtering', 'woonuxt'),
-                'fields'      => [
-                    'label'         => ['type' => 'String'],
-                    'slug'          => ['type' => 'String'],
-                    'showCount'     => ['type' => 'Boolean'],
-                    'hideEmpty'     => ['type' => 'Boolean'],
-                    'openByDefault' => ['type' => 'Boolean'],
-                ],
-            ]);
-            register_graphql_object_type('woonuxtOptionsStripeSettings', [
-                'fields' => [
-                    'enabled'              => ['type' => 'String'],
-                    'testmode'             => ['type' => 'String'],
-                    'test_publishable_key' => ['type' => 'String'],
-                    'publishable_key'      => ['type' => 'String'],
-                ],
-            ]);
-            register_graphql_object_type('wooNuxtSocialItems', [
-                'description' => __('Woonuxt Social Items', 'woonuxt'),
-                'fields'      => [
-                    'provider' => ['type' => 'String'],
-                    'url'      => ['type' => 'String'],
-                    'handle'   => ['type' => 'String'],
-                ],
-            ]);
-            register_graphql_object_type('woonuxtOptions', [
-                'description' => __('Woonuxt Settings', 'woonuxt'),
-                'fields'      => [
-                    'primary_color'              => ['type' => 'String'],
-                    'logo'                       => ['type' => 'String'],
-                    'maxPrice'                   => ['type' => 'Int'],
-                    'productsPerPage'            => ['type' => 'Int'],
-                    'frontEndUrl'                => ['type' => 'String'],
-                    'domain'                     => ['type' => 'String'],
-                    'global_attributes'          => ['type' => ['list_of' => 'woonuxtOptionsGlobalAttributes']],
-                    'publicIntrospectionEnabled' => ['type' => 'String', 'default' => 'off'],
-                    'stripeSettings'             => ['type' => 'woonuxtOptionsStripeSettings'],
-                    'currencyCode'               => ['type' => 'String'],
-                    'currencySymbol'             => ['type' => 'String'],
-                    'wooCommerceSettingsVersion' => ['type' => 'String'],
-                    'wooNuxtSEO'                 => ['type' => ['list_of' => 'wooNuxtSocialItems']],
-                ],
-            ]);
-
-            register_graphql_field('RootQuery', 'woonuxtSettings', [
-                'type'    => 'woonuxtOptions',
-                'resolve' => function () {
-                    // woonuxt_options
-                    $options = get_option('woonuxt_options');
-
-                    // Extra options
-                    $gql_settings                          = get_option('graphql_general_settings');
-                    $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'];
-
-                    $loop = new WP_Query([
-                        'post_type'      => 'product',
-                        'posts_per_page' => 1,
-                        'orderby'        => 'meta_value_num',
-                        'order'          => 'DESC',
-                        'meta_key'       => '_price',
-                    ]);
-                    while ($loop->have_posts()):
-                        $loop->the_post();
-                        global $product;
-                        $options['maxPrice'] = ceil($product->get_price());
-                    endwhile;
-                    wp_reset_query();
-
-                    // Get woocommerce_stripe_settings from wp_options
-                    $stripe_settings           = get_option('woocommerce_stripe_settings');
-                    $options['stripeSettings'] = $stripe_settings;
-
-                    // Get WooCommerce currency code
-                    if (! function_exists('get_woocommerce_currency') && function_exists('WC')) {
-                        require_once WC()->plugin_path() . '/includes/wc-core-functions.php';
-                    }
-                    $options['currencyCode']   = get_woocommerce_currency();                            // EUR
-                    $options['currencySymbol'] = html_entity_decode(get_woocommerce_currency_symbol()); // €
-
-                    $options['domain']                     = $_SERVER['HTTP_HOST'];
-                    $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
-                    $options['wooNuxtSEO']                 = $options['wooNuxtSEO'] ?? [];
-                    return $options;
-                },
-            ]);
-        });
-
-        // Allow plugins to be queried by id
-        add_filter('graphql_data_is_private', function ($is_private, $model_name) {
-            return 'PluginObject' === $model_name ? false : $is_private;
-        }, 10, 6);
-
-        // Increase the max query amount if there are more than 100 products
-        add_filter('graphql_connection_max_query_amount', function ($amount) {
-            $total_number_of_products = wp_count_posts('product')->publish;
-            return $amount            = $total_number_of_products > 100 ? $total_number_of_products : $amount;
-        }, 10, 5);
-
-        register_graphql_enum_type(
-            'StripePaymentMethodEnum',
-            [
-                'description'  => __('The Stripe Payment Method. Payment or Setup.', 'wp-graphql'),
-                'defaultValue' => 'SETUP',
-                'values'       => [
-                    'PAYMENT' => ['value' => 'PAYMENT'],
-                    'SETUP'   => ['value' => 'SETUP'],
-                ],
-            ]
-        );
-
-        register_graphql_field('RootQuery', 'stripePaymentIntent', [
-            'type'    => 'PaymentIntent',
-            'args'    => [
-                'stripePaymentMethod' => [
-                    'description' => 'The Stripe Payment Method. PAYMENT or SETUP.',
-                    'type'        => 'StripePaymentMethodEnum',
-                ],
-            ],
-            'resolve' => function ($source, $args, $context, $info) {
-                $amount   = floatval(WC()->cart->get_total(false));
-                $currency = get_woocommerce_currency();
-                $currency = strtoupper($currency);
-
-                $stripe              = null;
-                $stripePaymentMethod = $args['stripePaymentMethod'] ?? 'SETUP';
-
-                if ($stripePaymentMethod === 'PAYMENT') {
-                    $stripe = create_payment_intent($amount, $currency);
-                } else {
-                    $stripe = create_setup_intent($amount, $currency);
-                }
-
-                return [
-                    'amount'              => $amount * 100,
-                    'currency'            => $currency,
-                    'clientSecret'        => $stripe['client_secret'],
-                    'id'                  => $stripe['id'],
-                    'error'               => $stripe['error'],
-                    'stripePaymentMethod' => $stripePaymentMethod,
-                ];
-            },
-        ]);
-
-        register_graphql_object_type('PaymentIntent', [
-            'fields' => [
-                'amount'              => ['type' => 'Int'],
-                'currency'            => ['type' => 'String'],
-                'clientSecret'        => ['type' => 'String'],
-                'id'                  => ['type' => 'String'],
-                'error'               => ['type' => 'String'],
-                'stripePaymentMethod' => ['type' => 'String'],
-            ],
-        ]);
-    });
-
-    /**
-     * Check if a plugin is active
-     */
-    add_action('wp_ajax_check_plugin_status', function () {
-        check_ajax_referer('my_nonce_action', 'security');
-
-        // Get the plugin slug and file from the AJAX request
-        $plugin_file = sanitize_text_field($_POST['file']);
-        echo is_plugin_active($plugin_file) ? 'installed' : 'not_installed';
-
-        wp_die();
-    });
-
-    /**
-     * Stripe
-     */
-    function create_payment_intent($amount, $currency)
-    {
-        // check if WC_Stripe class exists
-        if (! class_exists('WC_Stripe_API')) {
-            return new WP_Error('stripe_not_installed', 'Stripe is not installed');
-        }
-
-        $gateways = WC()->payment_gateways()->payment_gateways();
-        $gateway  = $gateways[WC_Gateway_Stripe::ID];
-        $capture  = empty($gateway->get_option('capture')) || $gateway->get_option('capture') === 'yes';
-
-        // Prepare the request parameters
-        $request_params = [
-            'amount'         => WC_Stripe_Helper::get_stripe_amount($amount, strtolower($currency)),
-            'currency'       => strtolower($currency),
-            'capture_method' => $capture ? 'automatic' : 'manual',
-        ];
-
-        // Create the Payment Intent
-        $payment_intent = WC_Stripe_API::request($request_params, 'payment_intents');
-
-        if (! empty($payment_intent->error)) {
-            throw new Exception($payment_intent->error->message);
-        }
-
-        return [
-            'id'            => $payment_intent->id,
-            'client_secret' => $payment_intent->client_secret,
-            'error'         => $payment_intent->error,
-        ];
-    }
-
-    function create_setup_intent($amount, $currency)
-    {
-        // check if WC_Stripe class exists
-        if (! class_exists('WC_Stripe_API')) {
-            return new WP_Error('stripe_not_installed', 'Stripe is not installed');
-        }
-
-        $setup_intent = WC_Stripe_API::request([], 'setup_intents');
-
-        if (! empty($setup_intent->error)) {
-            throw new Exception($setup_intent->error->message);
-        }
-
-        return [
-            'id'            => $setup_intent->id,
-            'client_secret' => $setup_intent->client_secret,
-            'error'         => $setup_intent->error,
-        ];
 }
