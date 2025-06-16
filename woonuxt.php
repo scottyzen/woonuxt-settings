@@ -80,14 +80,6 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
             'icon'        => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
             'slug'        => 'woographql',
         ],
-        // 'wp-graphql-cors'           => [
-        //     'name'        => 'WPGraphQL CORS',
-        //     'description' => 'Add CORS headers to your WPGraphQL API.',
-        //     'url'         => 'https://github.com/funkhaus/wp-graphql-cors/archive/refs/tags/2.1.zip',
-        //     'file'        => 'wp-graphql-cors-2.1/wp-graphql-cors.php',
-        //     'icon'        => 'https://avatars.githubusercontent.com/u/8369076?s=200&v=4',
-        //     'slug'        => 'wp-graphql-cors',
-        // ],
         'wp-graphql-headless-login' => [
             'name'        => 'WPGraphQL Headless Login',
             'description' => 'Headless Login for WPGraphQL.',
@@ -374,7 +366,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             <span>Deploy to Vercel</span>
                         </a>
                     </div>
-                    <details                                                                                                                                                                                                                                                                                                                                                                                                                                     <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;">
+                    <details                             <?php echo $allSettingHaveBeenMet ? '' : 'open'; ?> style="margin-top: 20px;">
                         <summary>Required settings for WooNuxt</summary>
                         <p>These settings are required for WooNuxt to work properly. Click the links below to go to the respective settings page.</p>
                         <h4><a href="/wp-admin/admin.php?page=graphql-settings">WPGraphQL settings</a></h4>
@@ -447,16 +439,16 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             <tbody id="the-list">
                                 <?php if (isset($options['wooNuxtSEO'])):
                                         foreach ($options['wooNuxtSEO'] as $key => $value): ?>
-															                                        <tr class="seo_item">
-															                                            <td>
-															                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
-															                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
-															                                            </td>
-															                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
-															                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
-															                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
-															                                        </tr>
-															                                    <?php endforeach; ?>
+	                                        <tr class="seo_item">
+	                                            <td>
+	                                                <span class="seo_item_provider"><?php echo $value['provider']; ?></span>
+	                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][provider]" value="<?php echo $value['provider']; ?>" />
+	                                            </td>
+	                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][handle]" value="<?php echo $value['handle']; ?>" /></td>
+	                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo $key; ?>][url]" value="<?php echo $value['url']; ?>" /></td>
+	                                            <td class="text-right"><a class="text-danger remove_seo_item">Delete</a></td>
+	                                        </tr>
+	                                    <?php endforeach; ?>
 <?php endif; ?>
                                 <!-- Add new line -->
                                 <tr class="seo_item seo_item_new">
@@ -553,40 +545,40 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             <tbody id="the-list">
                                 <?php if (isset($options['global_attributes'])):
                                         foreach ($options['global_attributes'] as $key => $value): ?>
-															                                        <tr>
-															                                            <td>
-															                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
-															                                            </td>
-															                                            <td>
-															                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
-															                                                    <?php foreach ($product_attributes as $attribute):
-                                                                                                                                $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
-                                                                                                                            ?>
-																														                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
-																														                                                            <?php echo $attribute->attribute_label; ?>
-																														                                                        </option>
-																														                                                    <?php
-                                                                                                                                                                                endforeach; ?>
-															                                                </select>
-															                                            </td>
-															                                            <td>
-															                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
-															                                            </td>
-															                                            <td>
-															                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
-															                                            </td>
-															                                            <td>
-															                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
-															                                            </td>
-															                                            <td>
-															                                                <div class="text-right row-actions">
-															                                                    <a class="text-danger remove_global_attribute">Delete</a> |
-															                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
-															                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
-															                                                </div>
-															                                            </td>
-															                                        </tr>
-															                                    <?php endforeach; ?>
+	                                        [<tr>
+	                                            <td>
+	                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo $key; ?>][label]" value="<?php echo $value['label']; ?>" placeholder="e.g. Filter by Color" />
+	                                            </td>
+	                                            <td>
+	                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
+	                                                    <?php foreach ($product_attributes as $attribute):
+                                                                    $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
+                                                                    ?>]
+		                                                    <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
+		                                                        <?php echo $attribute->attribute_label; ?>
+		                                                    </option>
+		                                                <?php
+                                                            endforeach; ?>
+	                                                </select>
+	                                            </td>
+	                                            <td>
+	                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
+	                                            </td>
+	                                            <td>
+	                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
+	                                            </td>
+	                                            <td>
+	                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo $key; ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
+	                                            </td>
+	                                            <td>
+	                                                <div class="text-right row-actions">
+	                                                    <a class="text-danger remove_global_attribute">Delete</a> |
+	                                                    <a title="Move Up" class="text-primary move_global_attribute_up">▲</a> |
+	                                                    <a title="Move Down" class="text-primary move_global_attribute_down">▼</a>
+	                                                </div>
+	                                            </td>
+	                                        </tr>
+	                                    <?php endforeach; ?>
 <?php
 endif; ?>
                             </tbody>
