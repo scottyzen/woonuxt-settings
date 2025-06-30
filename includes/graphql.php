@@ -101,7 +101,7 @@ add_action('init', function () {
 
     add_filter('graphql_login_cookie_setting', static function($value, string $option_name) {
         // Force-enable the logout mutation for wp-graph-ql-headless-login: https://github.com/AxeWP/wp-graphql-headless-login/issues/158
-        if ( 'hasLogoutMutation' === $option_name ) { 
+        if ('hasLogoutMutation' === $option_name) { 
             return true;
         }
        return $value; // all other options
