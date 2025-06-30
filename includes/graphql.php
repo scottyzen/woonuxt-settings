@@ -159,6 +159,4 @@ add_action('init', function () {
             'stripePaymentMethod' => ['type' => 'String'],
         ],
     ]);
-
-    
 });
