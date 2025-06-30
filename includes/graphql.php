@@ -99,6 +99,14 @@ add_action('init', function () {
         return $amount            = $total_number_of_products > 100 ? $total_number_of_products : $amount;
     }, 10, 5);
 
+    add_filter('graphql_login_cookie_setting', static function($value, string $option_name) {
+        // Force-enable the logout mutation for wp-graph-ql-headless-login: https://github.com/AxeWP/wp-graphql-headless-login/issues/158
+        if ( 'hasLogoutMutation' === $option_name ) { 
+            return true;
+        }
+       return $value; // all other options
+    }, 10, 2 );
+
     register_graphql_enum_type(
         'StripePaymentMethodEnum',
         [
@@ -151,4 +159,6 @@ add_action('init', function () {
             'stripePaymentMethod' => ['type' => 'String'],
         ],
     ]);
+
+    
 });
