@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.0.1
+Version: 2.0.2
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -80,21 +80,30 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     ];
 
     /**
-     * Get the latest version number from Github.
+     * Get the latest version number from Github with improved error handling and caching.
      * @return string $github_version
      */
     function github_version_number()
     {
-        $github_url  = 'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/woonuxt.php';
-        $github_file = file_get_contents($github_url);
-        if (false === $github_file) {
-            return '0.0.0';
+        $transient_key = 'woonuxt_github_version';
+        $github_version = get_transient($transient_key);
+        
+        if ($github_version === false) {
+            $github_url = 'https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/woonuxt.php';
+            $response = wp_remote_get($github_url, ['timeout' => 10]);
+            
+            if (is_wp_error($response)) {
+                return '0.0.0';
+            }
+            
+            $github_file = wp_remote_retrieve_body($response);
+            preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
+            
+            $github_version = isset($matches[1]) ? $matches[1] : '0.0.0';
+            set_transient($transient_key, $github_version, HOUR_IN_SECONDS);
         }
-        preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
-        if (! isset($matches[1])) {
-            return '0.0.0';
-        }
-        return $matches[1];
+        
+        return $github_version;
     }
 
     /**
@@ -144,52 +153,64 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     /**
      * Check plugin status AJAX handler with proper security
      */
-    add_action('wp_ajax_check_plugin_status', function () {
-        // Add nonce verification for security
-        if (!wp_verify_nonce($_POST['security'], 'my_nonce_action')) {
-            wp_die('Security check failed');
-        }
+    add_action('wp_ajax_check_plugin_status', 'handle_check_plugin_status');
+    function handle_check_plugin_status() {
+        check_ajax_referer('my_nonce_action', 'security');
         
-        // Sanitize input
+        $plugin_slug = sanitize_text_field($_POST['plugin']);
         $plugin_file = sanitize_text_field($_POST['file']);
         
-        // Check if plugin is active
         if (is_plugin_active($plugin_file)) {
-            echo 'installed';
+            wp_die('installed');
         } else {
-            echo 'not_installed';
+            wp_die('not_installed');
         }
-        
-        wp_die();
-    });
+    }
 
     /**
      * Grabs the latest version of the plugin from Github or the WordPress.org repo and install it.
      */
-    add_action('wp_ajax_update_woonuxt_plugin', function () {
+    add_action('wp_ajax_update_woonuxt_plugin', 'handle_update_woonuxt_plugin');
+    function handle_update_woonuxt_plugin() {
         // Add nonce verification for security
-        if (!wp_verify_nonce($_POST['security'], 'my_nonce_action')) {
-            wp_die('Security check failed');
+        check_ajax_referer('my_nonce_action', 'security');
+        
+        $version = github_version_number();
+        
+        // Validate version format
+        if (!preg_match('/^\d+\.\d+\.\d+$/', $version) || $version === '0.0.0') {
+            wp_send_json_error('Invalid version number retrieved');
+            return;
         }
         
-        $version     = github_version_number();
         $plugin_url  = "https://downloads.wordpress.org/plugin/woonuxt-settings/{$version}/woonuxt-settings.zip";
         $plugin_slug = 'woonuxt-settings/woonuxt.php';
 
         // Disable and delete the plugin
         deactivate_plugins($plugin_slug);
-        delete_plugins([$plugin_slug]);
+        $delete_result = delete_plugins([$plugin_slug]);
+        
+        if (is_wp_error($delete_result)) {
+            wp_send_json_error('Failed to delete old plugin version: ' . $delete_result->get_error_message());
+            return;
+        }
 
         $upgrader = new Plugin_Upgrader();
         $result   = $upgrader->install($plugin_url);
 
-        if ($result) {
-            activate_plugin($plugin_slug);
-            wp_send_json_success('Plugin updated');
+        if (is_wp_error($result)) {
+            wp_send_json_error('Plugin installation failed: ' . $result->get_error_message());
+        } elseif ($result) {
+            $activation_result = activate_plugin($plugin_slug);
+            if (is_wp_error($activation_result)) {
+                wp_send_json_error('Plugin activation failed: ' . $activation_result->get_error_message());
+            } else {
+                wp_send_json_success('Plugin updated successfully');
+            }
         } else {
-            wp_send_json_error('Plugin update failed');
+            wp_send_json_error('Plugin installation failed: Unknown error');
         }
-    });
+    }
 
     // Register settings
     add_action('admin_init', 'registerWoonuxtSettings');
@@ -353,11 +374,21 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 
                 if (! is_plugin_active($plugin['file'])) {
                     if (file_exists($fileURL)) {
-                        activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
+                        $activation_result = activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
+                        if (is_wp_error($activation_result)) {
+                            wp_die('Plugin activation failed: ' . $activation_result->get_error_message());
+                        }
                     } else {
                         $result = $upgrader->install($plugin['url']);
-                        if (! is_wp_error($result)) {
-                            activate_plugin($plugin['file']);
+                        if (is_wp_error($result)) {
+                            wp_die('Plugin installation failed: ' . $result->get_error_message());
+                        } elseif ($result) {
+                            $activation_result = activate_plugin($plugin['file']);
+                            if (is_wp_error($activation_result)) {
+                                wp_die('Plugin activation failed: ' . $activation_result->get_error_message());
+                            }
+                        } else {
+                            wp_die('Plugin installation failed: Unknown error');
                         }
                     }
                 }
