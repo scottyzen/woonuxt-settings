@@ -32,15 +32,9 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'plugin_action_links_woonuxt');
     function plugin_action_links_woonuxt($links)
     {
-        $admin_url = get_admin_url(null, 'options-general.php?page=woonuxt');
+        $admin_url = admin_url('options-general.php?page=woonuxt');
         if (is_array($links)) {
-            if (is_string($admin_url)) {
-                $links[] = '<a href="' . esc_url($admin_url) . '">Settings</a>';
-            } else {
-                error_log('WooNuxt: admin_url is not a string');
-            }
-        } else {
-            error_log('WooNuxt: $links is not an array');
+            $links[] = '<a href="' . esc_url($admin_url) . '">Settings</a>';
         }
         return $links;
     }
@@ -148,9 +142,36 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     }
 
     /**
-     * Grabs the latest version of the plugin from Githubc or the WordPress.org repo and install it.
+     * Check plugin status AJAX handler with proper security
+     */
+    add_action('wp_ajax_check_plugin_status', function () {
+        // Add nonce verification for security
+        if (!wp_verify_nonce($_POST['security'], 'my_nonce_action')) {
+            wp_die('Security check failed');
+        }
+        
+        // Sanitize input
+        $plugin_file = sanitize_text_field($_POST['file']);
+        
+        // Check if plugin is active
+        if (is_plugin_active($plugin_file)) {
+            echo 'installed';
+        } else {
+            echo 'not_installed';
+        }
+        
+        wp_die();
+    });
+
+    /**
+     * Grabs the latest version of the plugin from Github or the WordPress.org repo and install it.
      */
     add_action('wp_ajax_update_woonuxt_plugin', function () {
+        // Add nonce verification for security
+        if (!wp_verify_nonce($_POST['security'], 'my_nonce_action')) {
+            wp_die('Security check failed');
+        }
+        
         $version     = github_version_number();
         $plugin_url  = "https://downloads.wordpress.org/plugin/woonuxt-settings/{$version}/woonuxt-settings.zip";
         $plugin_slug = 'woonuxt-settings/woonuxt.php';
@@ -274,7 +295,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             </div>
 
                             <!-- Not Installed -->
-                            <a class="plugin-state_install" style="display:none;" href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo $plugin['slug']; ?>">Install Now</a>
+                            <a class="plugin-state_install" style="display:none;" href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo esc_attr($plugin['slug']); ?>&_wpnonce=<?php echo wp_create_nonce('install_plugin_nonce'); ?>">Install Now</a>
                             <script>
                                 jQuery(document).ready(function($) {
                                     $.ajax({
@@ -310,11 +331,24 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
         /**
              * Check if the plugin is installed.
              */
-            if (isset($_GET['install_plugin'])) {
+            if (isset($_GET['install_plugin']) && isset($_GET['_wpnonce'])) {
+                // Verify nonce for security
+                if (!wp_verify_nonce($_GET['_wpnonce'], 'install_plugin_nonce')) {
+                    wp_die('Security check failed');
+                }
+                
                 global $plugin_list;
 
                 $upgrader = new Plugin_Upgrader();
-                $plugin   = $plugin_list[$_GET['install_plugin']];
+                // Sanitize the plugin slug input
+                $plugin_slug = sanitize_key($_GET['install_plugin']);
+                
+                // Validate that the plugin exists in our allowed list
+                if (!isset($plugin_list[$plugin_slug])) {
+                    wp_die('Invalid plugin');
+                }
+                
+                $plugin   = $plugin_list[$plugin_slug];
                 $fileURL  = WP_PLUGIN_DIR . '/' . $plugin['file'];
 
                 if (! is_plugin_active($plugin['file'])) {

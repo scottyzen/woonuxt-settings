@@ -68,6 +68,14 @@ add_action('init', function () {
                     'orderby'        => 'meta_value_num',
                     'order'          => 'DESC',
                     'meta_key'       => '_price',
+                    'meta_query'     => [
+                        [
+                            'key'     => '_price',
+                            'value'   => 0,
+                            'compare' => '>',
+                            'type'    => 'NUMERIC'
+                        ]
+                    ]
                 ]);
                 while ($loop->have_posts()):
                     $loop->the_post();
