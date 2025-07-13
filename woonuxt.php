@@ -268,21 +268,33 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
         jQuery(document).ready(function($) {
             $('#update_woonuxt_plugin').click(function(e) {
                 e.preventDefault();
-                $(this).text('Updating...');
+                const $button = $(this);
+                const originalText = $button.text();
+                
+                $button.text('Updating...').prop('disabled', true);
 
                 $.ajax({
                     url: ajaxurl,
                     type: 'POST',
+                    timeout: 60000,
                     data: {
-                        action: 'update_woonuxt_plugin'
+                        action: 'update_woonuxt_plugin',
+                        security: '<?php echo wp_create_nonce('my_nonce_action') ?>'
                     },
                     success(response) {
-                        alert('Plugin updated successfully');
-                        location.reload();
+                        if (response.success) {
+                            alert('Plugin updated successfully');
+                            location.reload();
+                        } else {
+                            alert('Plugin update failed: ' + (response.data || 'Unknown error'));
+                        }
                     },
-                    error(error) {
-                        alert('Plugin update failed');
-                        console.log(error);
+                    error(xhr, status, error) {
+                        alert('Plugin update failed: ' + (xhr.responseText || error));
+                        console.error('Update failed:', xhr, status, error);
+                    },
+                    complete() {
+                        $button.text(originalText).prop('disabled', false);
                     }
                 });
             });
@@ -322,6 +334,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                                     $.ajax({
                                         url: ajaxurl,
                                         type: 'POST',
+                                        timeout: 10000,
                                         data: {
                                             action: 'check_plugin_status',
                                             security: '<?php echo wp_create_nonce('my_nonce_action') ?>',
@@ -336,8 +349,10 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                                             }
                                             $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_loading').hide();
                                         },
-                                        error(error) {
-                                            console.log(error);
+                                        error(xhr, status, error) {
+                                            console.error('Plugin status check failed:', xhr, status, error);
+                                            $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_loading').hide();
+                                            $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_install').show();
                                         }
                                     });
                                 });
