@@ -1,8 +1,27 @@
 <?php
-// GraphQL integration for WooNuxt Settings plugin.
-// ...to be filled in next step...
+/**
+ * GraphQL integration for WooNuxt Settings plugin
+ * 
+ * This file contains all GraphQL type definitions and resolvers for the WooNuxt Settings plugin.
+ * It registers custom GraphQL types and fields that are used by the headless frontend.
+ * 
+ * @package WooNuxt Settings
+ * @since 2.0.0
+ */
 
-add_action('init', function () {
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Initialize GraphQL integration
+ * 
+ * @since 2.0.0
+ * @return void
+ */
+add_action('init', 'woonuxt_init_graphql');
+function woonuxt_init_graphql() {
     if (! class_exists('\\WPGraphQL')) {
         return;
     }
@@ -10,7 +29,16 @@ add_action('init', function () {
         return;
     }
 
-    add_action('graphql_register_types', function () {
+    add_action('graphql_register_types', 'woonuxt_register_graphql_types');
+}
+
+/**
+ * Register GraphQL types and fields for WooNuxt
+ * 
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_register_graphql_types() {
         register_graphql_object_type('woonuxtOptionsGlobalAttributes', [
             'description' => __('Woonuxt Global attributes for filtering', 'woonuxt'),
             'fields'      => [
@@ -96,8 +124,19 @@ add_action('init', function () {
                 return $options;
             },
         ]);
-    });
+        
+        // Register additional GraphQL filters and enums
+        woonuxt_register_graphql_filters();
+        woonuxt_register_stripe_types();
+}
 
+/**
+ * Register GraphQL filters for data privacy and query limits
+ * 
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_register_graphql_filters() {
     add_filter('graphql_data_is_private', function ($is_private, $model_name) {
         return 'PluginObject' === $model_name ? false : $is_private;
     }, 10, 6);
@@ -106,7 +145,15 @@ add_action('init', function () {
         $total_number_of_products = wp_count_posts('product')->publish;
         return $amount            = $total_number_of_products > 100 ? $total_number_of_products : $amount;
     }, 10, 5);
+}
 
+/**
+ * Register Stripe-related GraphQL types and fields
+ * 
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_register_stripe_types() {
     register_graphql_enum_type(
         'StripePaymentMethodEnum',
         [
@@ -159,4 +206,4 @@ add_action('init', function () {
             'stripePaymentMethod' => ['type' => 'String'],
         ],
     ]);
-});
+}

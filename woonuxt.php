@@ -29,8 +29,16 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     $myUpdateChecker = PucFactory::buildUpdateChecker('https://raw.githubusercontent.com/scottyzen/woonuxt-settings/master/plugin.json', __FILE__, 'woonuxt-settings', 6);
 
     // Add filter to add the settings link to the plugins page
-    add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'plugin_action_links_woonuxt');
-    function plugin_action_links_woonuxt($links)
+    add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
+    
+    /**
+     * Add settings link to plugin action links
+     * 
+     * @since 2.0.0
+     * @param array $links Array of plugin action links
+     * @return array Modified array of plugin action links
+     */
+    function woonuxt_plugin_action_links($links)
     {
         $admin_url = admin_url('options-general.php?page=woonuxt');
         if (is_array($links)) {
@@ -80,10 +88,12 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     ];
 
     /**
-     * Get the latest version number from Github with improved error handling and caching.
-     * @return string $github_version
+     * Get the latest version number from Github with improved error handling and caching
+     * 
+     * @since 2.0.0
+     * @return string The latest version number or '0.0.0' on error
      */
-    function github_version_number()
+    function woonuxt_get_github_version()
     {
         $transient_key = 'woonuxt_github_version';
         $github_version = get_transient($transient_key);
@@ -107,28 +117,40 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     }
 
     /**
-     * Check if an update is available.
-     * @return bool
+     * Check if an update is available
+     * 
+     * @since 2.0.0
+     * @return bool True if update is available, false otherwise
      */
-    function woonuxtUpdateAvailable()
+    function woonuxt_update_available()
     {
         try {
             $current_version = WOONUXT_SETTINGS_VERSION;
-            $github_version  = github_version_number();
-            return $current_version < $github_version;
+            $github_version  = woonuxt_get_github_version();
+            return version_compare($current_version, $github_version, '<');
         } catch (\Exception $e) {
             return false;
         }
     }
 
     /**
-     * Add the options page
+     * Add the options page to admin menu
+     * 
+     * @since 2.0.0
+     * @return void
      */
-    add_action('admin_menu', function () {
-        add_options_page('WooNuxt Options', 'WooNuxt', 'manage_options', 'woonuxt', 'wooNuxtOptionsPageHtml');
-    });
+    add_action('admin_menu', 'woonuxt_add_admin_menu');
+    function woonuxt_add_admin_menu() {
+        add_options_page('WooNuxt Options', 'WooNuxt', 'manage_options', 'woonuxt', 'woonuxt_options_page_html');
+    }
 
-    function wooNuxtOptionsPageHtml()
+    /**
+     * Render the options page HTML
+     * 
+     * @since 2.0.0
+     * @return void
+     */
+    function woonuxt_options_page_html()
     {
     $options = get_option('woonuxt_options'); ?>
     <div class="acf-admin-toolbar">
@@ -150,11 +172,16 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 <?php
     }
 
+    // Register AJAX handlers
+    add_action('wp_ajax_check_plugin_status', 'woonuxt_handle_check_plugin_status');
+    
     /**
-     * Check plugin status AJAX handler with proper security
+     * AJAX handler to check plugin status
+     * 
+     * @since 2.0.0
+     * @return void Outputs plugin status and dies
      */
-    add_action('wp_ajax_check_plugin_status', 'handle_check_plugin_status');
-    function handle_check_plugin_status() {
+    function woonuxt_handle_check_plugin_status() {
         check_ajax_referer('my_nonce_action', 'security');
         
         $plugin_slug = sanitize_text_field($_POST['plugin']);
@@ -167,15 +194,19 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
         }
     }
 
+    add_action('wp_ajax_update_woonuxt_plugin', 'woonuxt_handle_update_plugin');
+    
     /**
-     * Grabs the latest version of the plugin from Github or the WordPress.org repo and install it.
+     * AJAX handler to update WooNuxt plugin
+     * 
+     * @since 2.0.0
+     * @return void Sends JSON response and dies
      */
-    add_action('wp_ajax_update_woonuxt_plugin', 'handle_update_woonuxt_plugin');
-    function handle_update_woonuxt_plugin() {
+    function woonuxt_handle_update_plugin() {
         // Add nonce verification for security
         check_ajax_referer('my_nonce_action', 'security');
         
-        $version = github_version_number();
+        $version = woonuxt_get_github_version();
         
         // Validate version format
         if (!preg_match('/^\d+\.\d+\.\d+$/', $version) || $version === '0.0.0') {
@@ -213,15 +244,22 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     }
 
     // Register settings
-    add_action('admin_init', 'registerWoonuxtSettings');
-    function registerWoonuxtSettings()
+    add_action('admin_init', 'woonuxt_register_settings');
+    
+    /**
+     * Register WooNuxt settings and sections
+     * 
+     * @since 2.0.0
+     * @return void
+     */
+    function woonuxt_register_settings()
     {
         global $plugin_list;
 
         register_setting('woonuxt_options', 'woonuxt_options');
 
-        if (woonuxtUpdateAvailable()) {
-            add_settings_section('update_available', 'Update Available', 'updateAvailableCallback', 'woonuxt');
+        if (woonuxt_update_available()) {
+            add_settings_section('update_available', 'Update Available', 'woonuxt_update_available_callback', 'woonuxt');
         }
 
         // Return true if all plugins are active
@@ -231,22 +269,25 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 
         // if all plugins are active don't show required plugins section
         if (! $is_all_plugins_active) {
-            add_settings_section('required_plugins', 'Required Plugins', 'requiredPluginsCallback', 'woonuxt');
+            add_settings_section('required_plugins', 'Required Plugins', 'woonuxt_required_plugins_callback', 'woonuxt');
         } else {
-            add_settings_section('deploy_button', 'Deploy', 'deployButtonCallback', 'woonuxt');
+            add_settings_section('deploy_button', 'Deploy', 'woonuxt_deploy_button_callback', 'woonuxt');
         }
 
         if (class_exists('WooCommerce')) {
-            add_settings_section('global_setting', 'Global Settings', 'global_setting_callback', 'woonuxt');
+            add_settings_section('global_setting', 'Global Settings', 'woonuxt_global_setting_callback', 'woonuxt');
         }
     }
 
     /**
-     * Callback function to display the update available notice and handle the plugin update.
+     * Callback function to display the update available notice and handle the plugin update
+     * 
+     * @since 2.0.0
+     * @return void
      */
-    function updateAvailableCallback()
+    function woonuxt_update_available_callback()
     {
-        $github_version = github_version_number();
+        $github_version = woonuxt_get_github_version();
 
         if (empty($github_version)) {
             return;
@@ -303,8 +344,13 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 <?php
     }
 
-    // Section callback
-    function requiredPluginsCallback()
+    /**
+     * Callback function to display required plugins section
+     * 
+     * @since 2.0.0
+     * @return void
+     */
+    function woonuxt_required_plugins_callback()
     {
     global $plugin_list; ?>
     <div class="woonuxt-section">
@@ -410,7 +456,13 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
             }
         }
 
-        function deployButtonCallback()
+        /**
+         * Callback function to display deploy button section
+         * 
+         * @since 2.0.0
+         * @return void
+         */
+        function woonuxt_deploy_button_callback()
         {
             $site_name    = get_bloginfo('name');
             $gql_settings = get_option('graphql_general_settings');
@@ -457,8 +509,13 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 <?php
     }
 
-    // Field callback
-    function global_setting_callback()
+    /**
+     * Callback function to display global settings section
+     * 
+     * @since 2.0.0
+     * @return void
+     */
+    function woonuxt_global_setting_callback()
     {
         $options            = get_option('woonuxt_options');
         $product_attributes = wc_get_attribute_taxonomies();
