@@ -162,7 +162,6 @@ add_filter('graphql_login_cookie_setting', static function($value, string $optio
  * @return void
  */
 function woonuxt_register_stripe_types() {
-
     register_graphql_enum_type(
         'StripePaymentMethodEnum',
         [
