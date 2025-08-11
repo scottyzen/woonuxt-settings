@@ -147,6 +147,14 @@ function woonuxt_register_graphql_filters() {
     }, 10, 5);
 }
 
+// Force-enable the logout mutation for wp-graph-ql-headless-login: https://github.com/AxeWP/wp-graphql-headless-login/issues/158
+add_filter('graphql_login_cookie_setting', static function($value, string $option_name) {
+    if ('hasLogoutMutation' === $option_name) { 
+        return true;
+    }
+   return $value; // all other options
+}, 10, 2 );
+
 /**
  * Register Stripe-related GraphQL types and fields
  * 
