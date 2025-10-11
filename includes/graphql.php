@@ -156,6 +156,168 @@ add_filter('graphql_login_cookie_setting', static function($value, string $optio
 }, 10, 2 );
 
 /**
+ * Create a Stripe payment intent
+ * 
+ * @since 2.2.3
+ * @param float $amount The payment amount
+ * @param string $currency The payment currency
+ * @return array Payment intent data with client_secret, id, and error
+ */
+function create_payment_intent($amount, $currency) {
+    try {
+        // Get Stripe settings
+        $stripe_settings = get_option('woocommerce_stripe_settings');
+        
+        if (empty($stripe_settings) || !isset($stripe_settings['enabled']) || $stripe_settings['enabled'] !== 'yes') {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Stripe is not enabled or configured properly'
+            ];
+        }
+        
+        // Use test key if in test mode, otherwise live key
+        $secret_key = isset($stripe_settings['testmode']) && $stripe_settings['testmode'] === 'yes' 
+            ? $stripe_settings['test_secret_key'] ?? '' 
+            : $stripe_settings['secret_key'] ?? '';
+            
+        if (empty($secret_key)) {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Stripe secret key not configured'
+            ];
+        }
+        
+        // Create payment intent via Stripe API
+        $response = wp_remote_post('https://api.stripe.com/v1/payment_intents', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+                'Content-Type' => 'application/x-www-form-urlencoded'
+            ],
+            'body' => http_build_query([
+                'amount' => intval($amount * 100), // Convert to cents
+                'currency' => strtolower($currency),
+                'automatic_payment_methods[enabled]' => 'true'
+            ]),
+            'timeout' => 15
+        ]);
+        
+        if (is_wp_error($response)) {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Failed to connect to Stripe: ' . $response->get_error_message()
+            ];
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+        
+        if (isset($data['error'])) {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => $data['error']['message'] ?? 'Unknown Stripe error'
+            ];
+        }
+        
+        return [
+            'client_secret' => $data['client_secret'] ?? null,
+            'id' => $data['id'] ?? null,
+            'error' => null
+        ];
+        
+    } catch (Exception $e) {
+        return [
+            'client_secret' => null,
+            'id' => null,
+            'error' => 'Payment intent creation failed: ' . $e->getMessage()
+        ];
+    }
+}
+
+/**
+ * Create a Stripe setup intent
+ * 
+ * @since 2.2.3
+ * @param float $amount The payment amount (unused for setup intents but kept for consistency)
+ * @param string $currency The payment currency
+ * @return array Setup intent data with client_secret, id, and error
+ */
+function create_setup_intent($amount, $currency) {
+    try {
+        // Get Stripe settings
+        $stripe_settings = get_option('woocommerce_stripe_settings');
+        
+        if (empty($stripe_settings) || !isset($stripe_settings['enabled']) || $stripe_settings['enabled'] !== 'yes') {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Stripe is not enabled or configured properly'
+            ];
+        }
+        
+        // Use test key if in test mode, otherwise live key
+        $secret_key = isset($stripe_settings['testmode']) && $stripe_settings['testmode'] === 'yes' 
+            ? $stripe_settings['test_secret_key'] ?? '' 
+            : $stripe_settings['secret_key'] ?? '';
+            
+        if (empty($secret_key)) {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Stripe secret key not configured'
+            ];
+        }
+        
+        // Create setup intent via Stripe API
+        $response = wp_remote_post('https://api.stripe.com/v1/setup_intents', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $secret_key,
+                'Content-Type' => 'application/x-www-form-urlencoded'
+            ],
+            'body' => http_build_query([
+                'automatic_payment_methods[enabled]' => 'true'
+            ]),
+            'timeout' => 15
+        ]);
+        
+        if (is_wp_error($response)) {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Failed to connect to Stripe: ' . $response->get_error_message()
+            ];
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+        
+        if (isset($data['error'])) {
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => $data['error']['message'] ?? 'Unknown Stripe error'
+            ];
+        }
+        
+        return [
+            'client_secret' => $data['client_secret'] ?? null,
+            'id' => $data['id'] ?? null,
+            'error' => null
+        ];
+        
+    } catch (Exception $e) {
+        return [
+            'client_secret' => null,
+            'id' => null,
+            'error' => 'Setup intent creation failed: ' . $e->getMessage()
+        ];
+    }
+}
+
+/**
  * Register Stripe-related GraphQL types and fields
  * 
  * @since 2.0.0
