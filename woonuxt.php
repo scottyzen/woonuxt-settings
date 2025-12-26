@@ -505,17 +505,21 @@ function woonuxt_required_plugins_callback()
 function woonuxt_graphql_schema_callback()
 {
     ?>
-            <div class="woonuxt-section">
-                <h3 class="section-title">GraphQL Schema Reference</h3>
-                <div style="padding: 0 20px 20px;">
-                    <p class="description" style="margin: 0 0 16px 0;">
-                        <?php esc_html_e('This query shows all the fields exposed by the WooNuxt Settings plugin. Use this in your headless frontend to fetch configuration data.', 'woonuxt'); ?>
-                    </p>
-                    <button type="button" class="button" onclick="this.style.display='none'; this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';">
-                        Show Query
-                    </button>
-                    <div style="display: none; background: #f6f7f7; border: 1px solid #c3c4c7; border-radius: 4px; padding: 16px; overflow-x: auto; margin-top: 12px;">
-                        <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; color: #2c3338;"><code>query {
+    <div class="woonuxt-section">
+        <h3 class="section-title">GraphQL Schema Reference</h3>
+        <p class="description" style="margin: 16px 20px; line-height: 1.6;">
+            <?php esc_html_e('This query shows all the fields exposed by the WooNuxt Settings plugin. Use this in your headless frontend to fetch configuration data.', 'woonuxt'); ?>
+        </p>
+
+        <div style="padding: 0 20px 20px;">
+            <details style="background: none; border: none; margin: 0; padding: 0;">
+                <summary style="cursor: pointer; padding: 10px 0; margin: 0 0 16px 0; background: transparent; border: none; font-weight: 500; color: #2271b1; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                    <?php esc_html_e('View Query', 'woonuxt'); ?>
+                </summary>
+                <pre style="margin: 0 0 16px 0; padding: 20px; background: #f6f7f7; border: 1px solid #c3c4c7; border-radius: 4px; overflow-x: auto; font-family: 'Courier New', Consolas, monospace; font-size: 13px; line-height: 1.8; color: #2c3338;"><code>query {
   woonuxtSettings {
     # Plugin version
     wooCommerceSettingsVersion
@@ -560,19 +564,29 @@ function woonuxt_graphql_schema_callback()
     }
   }
 }</code></pre>
-                    </div>
-                    <button type="button" class="button" onclick="this.style.display='none'; this.previousElementSibling.style.display='none'; this.previousElementSibling.previousElementSibling.style.display='block';" style="display: none; margin-top: 12px;">
-                        Show Less
-                    </button>
-                    <div style="margin-top: 16px; padding: 12px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
-                        <p style="margin: 0; font-size: 13px; color: #2c3338;">
-                            <strong><?php esc_html_e('Tip:', 'woonuxt'); ?></strong>
-                            <?php esc_html_e('Copy this query and use it in your GraphQL client or headless frontend to fetch all WooNuxt configuration data.', 'woonuxt'); ?>
-                        </p>
-                    </div>
-                </div>
+            </details>
+
+            <div style="padding: 16px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
+                <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #2c3338;">
+                    <strong><?php esc_html_e('Tip:', 'woonuxt'); ?></strong>
+                    <?php esc_html_e('Copy this query and use it in your GraphQL client or headless frontend to fetch all WooNuxt configuration data.', 'woonuxt'); ?>
+                </p>
             </div>
-        <?php
+        </div>
+
+        <style>
+            .woonuxt-section details[open] > summary svg {
+                transform: rotate(90deg);
+            }
+            .woonuxt-section details > summary::-webkit-details-marker {
+                display: none;
+            }
+            .woonuxt-section details > summary:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </div>
+    <?php
 }
 
 /**
