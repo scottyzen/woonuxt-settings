@@ -90,7 +90,9 @@ function woonuxt_register_graphql_types() {
                 $options                               = get_option('woonuxt_options');
                 $gql_settings                          = get_option('graphql_general_settings');
                 $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'];
-                $loop                                  = new WP_Query([
+                
+                // Get max price efficiently
+                $loop = new WP_Query([
                     'post_type'      => 'product',
                     'posts_per_page' => 1,
                     'orderby'        => 'meta_value_num',
@@ -103,14 +105,18 @@ function woonuxt_register_graphql_types() {
                             'compare' => '>',
                             'type'    => 'NUMERIC'
                         ]
-                    ]
+                    ],
+                    'fields'         => 'ids'
                 ]);
-                while ($loop->have_posts()):
-                    $loop->the_post();
-                    global $product;
-                    $options['maxPrice'] = ceil($product->get_price());
-                endwhile;
-                wp_reset_query();
+                
+                if ($loop->have_posts()) {
+                    $product_id = $loop->posts[0];
+                    $product = wc_get_product($product_id);
+                    if ($product) {
+                        $options['maxPrice'] = ceil($product->get_price());
+                    }
+                }
+                wp_reset_postdata();
                 $stripe_settings           = get_option('woocommerce_stripe_settings');
                 $options['stripeSettings'] = $stripe_settings;
                 if (! function_exists('get_woocommerce_currency') && function_exists('WC')) {
@@ -204,6 +210,7 @@ function create_payment_intent($amount, $currency) {
         ]);
         
         if (is_wp_error($response)) {
+            error_log('WooNuxt Stripe Payment Intent Error: ' . $response->get_error_message());
             return [
                 'client_secret' => null,
                 'id' => null,
@@ -211,16 +218,39 @@ function create_payment_intent($amount, $currency) {
             ];
         }
         
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            error_log('WooNuxt Stripe Payment Intent HTTP Error: ' . $response_code);
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Stripe API returned error code: ' . $response_code
+            ];
+        }
+        
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('WooNuxt Stripe Payment Intent JSON Error: ' . json_last_error_msg());
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Failed to parse Stripe response'
+            ];
+        }
+        
         if (isset($data['error'])) {
+            error_log('WooNuxt Stripe Payment Intent API Error: ' . print_r($data['error'], true));
             return [
                 'client_secret' => null,
                 'id' => null,
                 'error' => $data['error']['message'] ?? 'Unknown Stripe error'
             ];
         }
+        
+        // Log successful response for debugging
+        error_log('WooNuxt Stripe Payment Intent Success: ' . substr($data['client_secret'] ?? 'no-secret', 0, 20) . '...');
         
         return [
             'client_secret' => $data['client_secret'] ?? null,
@@ -284,6 +314,7 @@ function create_setup_intent($amount, $currency) {
         ]);
         
         if (is_wp_error($response)) {
+            error_log('WooNuxt Stripe Setup Intent Error: ' . $response->get_error_message());
             return [
                 'client_secret' => null,
                 'id' => null,
@@ -291,16 +322,39 @@ function create_setup_intent($amount, $currency) {
             ];
         }
         
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            error_log('WooNuxt Stripe Setup Intent HTTP Error: ' . $response_code);
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Stripe API returned error code: ' . $response_code
+            ];
+        }
+        
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('WooNuxt Stripe Setup Intent JSON Error: ' . json_last_error_msg());
+            return [
+                'client_secret' => null,
+                'id' => null,
+                'error' => 'Failed to parse Stripe response'
+            ];
+        }
+        
         if (isset($data['error'])) {
+            error_log('WooNuxt Stripe Setup Intent API Error: ' . print_r($data['error'], true));
             return [
                 'client_secret' => null,
                 'id' => null,
                 'error' => $data['error']['message'] ?? 'Unknown Stripe error'
             ];
         }
+        
+        // Log successful response for debugging
+        error_log('WooNuxt Stripe Setup Intent Success: ' . substr($data['client_secret'] ?? 'no-secret', 0, 20) . '...');
         
         return [
             'client_secret' => $data['client_secret'] ?? null,
@@ -345,22 +399,60 @@ function woonuxt_register_stripe_types() {
             ],
         ],
         'resolve' => function ($source, $args, $context, $info) {
+            // Validate WooCommerce is available
+            if (!function_exists('WC') || !WC()->cart) {
+                return [
+                    'amount'              => 0,
+                    'currency'            => 'USD',
+                    'clientSecret'        => null,
+                    'id'                  => null,
+                    'error'               => 'WooCommerce cart is not available',
+                    'stripePaymentMethod' => 'SETUP',
+                ];
+            }
+
             $amount              = floatval(WC()->cart->get_total(false));
             $currency            = get_woocommerce_currency();
             $currency            = strtoupper($currency);
-            $stripe              = null;
             $stripePaymentMethod = $args['stripePaymentMethod'] ?? 'SETUP';
+            
+            // Validate amount
+            if ($amount <= 0) {
+                return [
+                    'amount'              => 0,
+                    'currency'            => $currency,
+                    'clientSecret'        => null,
+                    'id'                  => null,
+                    'error'               => 'Cart amount must be greater than 0',
+                    'stripePaymentMethod' => $stripePaymentMethod,
+                ];
+            }
+            
+            // Create stripe intent based on payment method
             if ($stripePaymentMethod === 'PAYMENT') {
                 $stripe = create_payment_intent($amount, $currency);
             } else {
                 $stripe = create_setup_intent($amount, $currency);
             }
+            
+            // Ensure stripe response is valid
+            if (!is_array($stripe)) {
+                return [
+                    'amount'              => intval($amount * 100),
+                    'currency'            => $currency,
+                    'clientSecret'        => null,
+                    'id'                  => null,
+                    'error'               => 'Failed to create Stripe intent',
+                    'stripePaymentMethod' => $stripePaymentMethod,
+                ];
+            }
+            
             return [
-                'amount'              => $amount * 100,
+                'amount'              => intval($amount * 100),
                 'currency'            => $currency,
-                'clientSecret'        => $stripe['client_secret'],
-                'id'                  => $stripe['id'],
-                'error'               => $stripe['error'],
+                'clientSecret'        => $stripe['client_secret'] ?? null,
+                'id'                  => $stripe['id'] ?? null,
+                'error'               => $stripe['error'] ?? null,
                 'stripePaymentMethod' => $stripePaymentMethod,
             ];
         },

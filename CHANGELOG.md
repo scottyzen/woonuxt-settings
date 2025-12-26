@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.4] - 2025-12-03
+
+### Fixed
+
+- Improve Stripe payment intent error handling and validation
+- Add comprehensive debugging and logging for Stripe API calls
+- Enhanced clientSecret generation validation to resolve Stripe.js integration issues
+- Better error handling for WooCommerce cart availability
+- Added HTTP response code validation for Stripe API responses
+- Improved JSON parsing error handling for Stripe responses
+
 ## [2.2.3] - 2025-10-11
 
 ### Fixed

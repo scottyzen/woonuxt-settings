@@ -1,16 +1,16 @@
 {
   "name": "woonuxt Settings",
-  "version": "2.2.3",
-  "download_url": "https://github.com/scottyzen/woonuxt-settings/releases/download/2.2.3/woonuxt-settings.zip",
+  "version": "2.2.4",
+  "download_url": "https://github.com/scottyzen/woonuxt-settings/releases/download/2.2.4/woonuxt-settings.zip",
   "homepage": "https://woonuxt.com/",
-  "tested": "6.6.1",
+  "tested": "6.8.3",
   "upgrade_notice": "Improve Stripe add payment option.",
   "author": "Scott Kennedy",
   "author_homepage": "https://scottyzen.com/",
   "sections": {
     "description": "WooNuxt is unmatched when it comes to performance and scalability. Reap the benefits of having a online store that out performs all of your competitors.",
     "installation": "(Recommended) Installation instructions.",
-    "changelog": "<h2>2.2.3</h2><p>Fix: Add missing Stripe payment intent and setup intent functions to resolve GraphQL stripePaymentIntent query errors.<h2>2.2.2</h2><p>Enable logout mutation by default. Fix: ensure $options['productsPerPage'] is set before accessing it.<h2>2.2.1</h2><p>Update WP GraphQL Headless Login version to 0.4.3.<h2>2.2.0</h2><p>Major security and code quality improvements: Enhanced AJAX security with nonces, comprehensive input sanitization, improved error handling, standardized function naming with woonuxt_ prefix, proper DocBlocks, better JavaScript error handling, and overall code organization.<h2>2.0.1</h2><p>Update plugin and software versions.<h2>2.0.0</h2><p>Move to Headless Login for WPGraphQL.<h2>1.0.58</h2><p>Improve Stripe add payment option.<h2>1.0.57</h2><p>Update plugin versions.<h2>1.0.56</h2><p>Add currencySymbol. Fix Vercel url<h2>1.0.55</h2><p>Ceil maxPrice value.<h2>1.0.54</h2><p>Change to setup_intents.<h2>1.0.53</h2><p>Add stripePaymentIntent for 3d secure.<h2>1.0.52</h2><p>Bump version.<h2>1.0.51</h2><p>Inhance Social media fileds and schema.<h2>1.0.50</h2><p>Add SEO settings<h2>1.0.49</h2><p>Add functionality to increase max query amount if there are more than 100 products<h2>1.0.45</h2><p>Fix error when WooCommerce is disabled or not installed</p>"
+    "changelog": "<h2>2.2.4</h2><p>Improve Stripe payment intent error handling, add comprehensive debugging and validation for clientSecret generation to resolve Stripe.js integration issues.<h2>2.2.3</h2><p>Fix: Add missing Stripe payment intent and setup intent functions to resolve GraphQL stripePaymentIntent query errors.<h2>2.2.2</h2><p>Enable logout mutation by default. Fix: ensure $options['productsPerPage'] is set before accessing it.<h2>2.2.1</h2><p>Update WP GraphQL Headless Login version to 0.4.3.<h2>2.2.0</h2><p>Major security and code quality improvements: Enhanced AJAX security with nonces, comprehensive input sanitization, improved error handling, standardized function naming with woonuxt_ prefix, proper DocBlocks, better JavaScript error handling, and overall code organization.<h2>2.0.1</h2><p>Update plugin and software versions.<h2>2.0.0</h2><p>Move to Headless Login for WPGraphQL.<h2>1.0.58</h2><p>Improve Stripe add payment option.<h2>1.0.57</h2><p>Update plugin versions.<h2>1.0.56</h2><p>Add currencySymbol. Fix Vercel url<h2>1.0.55</h2><p>Ceil maxPrice value.<h2>1.0.54</h2><p>Change to setup_intents.<h2>1.0.53</h2><p>Add stripePaymentIntent for 3d secure.<h2>1.0.52</h2><p>Bump version.<h2>1.0.51</h2><p>Inhance Social media fileds and schema.<h2>1.0.50</h2><p>Add SEO settings<h2>1.0.49</h2><p>Add functionality to increase max query amount if there are more than 100 products<h2>1.0.45</h2><p>Fix error when WooCommerce is disabled or not installed</p>"
   },
   "icons": {
     "1x": "https://woonuxt.com/logo.svg",
