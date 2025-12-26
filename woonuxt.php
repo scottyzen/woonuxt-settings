@@ -1,5 +1,5 @@
 <?php
-    /*
+/*
 Plugin Name: WooNuxt Settings
 Description: This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.
 Author: Scott Kennedy
@@ -11,146 +11,149 @@ GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 */
 
-    if (! defined('ABSPATH')) {
-        exit();
+if (!defined('ABSPATH')) {
+    exit();
+}
+
+require_once 'plugin-update-checker/plugin-update-checker.php';
+require_once 'includes/constants.php';
+require_once 'includes/assets.php';
+require_once 'includes/graphql.php';
+
+// Define Globals
+global $plugin_list;
+global $github_version;
+
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(WOONUXT_GITHUB_RAW_URL . '/plugin.json', __FILE__, WOONUXT_GITHUB_REPO, 6);
+
+// Add filter to add the settings link to the plugins page
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
+
+/**
+ * Add settings link to plugin action links
+ *
+ * @since 2.0.0
+ * @param array $links Array of plugin action links
+ * @return array Modified array of plugin action links
+ */
+function woonuxt_plugin_action_links($links)
+{
+    $admin_url = admin_url('options-general.php?page=woonuxt');
+    if (is_array($links)) {
+        $links[] = '<a href="' . esc_url($admin_url) . '">Settings</a>';
     }
 
-    require_once 'plugin-update-checker/plugin-update-checker.php';
-    require_once 'includes/constants.php';
-    require_once 'includes/assets.php';
-    require_once 'includes/graphql.php';
+    return $links;
+}
 
-    // Define Globals
-    global $plugin_list;
-    global $github_version;
+require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+require_once ABSPATH . 'wp-admin/includes/file.php';
+require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-    use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+$plugin_list = [
+    WOONUXT_WOOCOMMERCE_SLUG => [
+        'name'        => 'WooCommerce',
+        'description' => 'An eCommerce toolkit that helps you sell anything.',
+        'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . MY_WOOCOMMERCE_VERSION . '.zip',
+        'file'        => WOONUXT_WOOCOMMERCE_FILE,
+        'icon'        => plugins_url('assets/WooCommerce.png', __FILE__),
+        'slug'        => WOONUXT_WOOCOMMERCE_SLUG,
+    ],
+    WOONUXT_WPGRAPHQL_SLUG => [
+        'name'        => 'WPGraphQL',
+        'description' => 'A GraphQL API for WordPress.',
+        'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WP_GRAPHQL_VERSION . '.zip',
+        'file'        => WOONUXT_WPGRAPHQL_FILE,
+        'icon'        => 'https://www.wpgraphql.com/logo-wpgraphql.svg',
+        'slug'        => WOONUXT_WPGRAPHQL_SLUG,
+    ],
+    WOONUXT_WOOGRAPHQL_SLUG => [
+        'name'        => 'WooGraphQL',
+        'description' => 'Enables GraphQL to work with WooCommerce.',
+        'url'         => WOONUXT_GITHUB_RELEASES_URL . 'v' . WOO_GRAPHQL_VERSION . '/wp-graphql-woocommerce.zip',
+        'file'        => WOONUXT_WOOGRAPHQL_FILE,
+        'icon'        => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
+        'slug'        => WOONUXT_WOOGRAPHQL_SLUG,
+    ],
+    WOONUXT_HEADLESS_LOGIN_SLUG => [
+        'name'        => 'WPGraphQL Headless Login',
+        'description' => 'Headless Login for WPGraphQL.',
+        'url'         => WOONUXT_HEADLESS_LOGIN_URL . WP_GRAPHQL_HEADLESS_LOGIN_VERSION . '/wp-graphql-headless-login.zip',
+        'file'        => WOONUXT_HEADLESS_LOGIN_FILE,
+        'icon'        => 'https://raw.githubusercontent.com/AxeWP/wp-graphql-headless-login/b821095bba231fd8a2258065c43510c7a791b593/packages/admin/assets/logo.svg',
+        'slug'        => WOONUXT_HEADLESS_LOGIN_SLUG,
+    ],
+];
 
-    $myUpdateChecker = PucFactory::buildUpdateChecker(WOONUXT_GITHUB_RAW_URL . '/plugin.json', __FILE__, WOONUXT_GITHUB_REPO, 6);
+/**
+ * Get the latest version number from Github with improved error handling and caching
+ *
+ * @since 2.0.0
+ * @return string The latest version number or '0.0.0' on error
+ */
+function woonuxt_get_github_version()
+{
+    $transient_key  = 'woonuxt_github_version';
+    $github_version = get_transient($transient_key);
 
-    // Add filter to add the settings link to the plugins page
-    add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
-    
-    /**
-     * Add settings link to plugin action links
-     * 
-     * @since 2.0.0
-     * @param array $links Array of plugin action links
-     * @return array Modified array of plugin action links
-     */
-    function woonuxt_plugin_action_links($links)
-    {
-        $admin_url = admin_url('options-general.php?page=woonuxt');
-        if (is_array($links)) {
-            $links[] = '<a href="' . esc_url($admin_url) . '">Settings</a>';
+    if ($github_version === false) {
+        $github_url = WOONUXT_GITHUB_RAW_URL . '/woonuxt.php';
+        $response   = wp_remote_get($github_url, ['timeout' => 10]);
+
+        if (is_wp_error($response)) {
+            return '0.0.0';
         }
-        return $links;
+
+        $github_file = wp_remote_retrieve_body($response);
+        preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
+
+        $github_version = isset($matches[1]) ? $matches[1] : '0.0.0';
+        set_transient($transient_key, $github_version, HOUR_IN_SECONDS);
     }
 
-    require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-    require_once ABSPATH . 'wp-admin/includes/file.php';
-    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    return $github_version;
+}
 
-    $plugin_list = [
-        WOONUXT_WOOCOMMERCE_SLUG               => [
-            'name'        => 'WooCommerce',
-            'description' => 'An eCommerce toolkit that helps you sell anything.',
-            'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . MY_WOOCOMMERCE_VERSION . '.zip',
-            'file'        => WOONUXT_WOOCOMMERCE_FILE,
-            'icon'        => plugins_url('assets/WooCommerce.png', __FILE__),
-            'slug'        => WOONUXT_WOOCOMMERCE_SLUG,
-        ],
-        WOONUXT_WPGRAPHQL_SLUG                => [
-            'name'        => 'WPGraphQL',
-            'description' => 'A GraphQL API for WordPress.',
-            'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WP_GRAPHQL_VERSION . '.zip',
-            'file'        => WOONUXT_WPGRAPHQL_FILE,
-            'icon'        => 'https://www.wpgraphql.com/logo-wpgraphql.svg',
-            'slug'        => WOONUXT_WPGRAPHQL_SLUG,
-        ],
-        WOONUXT_WOOGRAPHQL_SLUG                => [
-            'name'        => 'WooGraphQL',
-            'description' => 'Enables GraphQL to work with WooCommerce.',
-            'url'         => WOONUXT_GITHUB_RELEASES_URL . 'v' . WOO_GRAPHQL_VERSION . '/wp-graphql-woocommerce.zip',
-            'file'        => WOONUXT_WOOGRAPHQL_FILE,
-            'icon'        => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
-            'slug'        => WOONUXT_WOOGRAPHQL_SLUG,
-        ],
-        WOONUXT_HEADLESS_LOGIN_SLUG => [
-            'name'        => 'WPGraphQL Headless Login',
-            'description' => 'Headless Login for WPGraphQL.',
-            'url'         => WOONUXT_HEADLESS_LOGIN_URL . WP_GRAPHQL_HEADLESS_LOGIN_VERSION . '/wp-graphql-headless-login.zip',
-            'file'        => WOONUXT_HEADLESS_LOGIN_FILE,
-            'icon'        => 'https://raw.githubusercontent.com/AxeWP/wp-graphql-headless-login/b821095bba231fd8a2258065c43510c7a791b593/packages/admin/assets/logo.svg',
-            'slug'        => WOONUXT_HEADLESS_LOGIN_SLUG,
-        ],
-    ];
+/**
+ * Check if an update is available
+ *
+ * @since 2.0.0
+ * @return bool True if update is available, false otherwise
+ */
+function woonuxt_update_available()
+{
+    try {
+        $current_version = WOONUXT_SETTINGS_VERSION;
+        $github_version  = woonuxt_get_github_version();
 
-    /**
-     * Get the latest version number from Github with improved error handling and caching
-     * 
-     * @since 2.0.0
-     * @return string The latest version number or '0.0.0' on error
-     */
-    function woonuxt_get_github_version()
-    {
-        $transient_key = 'woonuxt_github_version';
-        $github_version = get_transient($transient_key);
-        
-        if ($github_version === false) {
-            $github_url = WOONUXT_GITHUB_RAW_URL . '/woonuxt.php';
-            $response = wp_remote_get($github_url, ['timeout' => 10]);
-            
-            if (is_wp_error($response)) {
-                return '0.0.0';
-            }
-            
-            $github_file = wp_remote_retrieve_body($response);
-            preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
-            
-            $github_version = isset($matches[1]) ? $matches[1] : '0.0.0';
-            set_transient($transient_key, $github_version, HOUR_IN_SECONDS);
-        }
-        
-        return $github_version;
+        return version_compare($current_version, $github_version, '<');
+    } catch (\Exception $e) {
+        return false;
     }
+}
 
-    /**
-     * Check if an update is available
-     * 
-     * @since 2.0.0
-     * @return bool True if update is available, false otherwise
-     */
-    function woonuxt_update_available()
-    {
-        try {
-            $current_version = WOONUXT_SETTINGS_VERSION;
-            $github_version  = woonuxt_get_github_version();
-            return version_compare($current_version, $github_version, '<');
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
+/**
+ * Add the options page to admin menu
+ *
+ * @since 2.0.0
+ * @return void
+ */
+add_action('admin_menu', 'woonuxt_add_admin_menu');
+function woonuxt_add_admin_menu()
+{
+    add_options_page(__('WooNuxt Options', 'woonuxt'), __('WooNuxt', 'woonuxt'), 'manage_options', 'woonuxt', 'woonuxt_options_page_html');
+}
 
-    /**
-     * Add the options page to admin menu
-     * 
-     * @since 2.0.0
-     * @return void
-     */
-    add_action('admin_menu', 'woonuxt_add_admin_menu');
-    function woonuxt_add_admin_menu() {
-        add_options_page(__('WooNuxt Options', 'woonuxt'), __('WooNuxt', 'woonuxt'), 'manage_options', 'woonuxt', 'woonuxt_options_page_html');
-    }
-
-    /**
-     * Render the options page HTML
-     * 
-     * @since 2.0.0
-     * @return void
-     */
-    function woonuxt_options_page_html()
-    {
+/**
+ * Render the options page HTML
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_options_page_html()
+{
     $options = get_option('woonuxt_options'); ?>
     <div class="woonuxt-settings-wrap">
         <div class="woonuxt-header">
@@ -186,151 +189,158 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                 </div>
             </div>
         </div>
-        
+
         <div class="wrap woonuxt-content">
             <form action="options.php" method="post">
                 <?php settings_fields('woonuxt_options');
-                        do_settings_sections('woonuxt');
-                    submit_button('Save Changes', 'primary', 'submit', true, ['id' => 'woonuxt-save-btn']); ?>
+    do_settings_sections('woonuxt');
+    submit_button('Save Changes', 'primary', 'submit', true, ['id' => 'woonuxt-save-btn']); ?>
             </form>
         </div>
     </div>
 <?php
+}
+
+// Register AJAX handlers
+add_action('wp_ajax_check_plugin_status', 'woonuxt_handle_check_plugin_status');
+
+/**
+ * AJAX handler to check plugin status
+ *
+ * @since 2.0.0
+ * @return void Outputs plugin status and dies
+ */
+function woonuxt_handle_check_plugin_status()
+{
+    check_ajax_referer('woonuxt_nonce', 'security');
+
+    $plugin_slug = sanitize_text_field($_POST['plugin']);
+    $plugin_file = sanitize_text_field($_POST['file']);
+
+    if (is_plugin_active($plugin_file)) {
+        wp_die('installed');
+    } else {
+        wp_die('not_installed');
+    }
+}
+
+add_action('wp_ajax_update_woonuxt_plugin', 'woonuxt_handle_update_plugin');
+
+/**
+ * AJAX handler to update WooNuxt plugin
+ *
+ * @since 2.0.0
+ * @return void Sends JSON response and dies
+ */
+function woonuxt_handle_update_plugin()
+{
+    // Add nonce verification for security
+    check_ajax_referer('woonuxt_nonce', 'security');
+
+    $version = woonuxt_get_github_version();
+
+    // Validate version format
+    if (!preg_match('/^\d+\.\d+\.\d+$/', $version) || $version === '0.0.0') {
+        wp_send_json_error('Invalid version number retrieved');
+
+        return;
     }
 
-    // Register AJAX handlers
-    add_action('wp_ajax_check_plugin_status', 'woonuxt_handle_check_plugin_status');
-    
-    /**
-     * AJAX handler to check plugin status
-     * 
-     * @since 2.0.0
-     * @return void Outputs plugin status and dies
-     */
-    function woonuxt_handle_check_plugin_status() {
-        check_ajax_referer('woonuxt_nonce', 'security');
-        
-        $plugin_slug = sanitize_text_field($_POST['plugin']);
-        $plugin_file = sanitize_text_field($_POST['file']);
-        
-        if (is_plugin_active($plugin_file)) {
-            wp_die('installed');
+    $plugin_url  = "https://downloads.wordpress.org/plugin/woonuxt-settings/{$version}/woonuxt-settings.zip";
+    $plugin_slug = 'woonuxt-settings/woonuxt.php';
+
+    // Disable and delete the plugin
+    deactivate_plugins($plugin_slug);
+    $delete_result = delete_plugins([$plugin_slug]);
+
+    if (is_wp_error($delete_result)) {
+        wp_send_json_error('Failed to delete old plugin version: ' . $delete_result->get_error_message());
+
+        return;
+    }
+
+    $upgrader = new Plugin_Upgrader();
+    $result   = $upgrader->install($plugin_url);
+
+    if (is_wp_error($result)) {
+        wp_send_json_error('Plugin installation failed: ' . $result->get_error_message());
+    } elseif ($result) {
+        $activation_result = activate_plugin($plugin_slug);
+        if (is_wp_error($activation_result)) {
+            wp_send_json_error('Plugin activation failed: ' . $activation_result->get_error_message());
         } else {
-            wp_die('not_installed');
+            wp_send_json_success('Plugin updated successfully');
         }
+    } else {
+        wp_send_json_error('Plugin installation failed: Unknown error');
+    }
+}
+
+// Register settings
+add_action('admin_init', 'woonuxt_register_settings');
+
+/**
+ * Register WooNuxt settings and sections
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_register_settings()
+{
+    global $plugin_list;
+
+    register_setting('woonuxt_options', 'woonuxt_options');
+
+    if (woonuxt_update_available()) {
+        add_settings_section('update_available', '', 'woonuxt_update_available_callback', 'woonuxt');
     }
 
-    add_action('wp_ajax_update_woonuxt_plugin', 'woonuxt_handle_update_plugin');
-    
-    /**
-     * AJAX handler to update WooNuxt plugin
-     * 
-     * @since 2.0.0
-     * @return void Sends JSON response and dies
-     */
-    function woonuxt_handle_update_plugin() {
-        // Add nonce verification for security
-        check_ajax_referer('woonuxt_nonce', 'security');
-        
-        $version = woonuxt_get_github_version();
-        
-        // Validate version format
-        if (!preg_match('/^\d+\.\d+\.\d+$/', $version) || $version === '0.0.0') {
-            wp_send_json_error('Invalid version number retrieved');
-            return;
-        }
-        
-        $plugin_url  = "https://downloads.wordpress.org/plugin/woonuxt-settings/{$version}/woonuxt-settings.zip";
-        $plugin_slug = 'woonuxt-settings/woonuxt.php';
-
-        // Disable and delete the plugin
-        deactivate_plugins($plugin_slug);
-        $delete_result = delete_plugins([$plugin_slug]);
-        
-        if (is_wp_error($delete_result)) {
-            wp_send_json_error('Failed to delete old plugin version: ' . $delete_result->get_error_message());
-            return;
-        }
-
-        $upgrader = new Plugin_Upgrader();
-        $result   = $upgrader->install($plugin_url);
-
-        if (is_wp_error($result)) {
-            wp_send_json_error('Plugin installation failed: ' . $result->get_error_message());
-        } elseif ($result) {
-            $activation_result = activate_plugin($plugin_slug);
-            if (is_wp_error($activation_result)) {
-                wp_send_json_error('Plugin activation failed: ' . $activation_result->get_error_message());
-            } else {
-                wp_send_json_success('Plugin updated successfully');
-            }
-        } else {
-            wp_send_json_error('Plugin installation failed: Unknown error');
-        }
+    // General settings first
+    if (class_exists('WooCommerce')) {
+        add_settings_section('global_setting', '', 'woonuxt_global_setting_callback', 'woonuxt');
     }
 
-    // Register settings
-    add_action('admin_init', 'woonuxt_register_settings');
-    
-    /**
-     * Register WooNuxt settings and sections
-     * 
-     * @since 2.0.0
-     * @return void
-     */
-    function woonuxt_register_settings()
-    {
-        global $plugin_list;
+    // Always show plugins section
+    add_settings_section('required_plugins', '', 'woonuxt_required_plugins_callback', 'woonuxt');
 
-        register_setting('woonuxt_options', 'woonuxt_options');
+    // GraphQL schema reference
+    add_settings_section('graphql_schema', '', 'woonuxt_graphql_schema_callback', 'woonuxt');
 
-        if (woonuxt_update_available()) {
-            add_settings_section('update_available', '', 'woonuxt_update_available_callback', 'woonuxt');
-        }
+    // Always show deploy section
+    add_settings_section('deploy_button', '', 'woonuxt_deploy_button_callback', 'woonuxt');
+}
 
-        // General settings first
-        if (class_exists('WooCommerce')) {
-            add_settings_section('global_setting', '', 'woonuxt_global_setting_callback', 'woonuxt');
-        }
+/**
+ * Callback function to display the update available notice and handle the plugin update
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_update_available_callback()
+{
+    $github_version = woonuxt_get_github_version();
 
-        // Always show plugins section
-        add_settings_section('required_plugins', '', 'woonuxt_required_plugins_callback', 'woonuxt');
-        
-        // Always show deploy section
-        add_settings_section('deploy_button', '', 'woonuxt_deploy_button_callback', 'woonuxt');
+    if (empty($github_version)) {
+        return;
     }
 
-    /**
-     * Callback function to display the update available notice and handle the plugin update
-     * 
-     * @since 2.0.0
-     * @return void
-     */
-    function woonuxt_update_available_callback()
-    {
-        $github_version = woonuxt_get_github_version();
+    $current_version = WOONUXT_SETTINGS_VERSION;
 
-        if (empty($github_version)) {
-            return;
-        }
+    if (version_compare($current_version, $github_version, '>=')) {
+        return;
+    }
 
-        $current_version = WOONUXT_SETTINGS_VERSION;
+    $update_url  = WOONUXT_GITHUB_URL . "/releases/download/{$github_version}/woonuxt-settings.zip";
+    $update_text = 'Update WooNuxt Settings Plugin';
 
-        if (version_compare($current_version, $github_version, '>=')) {
-            return;
-        }
-
-        $update_url  = WOONUXT_GITHUB_URL . "/releases/download/{$github_version}/woonuxt-settings.zip";
-        $update_text = 'Update WooNuxt Settings Plugin';
-
-        echo '<div class="notice notice-warning woonuxt-section">';
-        printf(
-            __('<p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin" href="%s">%s</a></strong></u> to update from version <strong>%s</strong> to <strong>%s</strong></p>', 'woonuxt'),
-            esc_url($update_url),
-            esc_html($update_text),
-            esc_html($current_version),
-            esc_html($github_version)
-        );
+    echo '<div class="notice notice-warning woonuxt-section">';
+    printf(
+        __('<p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin" href="%s">%s</a></strong></u> to update from version <strong>%s</strong> to <strong>%s</strong></p>', 'woonuxt'),
+        esc_url($update_url),
+        esc_html($update_text),
+        esc_html($current_version),
+        esc_html($github_version)
+    );
     echo '</div>'; ?>
     <script>
         jQuery(document).ready(function($) {
@@ -338,7 +348,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                 e.preventDefault();
                 const $button = $(this);
                 const originalText = $button.text();
-                
+
                 $button.text('Updating...').prop('disabled', true);
 
                 $.ajax({
@@ -369,16 +379,16 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
         });
     </script>
 <?php
-    }
+}
 
-    /**
-     * Callback function to display required plugins section
-     * 
-     * @since 2.0.0
-     * @return void
-     */
-    function woonuxt_required_plugins_callback()
-    {
+/**
+ * Callback function to display required plugins section
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_required_plugins_callback()
+{
     global $plugin_list; ?>
     <div class="woonuxt-section">
         <h3 class="section-title">Required Plugins</h3>
@@ -440,7 +450,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
         </ul>
     </div>
     <?php
-        /**
+            /**
              * Check if the plugin is installed.
              */
             if (isset($_GET['install_plugin']) && isset($_GET['_wpnonce'])) {
@@ -448,22 +458,22 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                 if (!wp_verify_nonce($_GET['_wpnonce'], 'install_plugin_nonce')) {
                     wp_die('Security check failed');
                 }
-                
+
                 global $plugin_list;
 
                 $upgrader = new Plugin_Upgrader();
                 // Sanitize the plugin slug input
                 $plugin_slug = sanitize_key($_GET['install_plugin']);
-                
+
                 // Validate that the plugin exists in our allowed list
                 if (!isset($plugin_list[$plugin_slug])) {
                     wp_die('Invalid plugin');
                 }
-                
-                $plugin   = $plugin_list[$plugin_slug];
-                $fileURL  = WP_PLUGIN_DIR . '/' . $plugin['file'];
 
-                if (! is_plugin_active($plugin['file'])) {
+                $plugin  = $plugin_list[$plugin_slug];
+                $fileURL = WP_PLUGIN_DIR . '/' . $plugin['file'];
+
+                if (!is_plugin_active($plugin['file'])) {
                     if (file_exists($fileURL)) {
                         $activation_result = activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
                         if (is_wp_error($activation_result)) {
@@ -484,27 +494,106 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                     }
                 }
             }
-        }
+}
 
-        /**
-         * Callback function to display deploy button section
-         * 
-         * @since 2.0.0
-         * @return void
-         */
-        function woonuxt_deploy_button_callback()
-        {
-            $site_name    = get_bloginfo('name');
-            $gql_settings = get_option('graphql_general_settings');
-            $gql_endpoint = isset($gql_settings['graphql_endpoint']) ? $gql_settings['graphql_endpoint'] : 'graphql';
-            $endpoint     = get_site_url() . '/' . $gql_endpoint;
+/**
+ * Callback function to display GraphQL schema reference
+ *
+ * @since 2.3.0
+ * @return void
+ */
+function woonuxt_graphql_schema_callback()
+{
+    ?>
+            <div class="woonuxt-section">
+                <h3 class="section-title">GraphQL Schema Reference</h3>
+                <div style="padding: 0 20px 20px;">
+                    <p class="description" style="margin: 0 0 16px 0;">
+                        <?php esc_html_e('This query shows all the fields exposed by the WooNuxt Settings plugin. Use this in your headless frontend to fetch configuration data.', 'woonuxt'); ?>
+                    </p>
+                    <button type="button" class="button" onclick="this.style.display='none'; this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';">
+                        Show Query
+                    </button>
+                    <div style="display: none; background: #f6f7f7; border: 1px solid #c3c4c7; border-radius: 4px; padding: 16px; overflow-x: auto; margin-top: 12px;">
+                        <pre style="margin: 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; color: #2c3338;"><code>query {
+  woonuxtSettings {
+    # Plugin version
+    wooCommerceSettingsVersion
 
-            // Has at least on product attribute
-            $product_attributes   = wc_get_attribute_taxonomies();
-            $hasProductAttributes = count($product_attributes) > 0;
+    # GraphQL settings
+    publicIntrospectionEnabled
 
-            $allSettingHaveBeenMet = $hasProductAttributes;
-        ?>
+    # General settings
+    productsPerPage
+    primary_color
+    maxPrice
+    logo
+    frontEndUrl
+    domain
+
+    # Currency
+    currencySymbol
+    currencyCode
+
+    # SEO and social media
+    wooNuxtSEO {
+      provider
+      url
+      handle
+    }
+
+    # Product filtering attributes
+    global_attributes {
+      label
+      slug
+      showCount
+      hideEmpty
+      openByDefault
+    }
+
+    # Stripe payment settings
+    stripeSettings {
+      enabled
+      testmode
+      test_publishable_key
+      publishable_key
+    }
+  }
+}</code></pre>
+                    </div>
+                    <button type="button" class="button" onclick="this.style.display='none'; this.previousElementSibling.style.display='none'; this.previousElementSibling.previousElementSibling.style.display='block';" style="display: none; margin-top: 12px;">
+                        Show Less
+                    </button>
+                    <div style="margin-top: 16px; padding: 12px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
+                        <p style="margin: 0; font-size: 13px; color: #2c3338;">
+                            <strong><?php esc_html_e('Tip:', 'woonuxt'); ?></strong>
+                            <?php esc_html_e('Copy this query and use it in your GraphQL client or headless frontend to fetch all WooNuxt configuration data.', 'woonuxt'); ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        <?php
+}
+
+/**
+ * Callback function to display deploy button section
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_deploy_button_callback()
+{
+    $site_name    = get_bloginfo('name');
+    $gql_settings = get_option('graphql_general_settings');
+    $gql_endpoint = isset($gql_settings['graphql_endpoint']) ? $gql_settings['graphql_endpoint'] : 'graphql';
+    $endpoint     = get_site_url() . '/' . $gql_endpoint;
+
+    // Has at least on product attribute
+    $product_attributes   = wc_get_attribute_taxonomies();
+    $hasProductAttributes = count($product_attributes) > 0;
+
+    $allSettingHaveBeenMet = $hasProductAttributes;
+    ?>
 
     <div class="woonuxt-section">
         <h3 class="section-title">Deploy Your Site</h3>
@@ -559,20 +648,20 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
     </table>
     </div>
 <?php
-    }
+}
 
-    /**
-     * Callback function to display global settings section
-     * 
-     * @since 2.0.0
-     * @return void
-     */
-    function woonuxt_global_setting_callback()
-    {
-        $options            = get_option('woonuxt_options');
-        $product_attributes = wc_get_attribute_taxonomies();
-        echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
-        $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
+/**
+ * Callback function to display global settings section
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_global_setting_callback()
+{
+    $options            = get_option('woonuxt_options');
+    $product_attributes = wc_get_attribute_taxonomies();
+    echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
+    $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
     ?>
     <div class="global_setting woonuxt-section">
         <h3 class="section-title">General Settings</h3>
@@ -699,51 +788,50 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             </thead>
                             <tbody id="the-list" class="sortable-list">
                                 <?php if (isset($options['global_attributes']) && !empty($options['global_attributes'])):
-                                        foreach ($options['global_attributes'] as $key => $value): ?>
-								                                        <tr class="sortable-item">
-								                                            <td class="drag-handle" style="cursor: grab;">
-								                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.4;">
-								                                                    <line x1="3" y1="9" x2="21" y2="9"></line>
-								                                                    <line x1="3" y1="15" x2="21" y2="15"></line>
-								                                                </svg>
-								                                            </td>
-								                                            <td>
-								                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][label]" value="<?php echo esc_attr($value['label']); ?>" placeholder="e.g. Filter by Color" />
-								                                            </td>
-				                                            <td>
-				                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
-				                                                    <?php foreach ($product_attributes as $attribute):
-                                                                                $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
-                                                                                ?>]
-								                                                    <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
-								                                                        <?php echo $attribute->attribute_label; ?>
-								                                                    </option>
-								                                                <?php
-                                                                                    endforeach; ?>
-				                                                </select>
-				                                            </td>
-				                                            <td class="text-center">
-				                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
-				                                            </td>
-				                                            <td class="text-center">
-				                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
-				                                            </td>
-				                                            <td class="text-center">
-				                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
-				                                            </td>
-				                                            <td class="text-center">
-				                                                <button type="button" class="remove_global_attribute icon-button" title="Delete">
-				                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				                                                        <polyline points="3 6 5 6 21 6"></polyline>
-				                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-				                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
-				                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
-				                                                    </svg>
-				                                                </button>
-				                                            </td>
-				                                        </tr>
-				                                    <?php endforeach; ?>
-<?php else: ?>
+                                    foreach ($options['global_attributes'] as $key => $value): ?>
+                                        <tr class="sortable-item">
+                                            <td class="drag-handle" style="cursor: grab;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.4;">
+                                                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                                                    <line x1="3" y1="15" x2="21" y2="15"></line>
+                                                </svg>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][label]" value="<?php echo esc_attr($value['label']); ?>" placeholder="e.g. Filter by Color" />
+                                            </td>
+                                            <td>
+                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
+                                                    <?php foreach ($product_attributes as $attribute):
+                                                        $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
+                                                        ?>
+                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
+                                                            <?php echo $attribute->attribute_label; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="remove_global_attribute icon-button" title="Delete">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
                                 <tr class="empty-state">
                                     <td colspan="7">
                                         <span class="dashicons dashicons-filter" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 10px;"></span>
@@ -790,33 +878,33 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
                             </thead>
                             <tbody id="the-list" class="sortable-list">
                                 <?php if (isset($options['wooNuxtSEO'])):
-                                        foreach ($options['wooNuxtSEO'] as $key => $value): ?>
-				                                        <tr class="seo_item sortable-item">
-				                                            <td class="drag-handle" style="cursor: grab;">
-				                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.4;">
-				                                                    <line x1="3" y1="9" x2="21" y2="9"></line>
-				                                                    <line x1="3" y1="15" x2="21" y2="15"></line>
-				                                                </svg>
-				                                            </td>
-				                                            <td>
-				                                                <span class="seo_item_provider"><?php echo esc_html($value['provider']); ?></span>
-				                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo esc_attr($key); ?>][provider]" value="<?php echo esc_attr($value['provider']); ?>" />
-				                                            </td>
-				                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo esc_attr($key); ?>][handle]" value="<?php echo esc_attr($value['handle']); ?>" /></td>
-				                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo esc_attr($key); ?>][url]" value="<?php echo esc_url($value['url']); ?>" /></td>
-				                                            <td class="text-center">
-				                                                <button type="button" class="remove_seo_item icon-button" title="Delete">
-				                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				                                                        <polyline points="3 6 5 6 21 6"></polyline>
-				                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-				                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
-				                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
-				                                                    </svg>
-				                                                </button>
-				                                            </td>
-				                                        </tr>
-				                                    <?php endforeach; ?>
-<?php endif; ?>
+                                    foreach ($options['wooNuxtSEO'] as $key => $value): ?>
+                                        <tr class="seo_item sortable-item">
+                                            <td class="drag-handle" style="cursor: grab;">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.4;">
+                                                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                                                    <line x1="3" y1="15" x2="21" y2="15"></line>
+                                                </svg>
+                                            </td>
+                                            <td>
+                                                <span class="seo_item_provider"><?php echo esc_html($value['provider']); ?></span>
+                                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo esc_attr($key); ?>][provider]" value="<?php echo esc_attr($value['provider']); ?>" />
+                                            </td>
+                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo esc_attr($key); ?>][handle]" value="<?php echo esc_attr($value['handle']); ?>" /></td>
+                                            <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][<?php echo esc_attr($key); ?>][url]" value="<?php echo esc_url($value['url']); ?>" /></td>
+                                            <td class="text-center">
+                                                <button type="button" class="remove_seo_item icon-button" title="Delete">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                                 <!-- Add new line -->
                                 <tr class="seo_item seo_item_new">
                                     <td></td>
@@ -887,7 +975,7 @@ GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 
                                         const $newRow = $(`<tr class="seo_item sortable-item adding">${html}</tr>`);
                                         $(this).closest('tr').before($newRow);
-                                        
+
                                         // Make new row draggable and animate
                                         $newRow.attr('draggable', 'true');
                                         setTimeout(() => {
