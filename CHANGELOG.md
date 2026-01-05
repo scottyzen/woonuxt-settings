@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.2.4] - 2025-12-03
 
+### Added
+
+- Complete plugin architecture refactoring to class-based structure following WordPress standards
+- New class-based components: `WooNuxt_Plugin`, `WooNuxt_Admin`, `WooNuxt_Ajax_Handler`, `WooNuxt_Plugin_Manager`
+- Centralized helper functions in `functions.php` for improved code reusability
+- New constants file (`constants.php`) for centralized version management and URLs
+- GraphQL Schema Reference UI with collapsible details in admin settings page
+- New template system for admin UI components (`admin-page.php`, `graphql-schema.php`)
+- Comprehensive code formatting configuration (`.editorconfig`, `.php-cs-fixer.php`, `.phpfmt.ini`, `.prettierrc`)
+- WooCommerce logo asset for admin UI
+- Detailed refactoring documentation in `REFACTORING.md`
+
+### Changed
+
+- Refactored entire plugin structure for improved maintainability and testability
+- Enhanced admin JavaScript with better state management and error handling (245 line changes)
+- Massively improved CSS styling with modern admin UI patterns (1521+ line additions)
+- Reorganized GraphQL integration code for better readability (451 line refactor)
+- Updated asset enqueuing system for better performance
+- Improved plugin.json structure and metadata
+
 ### Fixed
 
 - Improve Stripe payment intent error handling and validation
@@ -15,6 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better error handling for WooCommerce cart availability
 - Added HTTP response code validation for Stripe API responses
 - Improved JSON parsing error handling for Stripe responses
+
+### Technical
+
+- Implemented singleton pattern for main plugin class
+- Separated concerns with dedicated classes for admin, AJAX, and plugin management
+- Enhanced security with improved input validation and sanitization
+- Better WordPress coding standards compliance
+- Improved code documentation with comprehensive docblocks
+- Total changes: 4,020 insertions, 799 deletions across 24 files
 
 ## [2.2.3] - 2025-10-11
 

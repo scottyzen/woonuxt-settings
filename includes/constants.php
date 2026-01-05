@@ -7,9 +7,9 @@ define('WOONUXT_SETTINGS_VERSION', '2.2.4');
 
 // Required Plugin Versions
 define('MY_WOOCOMMERCE_VERSION', '9.9.5');
-define('WP_GRAPHQL_VERSION', '2.3.3');
+define('WP_GRAPHQL_VERSION', '2.5.4');
 define('WOO_GRAPHQL_VERSION', '0.21.2');
-define('WP_GRAPHQL_HEADLESS_LOGIN_VERSION', '0.4.3');
+define('WP_GRAPHQL_HEADLESS_LOGIN_VERSION', '0.4.4');
 
 // Plugin Slugs
 define('WOONUXT_WOOCOMMERCE_SLUG', 'woocommerce');
