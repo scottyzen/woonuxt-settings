@@ -76,6 +76,8 @@ if (!defined('ABSPATH')) {
             frontendUrl: "https://your-frontend.example"
             imageUrl: "https://cdn.example"
         )
+        fullAioseoHead
+        fullRankMathHead
     }
 }</code></pre>
                 </div>

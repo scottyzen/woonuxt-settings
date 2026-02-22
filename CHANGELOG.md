@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Add `fullAioseoHead` and `fullRankMathHead` GraphQL string fields on `Product` for basic SEO plugin compatibility
+
+## [2.5.1] - 2026-02-22
+
+### Changed
+
+- Consolidate plugin bootstrap into a single entrypoint by removing `woonuxt-new.php` and using `woonuxt.php`
+- Bump plugin version metadata to `2.5.1`
+
 ## [2.5.0] - 2026-02-08
 
 ### Changed
