@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.3] - 2026-02-22
+
+### Changed
+
+- Bump plugin version metadata to `2.5.3` across plugin header, constants, and update metadata
+- Add release housekeeping notes for this version bump
+
 ## [2.5.0] - 2026-02-08
 
 ### Changed
