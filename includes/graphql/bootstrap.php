@@ -40,6 +40,8 @@ function woonuxt_register_graphql_types()
 {
     woonuxt_register_graphql_settings_types();
     woonuxt_register_graphql_yoast_types();
+    woonuxt_register_graphql_aioseo_types();
+    woonuxt_register_graphql_rank_math_types();
     woonuxt_register_graphql_filters();
     woonuxt_register_stripe_types();
 }
