@@ -38,6 +38,14 @@ function woonuxt_register_graphql_settings_types()
         ],
     ]);
 
+    register_graphql_object_type('woonuxtOptionsPayPalSettings', [
+        'fields' => [
+            'enabled'      => ['type' => 'String'],
+            'sandbox'      => ['type' => 'String'],
+            'email'        => ['type' => 'String'],
+        ],
+    ]);
+
     register_graphql_object_type('wooNuxtSocialItems', [
         'description' => __('Woonuxt Social Items', 'woonuxt'),
         'fields'      => [
@@ -59,6 +67,7 @@ function woonuxt_register_graphql_settings_types()
             'global_attributes'          => ['type' => ['list_of' => 'woonuxtOptionsGlobalAttributes']],
             'publicIntrospectionEnabled' => ['type' => 'String', 'default' => 'off'],
             'stripeSettings'             => ['type' => 'woonuxtOptionsStripeSettings'],
+            'paypalSettings'             => ['type' => 'woonuxtOptionsPayPalSettings'],
             'currencyCode'               => ['type' => 'String'],
             'currencySymbol'             => ['type' => 'String'],
             'wooCommerceSettingsVersion' => ['type' => 'String'],
@@ -103,13 +112,20 @@ function woonuxt_register_graphql_settings_types()
             $stripe_settings           = get_option('woocommerce_stripe_settings');
             $options['stripeSettings'] = $stripe_settings;
 
+            $paypal_settings             = get_option('woocommerce_paypal_settings');
+            $options['paypalSettings']   = [
+                'enabled' => $paypal_settings['enabled']  ?? 'no',
+                'sandbox' => $paypal_settings['testmode'] ?? 'no',
+                'email'   => $paypal_settings['email']    ?? '',
+            ];
+
             if (!function_exists('get_woocommerce_currency') && function_exists('WC')) {
                 require_once WC()->plugin_path() . '/includes/wc-core-functions.php';
             }
 
             $options['currencyCode']               = get_woocommerce_currency();
             $options['currencySymbol']             = html_entity_decode(get_woocommerce_currency_symbol());
-            $options['domain']                     = $_SERVER['HTTP_HOST'];
+            $options['domain']                     = wp_parse_url(home_url(), PHP_URL_HOST);
             $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
             $options['wooNuxtSEO']                 = $options['wooNuxtSEO'] ?? [];
 
