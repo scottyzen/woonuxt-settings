@@ -101,8 +101,6 @@ function create_payment_intent($amount, $currency)
             ];
         }
 
-        error_log('WooNuxt Stripe Payment Intent Success: ' . substr($data['client_secret'] ?? 'no-secret', 0, 20) . '...');
-
         return [
             'client_secret' => $data['client_secret'] ?? null,
             'id'            => $data['id']            ?? null,

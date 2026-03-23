@@ -3,11 +3,11 @@
 defined('ABSPATH') || exit;
 
 // Plugin Version
-define('WOONUXT_SETTINGS_VERSION', '2.5.3');
+define('WOONUXT_SETTINGS_VERSION', '2.5.4');
 
 // Required Plugin Versions
-define('MY_WOOCOMMERCE_VERSION', '9.9.5');
-define('WP_GRAPHQL_VERSION', '2.5.4');
+define('MY_WOOCOMMERCE_VERSION', '10.6.1');
+define('WP_GRAPHQL_VERSION', '2.10.1');
 define('WOO_GRAPHQL_VERSION', '0.21.2');
 define('WP_GRAPHQL_HEADLESS_LOGIN_VERSION', '0.4.4');
 
