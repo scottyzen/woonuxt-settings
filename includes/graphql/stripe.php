@@ -14,11 +14,13 @@ if (!defined('ABSPATH')) {
  * Create a Stripe payment intent.
  *
  * @since 2.2.3
- * @param float  $amount The payment amount.
- * @param string $currency The payment currency.
+ * @param float       $amount The payment amount.
+ * @param string      $currency The payment currency.
+ * @param string|null $customer_id Optional Stripe customer ID (cus_...) for payment method reuse.
+ * @param bool        $save_for_future Whether to set setup_future_usage to off_session.
  * @return array Payment intent data with client_secret, id, and error.
  */
-function create_payment_intent($amount, $currency)
+function create_payment_intent($amount, $currency, $customer_id = null, $save_for_future = false)
 {
     try {
         $stripe_settings = get_option('woocommerce_stripe_settings');
@@ -44,16 +46,26 @@ function create_payment_intent($amount, $currency)
             ];
         }
 
+        $payment_intent_payload = [
+            'amount'                             => intval($amount * 100),
+            'currency'                           => strtolower($currency),
+            'automatic_payment_methods[enabled]' => 'true',
+        ];
+
+        if (!empty($customer_id)) {
+            $payment_intent_payload['customer'] = $customer_id;
+        }
+
+        if ($save_for_future === true) {
+            $payment_intent_payload['setup_future_usage'] = 'off_session';
+        }
+
         $response = wp_remote_post('https://api.stripe.com/v1/payment_intents', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $secret_key,
                 'Content-Type'  => 'application/x-www-form-urlencoded',
             ],
-            'body'    => http_build_query([
-                'amount'                             => intval($amount * 100),
-                'currency'                           => strtolower($currency),
-                'automatic_payment_methods[enabled]' => 'true',
-            ]),
+            'body'    => http_build_query($payment_intent_payload),
             'timeout' => 15,
         ]);
 
@@ -113,6 +125,53 @@ function create_payment_intent($amount, $currency)
             'error'         => 'Payment intent creation failed: ' . $e->getMessage(),
         ];
     }
+}
+
+/**
+ * Validate a Stripe customer ID.
+ *
+ * @since 2.3.0
+ * @param string|null $customer_id Stripe customer ID candidate.
+ * @return bool
+ */
+function woonuxt_is_valid_stripe_customer_id($customer_id)
+{
+    if (!is_string($customer_id)) {
+        return false;
+    }
+
+    $customer_id = trim($customer_id);
+    if ($customer_id === '' || strpos($customer_id, 'cus_') !== 0) {
+        return false;
+    }
+
+    return preg_match('/^cus_[A-Za-z0-9]+$/', $customer_id) === 1;
+}
+
+/**
+ * Get the mapped Stripe customer ID from the authenticated WP user.
+ *
+ * @since 2.3.0
+ * @param int $user_id WordPress user ID.
+ * @return string|null
+ */
+function woonuxt_get_mapped_stripe_customer_id($user_id)
+{
+    if (empty($user_id)) {
+        return null;
+    }
+
+    $mapped_customer_id = get_user_meta($user_id, '_stripe_customer_id', true);
+    if (!is_string($mapped_customer_id)) {
+        return null;
+    }
+
+    $mapped_customer_id = trim($mapped_customer_id);
+    if (!woonuxt_is_valid_stripe_customer_id($mapped_customer_id)) {
+        return null;
+    }
+
+    return $mapped_customer_id;
 }
 
 /**
@@ -204,8 +263,6 @@ function create_setup_intent($amount, $currency)
             ];
         }
 
-        error_log('WooNuxt Stripe Setup Intent Success: ' . substr($data['client_secret'] ?? 'no-secret', 0, 20) . '...');
-
         return [
             'client_secret' => $data['client_secret'] ?? null,
             'id'            => $data['id']            ?? null,
@@ -247,37 +304,107 @@ function woonuxt_register_stripe_types()
                 'description' => 'The Stripe Payment Method. PAYMENT or SETUP.',
                 'type'        => 'StripePaymentMethodEnum',
             ],
+            'customerId' => [
+                'description' => 'Optional Stripe customer ID (cus_...) for saved cards in PAYMENT flow.',
+                'type'        => 'String',
+            ],
+            'saveForFuture' => [
+                'description'  => 'When true, PAYMENT flow sets setup_future_usage=off_session.',
+                'type'         => 'Boolean',
+                'defaultValue' => false,
+            ],
         ],
         'resolve' => function ($source, $args, $context, $info) {
-            if (!function_exists('WC') || !WC()->cart) {
+            if (!function_exists('WC')) {
                 return [
                     'amount'              => 0,
                     'currency'            => 'USD',
                     'clientSecret'        => null,
                     'id'                  => null,
-                    'error'               => 'WooCommerce cart is not available',
+                    'error'               => 'WooCommerce is not available',
                     'stripePaymentMethod' => 'SETUP',
                 ];
             }
 
-            $amount              = floatval(WC()->cart->get_total(false));
             $currency            = get_woocommerce_currency();
-            $currency            = strtoupper($currency);
-            $stripePaymentMethod = $args['stripePaymentMethod'] ?? 'SETUP';
+            $currency            = $currency ? strtoupper($currency) : 'USD';
+            $stripePaymentMethod = sanitize_text_field($args['stripePaymentMethod'] ?? 'SETUP');
+            $stripePaymentMethod = strtoupper($stripePaymentMethod);
+            $saveForFuture       = isset($args['saveForFuture']) ? boolval($args['saveForFuture']) : false;
+            $requestedCustomerId = isset($args['customerId']) ? sanitize_text_field($args['customerId']) : null;
+            $requestedCustomerId = is_string($requestedCustomerId) ? trim($requestedCustomerId) : null;
+            $requestedCustomerId = $requestedCustomerId === '' ? null : $requestedCustomerId;
 
-            if ($amount <= 0) {
-                return [
-                    'amount'              => 0,
-                    'currency'            => $currency,
-                    'clientSecret'        => null,
-                    'id'                  => null,
-                    'error'               => 'Cart amount must be greater than 0',
-                    'stripePaymentMethod' => $stripePaymentMethod,
-                ];
+            $cart_available = WC()->cart ? true : false;
+            $amount         = $cart_available ? floatval(WC()->cart->get_total(false)) : 0;
+
+            if ($stripePaymentMethod === 'PAYMENT') {
+                if (!$cart_available) {
+                    return [
+                        'amount'              => 0,
+                        'currency'            => $currency,
+                        'clientSecret'        => null,
+                        'id'                  => null,
+                        'error'               => 'WooCommerce cart is not available',
+                        'stripePaymentMethod' => $stripePaymentMethod,
+                    ];
+                }
+
+                if ($amount <= 0) {
+                    return [
+                        'amount'              => 0,
+                        'currency'            => $currency,
+                        'clientSecret'        => null,
+                        'id'                  => null,
+                        'error'               => 'Cart amount must be greater than 0',
+                        'stripePaymentMethod' => $stripePaymentMethod,
+                    ];
+                }
             }
 
             if ($stripePaymentMethod === 'PAYMENT') {
-                $stripe = create_payment_intent($amount, $currency);
+                $validatedCustomerId = null;
+                if ($requestedCustomerId !== null) {
+                    if (!woonuxt_is_valid_stripe_customer_id($requestedCustomerId)) {
+                        return [
+                            'amount'              => intval($amount * 100),
+                            'currency'            => $currency,
+                            'clientSecret'        => null,
+                            'id'                  => null,
+                            'error'               => 'Invalid Stripe customerId format. Expected a value starting with "cus_".',
+                            'stripePaymentMethod' => $stripePaymentMethod,
+                        ];
+                    }
+
+                    if (is_user_logged_in()) {
+                        $mappedCustomerId = woonuxt_get_mapped_stripe_customer_id(get_current_user_id());
+                        if (empty($mappedCustomerId)) {
+                            return [
+                                'amount'              => intval($amount * 100),
+                                'currency'            => $currency,
+                                'clientSecret'        => null,
+                                'id'                  => null,
+                                'error'               => 'No Stripe customer mapping found for the authenticated user.',
+                                'stripePaymentMethod' => $stripePaymentMethod,
+                            ];
+                        }
+
+                        if ($requestedCustomerId !== $mappedCustomerId) {
+                            return [
+                                'amount'              => intval($amount * 100),
+                                'currency'            => $currency,
+                                'clientSecret'        => null,
+                                'id'                  => null,
+                                'error'               => 'Provided customerId does not match the authenticated user.',
+                                'stripePaymentMethod' => $stripePaymentMethod,
+                            ];
+                        }
+
+                        $validatedCustomerId = $mappedCustomerId;
+                    }
+                }
+
+                $stripe = create_payment_intent($amount, $currency, $validatedCustomerId, $saveForFuture);
             } else {
                 $stripe = create_setup_intent($amount, $currency);
             }
@@ -301,6 +428,38 @@ function woonuxt_register_stripe_types()
                 'error'               => $stripe['error']         ?? null,
                 'stripePaymentMethod' => $stripePaymentMethod,
             ];
+        },
+    ]);
+
+    register_graphql_field('User', 'stripeCustomerId', [
+        'type'        => 'String',
+        'description' => 'Stripe customer ID for the authenticated user, if mapped.',
+        'resolve'     => function ($source) {
+            if (!is_user_logged_in()) {
+                return null;
+            }
+
+            $current_user_id = get_current_user_id();
+            if (empty($current_user_id)) {
+                return null;
+            }
+
+            $source_id = null;
+            if (is_object($source)) {
+                if (isset($source->databaseId)) {
+                    $source_id = intval($source->databaseId);
+                } elseif (isset($source->ID)) {
+                    $source_id = intval($source->ID);
+                } elseif (isset($source->userId)) {
+                    $source_id = intval($source->userId);
+                }
+            }
+
+            if (!empty($source_id) && $source_id !== $current_user_id) {
+                return null;
+            }
+
+            return woonuxt_get_mapped_stripe_customer_id($current_user_id);
         },
     ]);
 
