@@ -3,7 +3,7 @@
 defined('ABSPATH') || exit;
 
 // Plugin Version
-define('WOONUXT_SETTINGS_VERSION', '2.5.4');
+define('WOONUXT_SETTINGS_VERSION', '2.5.5');
 
 // Required Plugin Versions
 define('MY_WOOCOMMERCE_VERSION', '10.6.1');

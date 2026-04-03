@@ -109,7 +109,15 @@ function woonuxt_register_graphql_settings_types()
             }
             wp_reset_postdata();
 
-            $stripe_settings           = get_option('woocommerce_stripe_settings');
+            $stripe_settings = get_option('woocommerce_stripe_settings');
+            if (!is_array($stripe_settings)) {
+                $stripe_settings = [
+                    'enabled'              => 'no',
+                    'testmode'             => 'no',
+                    'test_publishable_key' => '',
+                    'publishable_key'      => '',
+                ];
+            }
             $options['stripeSettings'] = $stripe_settings;
 
             $paypal_settings             = get_option('woocommerce_paypal_settings');
