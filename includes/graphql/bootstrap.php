@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-add_action('init', 'woonuxt_init_graphql');
+add_action('plugins_loaded', 'woonuxt_init_graphql', 5);
 
 /**
  * Initialize GraphQL integration.
@@ -24,6 +24,11 @@ function woonuxt_init_graphql()
         return;
     }
     if (!class_exists('WooCommerce')) {
+        return;
+    }
+
+    if (did_action('graphql_register_types')) {
+        woonuxt_register_graphql_types();
         return;
     }
 
