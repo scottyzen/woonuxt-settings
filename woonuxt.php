@@ -15,6 +15,12 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
+if (defined('WOONUXT_SETTINGS_BOOTSTRAPPED')) {
+    return;
+}
+
+define('WOONUXT_SETTINGS_BOOTSTRAPPED', __FILE__);
+
 require_once 'plugin-update-checker/plugin-update-checker.php';
 require_once 'includes/constants.php';
 require_once 'includes/assets.php';
@@ -311,6 +317,23 @@ function woonuxt_register_settings()
 }
 
 /**
+ * Safely retrieve WooCommerce product attributes.
+ *
+ * @since 2.5.7
+ * @return array
+ */
+function woonuxt_get_product_attributes()
+{
+    if (!function_exists('wc_get_attribute_taxonomies')) {
+        return [];
+    }
+
+    $product_attributes = wc_get_attribute_taxonomies();
+
+    return is_array($product_attributes) ? $product_attributes : [];
+}
+
+/**
  * Callback function to display the update available notice and handle the plugin update
  *
  * @since 2.0.0
@@ -603,7 +626,7 @@ function woonuxt_deploy_button_callback()
     $endpoint     = get_site_url() . '/' . $gql_endpoint;
 
     // Has at least on product attribute
-    $product_attributes   = wc_get_attribute_taxonomies();
+    $product_attributes   = woonuxt_get_product_attributes();
     $hasProductAttributes = count($product_attributes) > 0;
 
     $allSettingHaveBeenMet = $hasProductAttributes;
@@ -673,7 +696,7 @@ function woonuxt_deploy_button_callback()
 function woonuxt_global_setting_callback()
 {
     $options            = get_option('woonuxt_options');
-    $product_attributes = wc_get_attribute_taxonomies();
+    $product_attributes = woonuxt_get_product_attributes();
     echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
     $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
     ?>
@@ -794,9 +817,9 @@ function woonuxt_global_setting_callback()
                                     <th class="manage-column drag-handle-column" style="width: 40px;"></th>
                                     <th class="manage-column column-primary" scope="col" style="width: 28%;"><?php echo esc_html__('Label', 'woonuxt'); ?></th>
                                     <th class="manage-column column-primary" scope="col" style="width: 28%;"><?php echo esc_html__('Attribute', 'woonuxt'); ?></th>
-                                    <th class="manage-column column-primary text-center" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Display product count next to filter options', 'woonuxt'); ?>"><?php echo esc_html__('Count', 'woonuxt'); ?></th>
-                                    <th class="manage-column column-primary text-center" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Hide options with no products', 'woonuxt'); ?>"><?php echo esc_html__('Empty', 'woonuxt'); ?></th>
-                                    <th class="manage-column column-primary text-center" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Filter starts expanded', 'woonuxt'); ?>"><?php echo esc_html__('Open', 'woonuxt'); ?></th>
+                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Display product count next to filter options', 'woonuxt'); ?>"><?php echo esc_html__('Count', 'woonuxt'); ?></th>
+                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Hide options with no products', 'woonuxt'); ?>"><?php echo esc_html__('Empty', 'woonuxt'); ?></th>
+                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Filter starts expanded', 'woonuxt'); ?>"><?php echo esc_html__('Open', 'woonuxt'); ?></th>
                                     <th class="manage-column" style="width: 40px;"></th>
                                 </tr>
                             </thead>
