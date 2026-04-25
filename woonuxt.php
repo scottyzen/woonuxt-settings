@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.6
+Version: 2.5.8
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -625,8 +625,8 @@ function woonuxt_deploy_button_callback()
     $gql_endpoint = isset($gql_settings['graphql_endpoint']) ? $gql_settings['graphql_endpoint'] : 'graphql';
     $endpoint     = get_site_url() . '/' . $gql_endpoint;
 
-    // Has at least on product attribute
-    $product_attributes   = woonuxt_get_product_attributes();
+    $isWooCommerceActive  = class_exists('WooCommerce');
+    $product_attributes   = $isWooCommerceActive ? woonuxt_get_product_attributes() : [];
     $hasProductAttributes = count($product_attributes) > 0;
 
     $allSettingHaveBeenMet = $hasProductAttributes;
@@ -673,9 +673,14 @@ function woonuxt_deploy_button_callback()
                                 <a href="/wp-admin/admin.php?page=graphql-settings"><?php echo esc_html__('WPGraphQL Settings', 'woonuxt'); ?></a>
                             </li>
                             <li>
-                                <a href="/wp-admin/edit.php?post_type=product&page=product_attributes"><?php echo esc_html__('Product Attributes', 'woonuxt'); ?></a>
-                                <span style="color: <?php echo $hasProductAttributes ? '#00a32a' : '#d63638'; ?>; margin-left: 8px;"><?php echo $hasProductAttributes ? '✅' : '❌'; ?></span>
-                                <span style="color: #646970; font-size: 12px; margin-left: 4px;"><?php echo esc_html__('At least one product attribute', 'woonuxt'); ?></span>
+                                <?php if ($isWooCommerceActive): ?>
+                                    <a href="/wp-admin/edit.php?post_type=product&page=product_attributes"><?php echo esc_html__('Product Attributes', 'woonuxt'); ?></a>
+                                    <span style="color: <?php echo $hasProductAttributes ? '#00a32a' : '#d63638'; ?>; margin-left: 8px;"><?php echo $hasProductAttributes ? '✅' : '❌'; ?></span>
+                                    <span style="color: #646970; font-size: 12px; margin-left: 4px;"><?php echo esc_html__('At least one product attribute', 'woonuxt'); ?></span>
+                                <?php else: ?>
+                                    <span><?php echo esc_html__('Product Attributes', 'woonuxt'); ?></span>
+                                    <span style="color: #646970; font-size: 12px; margin-left: 8px;"><?php echo esc_html__('Install and activate WooCommerce to enable this check', 'woonuxt'); ?></span>
+                                <?php endif; ?>
                             </li>
                         </ul>
                     </div>
