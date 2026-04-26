@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.8
+Version: 2.5.9
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -174,7 +174,7 @@ function woonuxt_options_page_html()
                     </div>
                 </div>
                 <div class="woonuxt-header-actions">
-                    <?php if (isset($options['frontEndUrl']) && !empty($options['frontEndUrl'])): ?>
+                    <?php if (!empty(trim((string) ($options['frontEndUrl'] ?? '')))): ?>
                         <a href="<?php echo esc_url($options['frontEndUrl']); ?>" target="_blank" class="woonuxt-visit-btn" title="Open your site in a new tab">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -184,7 +184,7 @@ function woonuxt_options_page_html()
                             Visit Site
                         </a>
                     <?php endif; ?>
-                    <?php if (isset($options['build_hook'])): ?>
+                    <?php if (!empty(trim((string) ($options['build_hook'] ?? '')))): ?>
                         <button id="deploy-button" class="woonuxt-deploy-btn" title="Trigger a rebuild to push your latest changes">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
@@ -220,8 +220,16 @@ function woonuxt_handle_check_plugin_status()
 {
     check_ajax_referer('woonuxt_nonce', 'security');
 
-    $plugin_slug = sanitize_text_field($_POST['plugin']);
-    $plugin_file = sanitize_text_field($_POST['file']);
+    if (!current_user_can('manage_options')) {
+        wp_die('forbidden', 403);
+    }
+
+    $plugin_slug = isset($_POST['plugin']) ? sanitize_text_field(wp_unslash($_POST['plugin'])) : '';
+    $plugin_file = isset($_POST['file']) ? sanitize_text_field(wp_unslash($_POST['file'])) : '';
+
+    if ($plugin_slug === '' || $plugin_file === '') {
+        wp_die('invalid_request', 400);
+    }
 
     if (is_plugin_active($plugin_file)) {
         wp_die('installed');
@@ -242,6 +250,12 @@ function woonuxt_handle_update_plugin()
 {
     // Add nonce verification for security
     check_ajax_referer('woonuxt_nonce', 'security');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Insufficient permissions', 403);
+
+        return;
+    }
 
     $version = woonuxt_get_github_version();
 
@@ -295,7 +309,9 @@ function woonuxt_register_settings()
 {
     global $plugin_list;
 
-    register_setting('woonuxt_options', 'woonuxt_options');
+    register_setting('woonuxt_options', 'woonuxt_options', [
+        'sanitize_callback' => 'woonuxt_legacy_sanitize_options',
+    ]);
 
     if (woonuxt_update_available()) {
         add_settings_section('update_available', '', 'woonuxt_update_available_callback', 'woonuxt');
@@ -314,6 +330,66 @@ function woonuxt_register_settings()
 
     // Always show deploy section
     add_settings_section('deploy_button', '', 'woonuxt_deploy_button_callback', 'woonuxt');
+}
+
+/**
+ * Sanitize plugin options for legacy settings registration.
+ *
+ * @since 2.5.9
+ * @param array $options Raw options.
+ * @return array
+ */
+function woonuxt_legacy_sanitize_options($options)
+{
+    if (!is_array($options)) {
+        return [];
+    }
+
+    $sanitized = [];
+
+    if (isset($options['logo'])) {
+        $sanitized['logo'] = esc_url_raw(trim((string) $options['logo']));
+    }
+
+    if (isset($options['frontEndUrl'])) {
+        $sanitized['frontEndUrl'] = esc_url_raw(trim((string) $options['frontEndUrl']));
+    }
+
+    if (isset($options['build_hook'])) {
+        $sanitized['build_hook'] = esc_url_raw(trim((string) $options['build_hook']));
+    }
+
+    if (isset($options['primary_color'])) {
+        $sanitized['primary_color'] = sanitize_hex_color($options['primary_color']);
+    }
+
+    if (isset($options['productsPerPage'])) {
+        $sanitized['productsPerPage'] = max(1, absint($options['productsPerPage']));
+    }
+
+    if (isset($options['global_attributes']) && is_array($options['global_attributes'])) {
+        $sanitized['global_attributes'] = array_map(function ($attr) {
+            return [
+                'label'         => isset($attr['label']) ? sanitize_text_field($attr['label']) : '',
+                'slug'          => isset($attr['slug']) ? sanitize_text_field($attr['slug']) : '',
+                'showCount'     => isset($attr['showCount']) ? (bool) $attr['showCount'] : false,
+                'hideEmpty'     => isset($attr['hideEmpty']) ? (bool) $attr['hideEmpty'] : false,
+                'openByDefault' => isset($attr['openByDefault']) ? (bool) $attr['openByDefault'] : false,
+            ];
+        }, $options['global_attributes']);
+    }
+
+    if (isset($options['wooNuxtSEO']) && is_array($options['wooNuxtSEO'])) {
+        $sanitized['wooNuxtSEO'] = array_map(function ($seo) {
+            return [
+                'provider' => isset($seo['provider']) ? sanitize_text_field($seo['provider']) : '',
+                'handle'   => isset($seo['handle']) ? sanitize_text_field($seo['handle']) : '',
+                'url'      => isset($seo['url']) ? esc_url_raw(trim((string) $seo['url'])) : '',
+            ];
+        }, $options['wooNuxtSEO']);
+    }
+
+    return $sanitized;
 }
 
 /**
@@ -829,7 +905,7 @@ function woonuxt_global_setting_callback()
                                 </tr>
                             </thead>
                             <tbody id="the-list" class="sortable-list">
-                                <?php if (isset($options['global_attributes']) && !empty($options['global_attributes'])):
+                                <?php if (!empty($options['global_attributes']) && is_array($options['global_attributes'])):
                                     foreach ($options['global_attributes'] as $key => $value): ?>
                                         <tr class="sortable-item">
                                             <td class="drag-handle" style="cursor: grab;">
@@ -919,7 +995,7 @@ function woonuxt_global_setting_callback()
                                 </tr>
                             </thead>
                             <tbody id="the-list" class="sortable-list">
-                                <?php if (isset($options['wooNuxtSEO'])):
+                                <?php if (!empty($options['wooNuxtSEO']) && is_array($options['wooNuxtSEO'])):
                                     foreach ($options['wooNuxtSEO'] as $key => $value): ?>
                                         <tr class="seo_item sortable-item">
                                             <td class="drag-handle" style="cursor: grab;">

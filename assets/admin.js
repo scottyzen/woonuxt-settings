@@ -1,5 +1,5 @@
 jQuery(document).ready(function ($) {
-  const globalAttributes = $(".global_attribute_table");
+  const globalAttributes = $('.global_attribute_table');
   let uniqueId = Math.random().toString(36).slice(2, 11);
 
   // Tab navigation removed - using single page layout
@@ -7,49 +7,44 @@ jQuery(document).ready(function ($) {
   // product_attributes is an object that contains the product attributes
 
   // deploy-button FROM build_hook
-  const buildUrl = $("#build_url");
-  $("#deploy-button").click(function (e) {
+  const buildUrl = $('#build_url');
+  $('#deploy-button').click(function (e) {
     e.preventDefault();
     const $button = $(this);
     const originalText = $button.text();
+    const buildHook = buildUrl.val().trim();
 
-    if (!buildUrl.val()) {
-      alert("Build URL is not set.");
+    if (!buildHook) {
+      alert('Build URL is not set.');
       return;
     }
 
-    $button.text("Deploying...").prop("disabled", true);
+    $button.text('Deploying...').prop('disabled', true);
 
     $.ajax({
-      url: buildUrl.val(),
-      type: "POST",
+      url: buildHook,
+      type: 'POST',
       timeout: 30000,
       success(data) {
-        alert("Build triggered successfully");
+        alert('Build triggered successfully');
       },
       error(xhr, status, error) {
-        alert("Failed to trigger build: " + (xhr.responseText || error));
+        alert('Failed to trigger build: ' + (xhr.responseText || error));
       },
       complete() {
-        $button.text(originalText).prop("disabled", false);
+        $button.text(originalText).prop('disabled', false);
       },
     });
   });
 
   // Add global attribute with animation
-  $(".add_global_attribute").click(function (e) {
+  $('.add_global_attribute').click(function (e) {
     e.preventDefault();
 
     try {
       // Check if product_attributes exists and has content
-      if (
-        typeof product_attributes === "undefined" ||
-        !product_attributes ||
-        Object.keys(product_attributes).length === 0
-      ) {
-        alert(
-          "No product attributes available. Please create product attributes first."
-        );
+      if (typeof product_attributes === 'undefined' || !product_attributes || Object.keys(product_attributes).length === 0) {
+        alert('No product attributes available. Please create product attributes first.');
         return;
       }
 
@@ -70,7 +65,7 @@ jQuery(document).ready(function ($) {
           .map((key) => {
             return `<option value="pa_${product_attributes[key].attribute_name}">${product_attributes[key].attribute_label}</option>`;
           })
-          .join("")}
+          .join('')}
 			</select>
 		</td>
 		<td>
@@ -96,47 +91,41 @@ jQuery(document).ready(function ($) {
 `;
 
       // Remove empty state if it exists
-      globalAttributes.find("tbody tr.empty-state").remove();
+      globalAttributes.find('tbody tr.empty-state').remove();
 
       const $newRow = $(newAttribute);
-      globalAttributes.find("tbody").append($newRow);
+      globalAttributes.find('tbody').append($newRow);
 
       // Focus on the label input
       setTimeout(() => {
-        $newRow.removeClass("adding");
+        $newRow.removeClass('adding');
         $newRow.find('input[type="text"]').focus();
       }, 300);
 
       uniqueId = Math.random().toString(36).slice(2, 11);
     } catch (error) {
-      console.error("Error adding global attribute:", error);
-      alert(
-        "An error occurred while adding the global attribute. Please try again."
-      );
+      console.error('Error adding global attribute:', error);
+      alert('An error occurred while adding the global attribute. Please try again.');
     }
   });
 
   // Remove global attribute - simplified with icon button
-  $(document).on("click", ".remove_global_attribute", function (e) {
+  $(document).on('click', '.remove_global_attribute', function (e) {
     e.preventDefault();
 
     try {
       const $button = $(this);
-      const $row = $button.closest("tr");
+      const $row = $button.closest('tr');
 
       // Confirm deletion
-      if (
-        confirm(
-          "Are you sure you want to delete this attribute? This action cannot be undone."
-        )
-      ) {
-        $row.addClass("removing");
+      if (confirm('Are you sure you want to delete this attribute? This action cannot be undone.')) {
+        $row.addClass('removing');
         setTimeout(() => {
           $row.remove();
 
           // Add empty state if no rows left
-          const $tbody = globalAttributes.find("tbody");
-          if ($tbody.find("tr:not(.empty-state)").length === 0) {
+          const $tbody = globalAttributes.find('tbody');
+          if ($tbody.find('tr:not(.empty-state)').length === 0) {
             $tbody.html(`
               <tr class="empty-state">
                 <td colspan="7">
@@ -149,8 +138,8 @@ jQuery(document).ready(function ($) {
         }, 300);
       }
     } catch (error) {
-      console.error("Error removing global attribute:", error);
-      alert("An error occurred while removing the global attribute.");
+      console.error('Error removing global attribute:', error);
+      alert('An error occurred while removing the global attribute.');
     }
   });
 
@@ -164,42 +153,42 @@ jQuery(document).ready(function ($) {
     let draggedIndex = null;
 
     const $table = $(tableSelector);
-    const $tbody = $table.find("tbody");
+    const $tbody = $table.find('tbody');
 
     // Make rows draggable
-    $tbody.on("dragstart", ".sortable-item", function (e) {
+    $tbody.on('dragstart', '.sortable-item', function (e) {
       draggedElement = this;
       draggedIndex = $(this).index();
-      $(this).addClass("dragging");
-      e.originalEvent.dataTransfer.effectAllowed = "move";
-      e.originalEvent.dataTransfer.setData("text/html", this.innerHTML);
+      $(this).addClass('dragging');
+      e.originalEvent.dataTransfer.effectAllowed = 'move';
+      e.originalEvent.dataTransfer.setData('text/html', this.innerHTML);
     });
 
-    $tbody.on("dragend", ".sortable-item", function (e) {
-      $(this).removeClass("dragging");
-      $(".drag-over").removeClass("drag-over");
+    $tbody.on('dragend', '.sortable-item', function (e) {
+      $(this).removeClass('dragging');
+      $('.drag-over').removeClass('drag-over');
       draggedElement = null;
     });
 
-    $tbody.on("dragover", ".sortable-item", function (e) {
+    $tbody.on('dragover', '.sortable-item', function (e) {
       if (e.preventDefault) {
         e.preventDefault();
       }
-      e.originalEvent.dataTransfer.dropEffect = "move";
+      e.originalEvent.dataTransfer.dropEffect = 'move';
 
       const $this = $(this);
       if (draggedElement !== this) {
-        $(".drag-over").removeClass("drag-over");
-        $this.addClass("drag-over");
+        $('.drag-over').removeClass('drag-over');
+        $this.addClass('drag-over');
       }
       return false;
     });
 
-    $tbody.on("dragleave", ".sortable-item", function (e) {
-      $(this).removeClass("drag-over");
+    $tbody.on('dragleave', '.sortable-item', function (e) {
+      $(this).removeClass('drag-over');
     });
 
-    $tbody.on("drop", ".sortable-item", function (e) {
+    $tbody.on('drop', '.sortable-item', function (e) {
       if (e.stopPropagation) {
         e.stopPropagation();
       }
@@ -216,58 +205,58 @@ jQuery(document).ready(function ($) {
         }
 
         // Add animation
-        $(draggedElement).addClass("adding");
+        $(draggedElement).addClass('adding');
         setTimeout(() => {
-          $(draggedElement).removeClass("adding");
+          $(draggedElement).removeClass('adding');
         }, 300);
       }
 
-      $this.removeClass("drag-over");
+      $this.removeClass('drag-over');
       return false;
     });
 
     // Make drag handles work
-    $tbody.find(".drag-handle").attr("draggable", "false");
-    $tbody.find(".sortable-item").attr("draggable", "true");
+    $tbody.find('.drag-handle').attr('draggable', 'false');
+    $tbody.find('.sortable-item').attr('draggable', 'true');
   }
 
   // Initialize drag and drop for both tables
-  if ($(".woo-seo-table").length) {
-    initDragAndDrop(".woo-seo-table");
+  if ($('.woo-seo-table').length) {
+    initDragAndDrop('.woo-seo-table');
   }
 
-  if ($(".global_attribute_table").length) {
-    initDragAndDrop(".global_attribute_table");
+  if ($('.global_attribute_table').length) {
+    initDragAndDrop('.global_attribute_table');
   }
 
   // Reinitialize when new rows are added
-  $(document).on("DOMNodeInserted", ".sortable-list", function () {
-    $(this).find(".sortable-item").attr("draggable", "true");
+  $(document).on('DOMNodeInserted', '.sortable-list', function () {
+    $(this).find('.sortable-item').attr('draggable', 'true');
   });
 
   // Handle color picker
-  $("#primary-color-setting input").on("change input", function () {
+  $('#primary-color-setting input').on('change input', function () {
     try {
       const colorValue = $(this).val();
 
       // Basic validation for hex color
       if (colorValue && !colorValue.match(/^#[0-9a-fA-F]{6}$/)) {
-        console.warn("Invalid color format:", colorValue);
+        console.warn('Invalid color format:', colorValue);
         return;
       }
 
-      $("#woonuxt_options\\[primary_color\\]").val(colorValue);
-      $("#color-preview").css("background-color", colorValue);
-      $("#primary_color_picker").val(colorValue);
+      $('#woonuxt_options\\[primary_color\\]').val(colorValue);
+      $('#color-preview').css('background-color', colorValue);
+      $('#primary_color_picker').val(colorValue);
     } catch (error) {
-      console.error("Error handling color picker:", error);
+      console.error('Error handling color picker:', error);
     }
   });
 
   // WordPress Media Uploader for Logo
   let logoMediaUploader;
 
-  $("#woonuxt-upload-logo-btn").on("click", function (e) {
+  $('#woonuxt-upload-logo-btn').on('click', function (e) {
     e.preventDefault();
 
     // If the uploader object has already been created, reopen the dialog
@@ -278,33 +267,29 @@ jQuery(document).ready(function ($) {
 
     // Create the media uploader
     logoMediaUploader = wp.media({
-      title: "Choose Logo Image",
+      title: 'Choose Logo Image',
       button: {
-        text: "Use this image",
+        text: 'Use this image',
       },
       multiple: false, // Only allow one image to be selected
       library: {
-        type: "image", // Only show images
+        type: 'image', // Only show images
       },
     });
 
     // When an image is selected, run a callback
-    logoMediaUploader.on("select", function () {
-      const attachment = logoMediaUploader
-        .state()
-        .get("selection")
-        .first()
-        .toJSON();
+    logoMediaUploader.on('select', function () {
+      const attachment = logoMediaUploader.state().get('selection').first().toJSON();
 
       // Update the hidden input with the image URL
-      $("#woonuxt_logo_url").val(attachment.url);
+      $('#woonuxt_logo_url').val(attachment.url);
 
       // Update the preview
-      $("#woonuxt-logo-preview img").attr("src", attachment.url);
-      $("#woonuxt-logo-preview").show();
+      $('#woonuxt-logo-preview img').attr('src', attachment.url);
+      $('#woonuxt-logo-preview').show();
 
       // Show the remove button
-      $("#woonuxt-remove-logo-btn").show();
+      $('#woonuxt-remove-logo-btn').show();
     });
 
     // Open the uploader dialog
@@ -312,14 +297,14 @@ jQuery(document).ready(function ($) {
   });
 
   // Remove logo button
-  $("#woonuxt-remove-logo-btn").on("click", function (e) {
+  $('#woonuxt-remove-logo-btn').on('click', function (e) {
     e.preventDefault();
 
     // Clear the hidden input
-    $("#woonuxt_logo_url").val("");
+    $('#woonuxt_logo_url').val('');
 
     // Hide the preview
-    $("#woonuxt-logo-preview").hide();
+    $('#woonuxt-logo-preview').hide();
 
     // Hide the remove button
     $(this).hide();

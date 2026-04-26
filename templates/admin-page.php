@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Settings Page Template
- * 
+ *
  * @package WooNuxt Settings
  * @since 2.3.0
  * @var array $options Plugin options
@@ -35,8 +35,8 @@ if (!defined('ABSPATH')) {
                         <?php esc_html_e('Visit Site', 'woonuxt'); ?>
                     </a>
                 <?php endif; ?>
-                
-                <?php if (!empty($options['build_hook'])): ?>
+
+                <?php if (!empty(trim((string) ($options['build_hook'] ?? '')))): ?>
                     <button id="deploy-button" class="woonuxt-deploy-btn" title="<?php esc_attr_e('Trigger a rebuild to push your latest changes', 'woonuxt'); ?>">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
@@ -47,7 +47,7 @@ if (!defined('ABSPATH')) {
             </div>
         </div>
     </div>
-    
+
     <div class="wrap woonuxt-content">
         <form action="options.php" method="post">
             <?php

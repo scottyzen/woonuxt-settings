@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.9] - 2026-04-26
+
+### Fixed
+
+- Hide Trigger Rebuild unless the Build Hook contains a non-empty URL value
+- Prevent whitespace-only Build Hook values from passing deploy checks in admin UI
+- Guard admin settings loops against malformed option data to avoid warnings
+
+### Security
+
+- Add capability checks to admin AJAX handlers for plugin status and plugin update actions
+- Add request field validation and safer unslashing/sanitization for AJAX payloads
+
+### Changed
+
+- Register a sanitize callback on legacy settings registration path
+- Normalize URL-like option sanitization with trimming and enforce minimum `productsPerPage` of `1`
+
 ## [2.5.8] - 2026-04-26
 
 ### Changed

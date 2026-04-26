@@ -164,15 +164,15 @@ function woonuxt_sanitize_options($options)
     $sanitized = [];
 
     if (isset($options['logo'])) {
-        $sanitized['logo'] = esc_url_raw($options['logo']);
+        $sanitized['logo'] = esc_url_raw(trim((string) $options['logo']));
     }
 
     if (isset($options['frontEndUrl'])) {
-        $sanitized['frontEndUrl'] = esc_url_raw($options['frontEndUrl']);
+        $sanitized['frontEndUrl'] = esc_url_raw(trim((string) $options['frontEndUrl']));
     }
 
     if (isset($options['build_hook'])) {
-        $sanitized['build_hook'] = esc_url_raw($options['build_hook']);
+        $sanitized['build_hook'] = esc_url_raw(trim((string) $options['build_hook']));
     }
 
     if (isset($options['primary_color'])) {
@@ -180,7 +180,7 @@ function woonuxt_sanitize_options($options)
     }
 
     if (isset($options['productsPerPage'])) {
-        $sanitized['productsPerPage'] = absint($options['productsPerPage']);
+        $sanitized['productsPerPage'] = max(1, absint($options['productsPerPage']));
     }
 
     if (isset($options['global_attributes']) && is_array($options['global_attributes'])) {
@@ -200,7 +200,7 @@ function woonuxt_sanitize_options($options)
             return [
                 'provider' => isset($seo['provider']) ? sanitize_text_field($seo['provider']) : '',
                 'handle'   => isset($seo['handle']) ? sanitize_text_field($seo['handle']) : '',
-                'url'      => isset($seo['url']) ? esc_url_raw($seo['url']) : '',
+                'url'      => isset($seo['url']) ? esc_url_raw(trim((string) $seo['url'])) : '',
             ];
         }, $options['wooNuxtSEO']);
     }
