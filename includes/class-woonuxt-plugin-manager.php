@@ -36,13 +36,17 @@ class WooNuxt_Plugin_Manager
             return;
         }
 
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Insufficient permissions', 'woonuxt'), '', ['response' => 403]);
+        }
+
         // Verify nonce for security
-        if (!wp_verify_nonce($_GET['_wpnonce'], 'install_plugin_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'install_plugin_nonce')) {
             wp_die(esc_html__('Security check failed', 'woonuxt'));
         }
 
         // Sanitize and validate plugin slug
-        $plugin_slug = sanitize_key($_GET['install_plugin']);
+        $plugin_slug = sanitize_key(wp_unslash($_GET['install_plugin']));
 
         if (!woonuxt_validate_plugin_slug($plugin_slug)) {
             wp_die(esc_html__('Invalid plugin', 'woonuxt'));

@@ -133,7 +133,7 @@ class WooNuxt_Admin
         $options            = get_option('woonuxt_options');
         $defaults           = woonuxt_get_default_options();
         $options            = wp_parse_args($options, $defaults);
-        $product_attributes = wc_get_attribute_taxonomies();
+        $product_attributes = function_exists('woonuxt_get_product_attributes') ? woonuxt_get_product_attributes() : [];
 
         // Pass product attributes to JavaScript
         echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
@@ -178,7 +178,7 @@ class WooNuxt_Admin
         $gql_endpoint = isset($gql_settings['graphql_endpoint']) ? $gql_settings['graphql_endpoint'] : 'graphql';
         $endpoint     = get_site_url() . '/' . $gql_endpoint;
 
-        $product_attributes     = wc_get_attribute_taxonomies();
+        $product_attributes     = function_exists('woonuxt_get_product_attributes') ? woonuxt_get_product_attributes() : [];
         $has_product_attributes = count($product_attributes) > 0;
 
         include dirname(__DIR__) . '/templates/deploy-section.php';

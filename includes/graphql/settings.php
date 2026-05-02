@@ -78,9 +78,21 @@ function woonuxt_register_graphql_settings_types()
     register_graphql_field('RootQuery', 'woonuxtSettings', [
         'type'    => 'woonuxtOptions',
         'resolve' => function () {
-            $options                               = get_option('woonuxt_options');
-            $gql_settings                          = get_option('graphql_general_settings');
-            $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'];
+            $options = get_option('woonuxt_options');
+            if (!is_array($options)) {
+                $options = [];
+            }
+
+            if (function_exists('woonuxt_get_default_options')) {
+                $options = wp_parse_args($options, woonuxt_get_default_options());
+            }
+
+            $gql_settings = get_option('graphql_general_settings');
+            if (!is_array($gql_settings)) {
+                $gql_settings = [];
+            }
+
+            $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'] ?? 'off';
 
             // Get max price efficiently.
             $loop = new WP_Query([
@@ -121,6 +133,7 @@ function woonuxt_register_graphql_settings_types()
             $options['stripeSettings'] = $stripe_settings;
 
             $paypal_settings             = get_option('woocommerce_paypal_settings');
+            $paypal_settings             = is_array($paypal_settings) ? $paypal_settings : [];
             $options['paypalSettings']   = [
                 'enabled' => $paypal_settings['enabled']  ?? 'no',
                 'sandbox' => $paypal_settings['testmode'] ?? 'no',

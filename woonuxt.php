@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.9
+Version: 2.5.10
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -221,13 +221,18 @@ function woonuxt_handle_check_plugin_status()
     check_ajax_referer('woonuxt_nonce', 'security');
 
     if (!current_user_can('manage_options')) {
-        wp_die('forbidden', 403);
+        wp_die('forbidden', '', ['response' => 403]);
     }
 
     $plugin_slug = isset($_POST['plugin']) ? sanitize_text_field(wp_unslash($_POST['plugin'])) : '';
     $plugin_file = isset($_POST['file']) ? sanitize_text_field(wp_unslash($_POST['file'])) : '';
 
     if ($plugin_slug === '' || $plugin_file === '') {
+        wp_die('invalid_request', 400);
+    }
+
+    $plugin_list = woonuxt_get_required_plugins();
+    if (!isset($plugin_list[$plugin_slug]) || $plugin_list[$plugin_slug]['file'] !== $plugin_file) {
         wp_die('invalid_request', 400);
     }
 
@@ -553,8 +558,12 @@ function woonuxt_required_plugins_callback()
              * Check if the plugin is installed.
              */
             if (isset($_GET['install_plugin']) && isset($_GET['_wpnonce'])) {
+                if (!current_user_can('manage_options')) {
+                    wp_die(esc_html__('Insufficient permissions', 'woonuxt'), '', ['response' => 403]);
+                }
+
                 // Verify nonce for security
-                if (!wp_verify_nonce($_GET['_wpnonce'], 'install_plugin_nonce')) {
+                if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'install_plugin_nonce')) {
                     wp_die('Security check failed');
                 }
 
@@ -562,7 +571,7 @@ function woonuxt_required_plugins_callback()
 
                 $upgrader = new Plugin_Upgrader();
                 // Sanitize the plugin slug input
-                $plugin_slug = sanitize_key($_GET['install_plugin']);
+                $plugin_slug = sanitize_key(wp_unslash($_GET['install_plugin']));
 
                 // Validate that the plugin exists in our allowed list
                 if (!isset($plugin_list[$plugin_slug])) {
@@ -700,6 +709,7 @@ function woonuxt_deploy_button_callback()
     $gql_settings = get_option('graphql_general_settings');
     $gql_endpoint = isset($gql_settings['graphql_endpoint']) ? $gql_settings['graphql_endpoint'] : 'graphql';
     $endpoint     = get_site_url() . '/' . $gql_endpoint;
+    $image_domain = wp_parse_url(home_url(), PHP_URL_HOST);
 
     $isWooCommerceActive  = class_exists('WooCommerce');
     $product_attributes   = $isWooCommerceActive ? woonuxt_get_product_attributes() : [];
@@ -724,7 +734,7 @@ function woonuxt_deploy_button_callback()
                     </th>
                     <td>
                         <div class="deploy-buttons-container">
-                            <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo esc_attr($endpoint); ?>&NUXT_IMAGE_DOMAINS=<?php echo esc_attr($_SERVER['HTTP_HOST']); ?>" target="_blank">
+                            <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo esc_attr($endpoint); ?>&NUXT_IMAGE_DOMAINS=<?php echo esc_attr($image_domain); ?>" target="_blank">
                                 <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="146" height="32">
                             </a>
                             <a href="https://vercel.com/new/clone?repository-url=https://github.com/scottyzen/woonuxt&repository-name=<?php echo esc_attr($site_name); ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">

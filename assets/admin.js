@@ -19,6 +19,16 @@ jQuery(document).ready(function ($) {
       return;
     }
 
+    try {
+      const url = new URL(buildHook);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Unsupported build hook protocol.');
+      }
+    } catch (error) {
+      alert('Build URL must be a valid HTTP or HTTPS URL.');
+      return;
+    }
+
     $button.text('Deploying...').prop('disabled', true);
 
     $.ajax({

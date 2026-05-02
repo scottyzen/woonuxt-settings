@@ -45,8 +45,12 @@ class WooNuxt_Ajax_Handler
     {
         check_ajax_referer('woonuxt_nonce', 'security');
 
-        $plugin_slug = isset($_POST['plugin']) ? sanitize_text_field($_POST['plugin']) : '';
-        $plugin_file = isset($_POST['file']) ? sanitize_text_field($_POST['file']) : '';
+        if (!current_user_can('manage_options')) {
+            wp_die('forbidden', '', ['response' => 403]);
+        }
+
+        $plugin_slug = isset($_POST['plugin']) ? sanitize_text_field(wp_unslash($_POST['plugin'])) : '';
+        $plugin_file = isset($_POST['file']) ? sanitize_text_field(wp_unslash($_POST['file'])) : '';
 
         if (empty($plugin_slug) || empty($plugin_file)) {
             wp_die('invalid');
@@ -54,6 +58,11 @@ class WooNuxt_Ajax_Handler
 
         // Validate plugin slug
         if (!woonuxt_validate_plugin_slug($plugin_slug)) {
+            wp_die('invalid');
+        }
+
+        $plugins = woonuxt_get_required_plugins();
+        if (!isset($plugins[$plugin_slug]) || $plugins[$plugin_slug]['file'] !== $plugin_file) {
             wp_die('invalid');
         }
 
@@ -73,6 +82,10 @@ class WooNuxt_Ajax_Handler
     public function update_plugin()
     {
         check_ajax_referer('woonuxt_nonce', 'security');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions', 403);
+        }
 
         $version = woonuxt_get_github_version();
         $result  = $this->plugin_manager->update_plugin($version);

@@ -161,6 +161,10 @@ function woonuxt_log($message, $data = null)
  */
 function woonuxt_sanitize_options($options)
 {
+    if (!is_array($options)) {
+        return [];
+    }
+
     $sanitized = [];
 
     if (isset($options['logo'])) {
@@ -206,4 +210,23 @@ function woonuxt_sanitize_options($options)
     }
 
     return $sanitized;
+}
+
+/**
+ * Safely retrieve WooCommerce product attributes.
+ *
+ * @since 2.5.10
+ * @return array
+ */
+if (!function_exists('woonuxt_get_product_attributes')) {
+    function woonuxt_get_product_attributes()
+    {
+        if (!function_exists('wc_get_attribute_taxonomies')) {
+            return [];
+        }
+
+        $product_attributes = wc_get_attribute_taxonomies();
+
+        return is_array($product_attributes) ? $product_attributes : [];
+    }
 }

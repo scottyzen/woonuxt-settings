@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [2.5.10] - 2026-05-02
+
+### Fixed
+
+- Add missing capability checks to class-based admin AJAX handlers and plugin installation flow
+- Restrict plugin status AJAX checks to the configured required plugin file for each allowed slug
+- Make the `woonuxtSettings` GraphQL resolver tolerate missing or malformed option arrays
+- Guard class-based admin product attribute lookups when WooCommerce helpers are unavailable
+- Validate build hook URLs before triggering an admin rebuild request
+- Correct `wp_die()` response code so capability check failures return HTTP 403 instead of 200
+- Fix undefined `$plugin_list` variable in legacy `woonuxt_handle_check_plugin_status()` AJAX handler
+
+### Added
+
+- Add GitHub Actions PHP lint workflow
+
 ## [2.5.9] - 2026-04-26
 
 ### Fixed
