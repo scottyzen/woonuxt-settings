@@ -569,46 +569,22 @@ function woonuxt_register_stripe_types()
 
             if (!is_array($stripe)) {
                 return [
-                    'amount'                      => intval($amount * 100),
-                    'currency'                    => $currency,
-                    'clientSecret'                => null,
-                    'id'                          => null,
-                    'error'                       => 'Failed to create Stripe intent',
-                    'stripePaymentMethod'         => $stripePaymentMethod,
-                    'customerSessionClientSecret' => null,
+                    'amount'              => intval($amount * 100),
+                    'currency'            => $currency,
+                    'clientSecret'        => null,
+                    'id'                  => null,
+                    'error'               => 'Failed to create Stripe intent',
+                    'stripePaymentMethod' => $stripePaymentMethod,
                 ];
             }
 
-            // Create a CustomerSession so the Payment Element can list the customer's
-            // saved payment methods via customerOptions.ephemeralKey.
-            $customerSessionSecret = null;
-            $effectiveCustomerId   = null;
-            if ($stripePaymentMethod === 'PAYMENT' && !empty($validatedCustomerId) && empty($stripe['error']) && empty($stripe['customer_invalid'])) {
-                // PaymentIntent succeeded with the customer attached — safe to create a CustomerSession.
-                $effectiveCustomerId = $validatedCustomerId;
-            } elseif ($stripePaymentMethod === 'PAYMENT' && (!empty($stripe['error']) || !empty($stripe['customer_invalid']))) {
-                // PaymentIntent failed, or succeeded only after stripping the stale customer.
-                // Either way, the customer ID is unusable — skip CustomerSession creation.
-                $effectiveCustomerId = null;
-            }
-            if (!empty($effectiveCustomerId)) {
-                $stripe_settings_for_cs = get_option('woocommerce_stripe_settings');
-                $secret_key_for_cs = isset($stripe_settings_for_cs['testmode']) && $stripe_settings_for_cs['testmode'] === 'yes'
-                    ? $stripe_settings_for_cs['test_secret_key'] ?? ''
-                    : $stripe_settings_for_cs['secret_key']      ?? '';
-                if (!empty($secret_key_for_cs)) {
-                    $customerSessionSecret = create_stripe_customer_session($effectiveCustomerId, $secret_key_for_cs);
-                }
-            }
-
             return [
-                'amount'                      => intval($amount * 100),
-                'currency'                    => $currency,
-                'clientSecret'                => $stripe['client_secret'] ?? null,
-                'id'                          => $stripe['id']            ?? null,
-                'error'                       => $stripe['error']         ?? null,
-                'stripePaymentMethod'         => $stripePaymentMethod,
-                'customerSessionClientSecret' => $customerSessionSecret,
+                'amount'              => intval($amount * 100),
+                'currency'            => $currency,
+                'clientSecret'        => $stripe['client_secret'] ?? null,
+                'id'                  => $stripe['id']            ?? null,
+                'error'               => $stripe['error']         ?? null,
+                'stripePaymentMethod' => $stripePaymentMethod,
             ];
         },
     ]);
@@ -665,13 +641,12 @@ function woonuxt_register_stripe_types()
 
     register_graphql_object_type('PaymentIntent', [
         'fields' => [
-            'amount'                      => ['type' => 'Int'],
-            'currency'                    => ['type' => 'String'],
-            'clientSecret'                => ['type' => 'String'],
-            'id'                          => ['type' => 'String'],
-            'error'                       => ['type' => 'String'],
-            'stripePaymentMethod'         => ['type' => 'String'],
-            'customerSessionClientSecret' => ['type' => 'String'],
+            'amount'              => ['type' => 'Int'],
+            'currency'            => ['type' => 'String'],
+            'clientSecret'        => ['type' => 'String'],
+            'id'                  => ['type' => 'String'],
+            'error'               => ['type' => 'String'],
+            'stripePaymentMethod' => ['type' => 'String'],
         ],
     ]);
 
