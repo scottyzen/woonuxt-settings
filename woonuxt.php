@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.12
+Version: 2.5.13
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -364,6 +364,10 @@ function woonuxt_legacy_sanitize_options($options)
         $sanitized['build_hook'] = esc_url_raw(trim((string) $options['build_hook']));
     }
 
+    if (isset($options['stripe_apple_pay_merchant_identifier'])) {
+        $sanitized['stripe_apple_pay_merchant_identifier'] = sanitize_text_field($options['stripe_apple_pay_merchant_identifier']);
+    }
+
     if (isset($options['primary_color'])) {
         $sanitized['primary_color'] = sanitize_hex_color($options['primary_color']);
     }
@@ -669,7 +673,9 @@ function woonuxt_graphql_schema_callback()
       testmode
       test_publishable_key
       publishable_key
+      active_publishable_key
       account_id
+      apple_pay_merchant_identifier
     }
   }
 }</code></pre>
@@ -890,6 +896,23 @@ function woonuxt_global_setting_callback()
                     <td>
                         <input type="text" id="build_url" class="widefat" name="woonuxt_options[build_hook]" value="<?php echo isset($options['build_hook']) ? esc_url($options['build_hook']) : ''; ?>" placeholder="e.g. https://api.netlify.com/build_hooks/1234567890" />
                         <p class="description"><?php echo esc_html__('The build hook is used to trigger a build on Netlify or Vercel. You can find the build hook in your Netlify or Vercel dashboard.', 'woonuxt'); ?></p>
+                    </td>
+                </tr>
+
+                <!-- APPLE PAY MERCHANT IDENTIFIER -->
+                <tr>
+                    <th scope="row">
+                        <label for="woonuxt_options[stripe_apple_pay_merchant_identifier]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px; color: #646970;">
+                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                <path d="M2 10h20"></path>
+                            </svg>
+                            <?php echo esc_html__('Apple Pay Merchant ID', 'woonuxt'); ?>
+                        </label>
+                    </th>
+                    <td>
+                        <input type="text" class="widefat" name="woonuxt_options[stripe_apple_pay_merchant_identifier]" value="<?php echo isset($options['stripe_apple_pay_merchant_identifier']) ? esc_attr($options['stripe_apple_pay_merchant_identifier']) : ''; ?>" placeholder="e.g. merchant.com.example.store" />
+                        <p class="description"><?php echo esc_html__('The Apple Pay merchant identifier used by native Stripe integrations such as Capacitor.', 'woonuxt'); ?></p>
                     </td>
                 </tr>
                 <!-- GLOBAL ATTRIBUTES -->

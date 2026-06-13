@@ -67,6 +67,7 @@ function woonuxt_get_default_options()
         'logo'              => '',
         'frontEndUrl'       => '',
         'build_hook'        => '',
+        'stripe_apple_pay_merchant_identifier' => '',
         'global_attributes' => [],
         'wooNuxtSEO'        => [],
     ];
@@ -177,6 +178,10 @@ function woonuxt_sanitize_options($options)
 
     if (isset($options['build_hook'])) {
         $sanitized['build_hook'] = esc_url_raw(trim((string) $options['build_hook']));
+    }
+
+    if (isset($options['stripe_apple_pay_merchant_identifier'])) {
+        $sanitized['stripe_apple_pay_merchant_identifier'] = sanitize_text_field($options['stripe_apple_pay_merchant_identifier']);
     }
 
     if (isset($options['primary_color'])) {

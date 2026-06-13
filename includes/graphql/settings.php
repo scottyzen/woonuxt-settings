@@ -31,11 +31,13 @@ function woonuxt_register_graphql_settings_types()
 
     register_graphql_object_type('woonuxtOptionsStripeSettings', [
         'fields' => [
-            'enabled'              => ['type' => 'String'],
-            'testmode'             => ['type' => 'String'],
-            'test_publishable_key' => ['type' => 'String'],
-            'publishable_key'      => ['type' => 'String'],
-            'account_id'           => ['type' => 'String'],
+            'enabled'                       => ['type' => 'String'],
+            'testmode'                      => ['type' => 'String'],
+            'test_publishable_key'          => ['type' => 'String'],
+            'publishable_key'               => ['type' => 'String'],
+            'active_publishable_key'        => ['type' => 'String'],
+            'account_id'                    => ['type' => 'String'],
+            'apple_pay_merchant_identifier' => ['type' => 'String'],
         ],
     ]);
 
@@ -124,15 +126,22 @@ function woonuxt_register_graphql_settings_types()
 
             $stripe_settings = get_option('woocommerce_stripe_settings');
             if (!is_array($stripe_settings)) {
-                $stripe_settings = [
-                    'enabled'              => 'no',
-                    'testmode'             => 'no',
-                    'test_publishable_key' => '',
-                    'publishable_key'      => '',
-                    'account_id'           => '',
-                ];
+                $stripe_settings = [];
             }
-            $options['stripeSettings'] = $stripe_settings;
+
+            $is_stripe_test_mode  = ($stripe_settings['testmode'] ?? 'no') === 'yes';
+            $test_publishable_key = $stripe_settings['test_publishable_key'] ?? '';
+            $publishable_key      = $stripe_settings['publishable_key'] ?? '';
+
+            $options['stripeSettings'] = [
+                'enabled'                       => $stripe_settings['enabled'] ?? 'no',
+                'testmode'                      => $stripe_settings['testmode'] ?? 'no',
+                'test_publishable_key'          => $test_publishable_key,
+                'publishable_key'               => $publishable_key,
+                'active_publishable_key'        => $is_stripe_test_mode ? $test_publishable_key : $publishable_key,
+                'account_id'                    => $stripe_settings['account_id'] ?? '',
+                'apple_pay_merchant_identifier' => $options['stripe_apple_pay_merchant_identifier'] ?? '',
+            ];
 
             $paypal_settings             = get_option('woocommerce_paypal_settings');
             $paypal_settings             = is_array($paypal_settings) ? $paypal_settings : [];

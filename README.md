@@ -19,6 +19,7 @@ The plugin has the following settings:
 - **Front End URL**: The URL of your headless frontend.
 - **Products Per Page**: Number of products to display per page.
 - **Primary Color**: The primary color for your site. This will be used for buttons, links and other elements.
+- **Apple Pay Merchant ID**: The native Apple Pay merchant identifier used by Stripe integrations.
 - **Global Attributes**: The global attributes for your site. These will be used for the product filters.
 - **SEO / Social**: Social media provider handles and URLs (e.g. Twitter, Facebook).
 
@@ -77,7 +78,9 @@ query getWooNuxtSettings {
       testmode
       test_publishable_key
       publishable_key
+      active_publishable_key
       account_id
+      apple_pay_merchant_identifier
     }
 
     # PayPal payment settings

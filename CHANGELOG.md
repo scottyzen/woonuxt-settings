@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.13] - 2026-06-13
+
+### Added
+
+- Add an Apple Pay Merchant ID setting and expose it as `stripeSettings.apple_pay_merchant_identifier`
+- Add `stripeSettings.active_publishable_key` so clients can use the correct Stripe publishable key without duplicating test mode logic
+
+### Changed
+
+- Return an explicit Stripe GraphQL settings whitelist instead of the raw WooCommerce Stripe gateway settings array
+
 ## [2.5.12] - 2026-06-13
 
 ### Added

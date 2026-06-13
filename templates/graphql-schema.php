@@ -65,7 +65,9 @@ if (!defined('ABSPATH')) {
       testmode
       test_publishable_key
       publishable_key
+      active_publishable_key
       account_id
+      apple_pay_merchant_identifier
     }
   }
 }</code></pre>
