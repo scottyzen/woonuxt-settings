@@ -65,6 +65,7 @@ if (!defined('ABSPATH')) {
       testmode
       test_publishable_key
       publishable_key
+      account_id
     }
   }
 }</code></pre>

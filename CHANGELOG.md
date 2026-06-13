@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.12] - 2026-06-13
+
+### Added
+
+- Expose Stripe `account_id` in the `stripeSettings` GraphQL schema for native payment initialization flows
+
 ## [2.5.11] - 2026-05-04
 
 ### Removed

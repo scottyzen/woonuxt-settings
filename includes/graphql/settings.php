@@ -35,6 +35,7 @@ function woonuxt_register_graphql_settings_types()
             'testmode'             => ['type' => 'String'],
             'test_publishable_key' => ['type' => 'String'],
             'publishable_key'      => ['type' => 'String'],
+            'account_id'           => ['type' => 'String'],
         ],
     ]);
 
@@ -128,6 +129,7 @@ function woonuxt_register_graphql_settings_types()
                     'testmode'             => 'no',
                     'test_publishable_key' => '',
                     'publishable_key'      => '',
+                    'account_id'           => '',
                 ];
             }
             $options['stripeSettings'] = $stripe_settings;

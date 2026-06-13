@@ -77,6 +77,7 @@ query getWooNuxtSettings {
       testmode
       test_publishable_key
       publishable_key
+      account_id
     }
 
     # PayPal payment settings
