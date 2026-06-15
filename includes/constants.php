@@ -3,11 +3,16 @@
 defined('ABSPATH') || exit;
 
 // Plugin Version
-define('WOONUXT_SETTINGS_VERSION', '2.5.13');
+define('WOONUXT_SETTINGS_VERSION', '2.5.14');
+
+// Software Versions
+define('WOONUXT_WORDPRESS_TESTED_VERSION', '7.0.0');
+define('WOONUXT_NODE_VERSION', '22.22.2');
+define('WOONUXT_PHP_VERSION', '8.4');
 
 // Required Plugin Versions
-define('MY_WOOCOMMERCE_VERSION', '10.7.0');
-define('WP_GRAPHQL_VERSION', '2.12.0');
+define('MY_WOOCOMMERCE_VERSION', '10.8.1');
+define('WP_GRAPHQL_VERSION', '2.16.0');
 define('WOO_GRAPHQL_VERSION', '1.0.2');
 define('WP_GRAPHQL_HEADLESS_LOGIN_VERSION', '0.4.4');
 

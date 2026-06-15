@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.14] - 2026-06-15
+
+### Added
+
+- Add constants for WordPress tested up to `7.0.0`, Node `22.22.2`, and PHP `8.4` setup targets
+
+### Changed
+
+- Update required setup targets to WooCommerce `10.8.1` and WPGraphQL `2.16.0`
+- Bump plugin metadata to `2.5.14`
+
+### Fixed
+
+- Keep `woonuxtSettings` available during first-time setup before WooCommerce is active
+- Move required-plugin install and activation handling out of settings-page rendering
+
 ## [2.5.13] - 2026-06-13
 
 ### Added

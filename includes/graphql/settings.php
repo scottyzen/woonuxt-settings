@@ -96,33 +96,36 @@ function woonuxt_register_graphql_settings_types()
             }
 
             $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'] ?? 'off';
+            $is_woocommerce_active                 = class_exists('WooCommerce');
 
             // Get max price efficiently.
-            $loop = new WP_Query([
-                'post_type'      => 'product',
-                'posts_per_page' => 1,
-                'orderby'        => 'meta_value_num',
-                'order'          => 'DESC',
-                'meta_key'       => '_price',
-                'meta_query'     => [
-                    [
-                        'key'     => '_price',
-                        'value'   => 0,
-                        'compare' => '>',
-                        'type'    => 'NUMERIC',
+            if ($is_woocommerce_active && function_exists('wc_get_product')) {
+                $loop = new WP_Query([
+                    'post_type'      => 'product',
+                    'posts_per_page' => 1,
+                    'orderby'        => 'meta_value_num',
+                    'order'          => 'DESC',
+                    'meta_key'       => '_price',
+                    'meta_query'     => [
+                        [
+                            'key'     => '_price',
+                            'value'   => 0,
+                            'compare' => '>',
+                            'type'    => 'NUMERIC',
+                        ],
                     ],
-                ],
-                'fields' => 'ids',
-            ]);
+                    'fields' => 'ids',
+                ]);
 
-            if ($loop->have_posts()) {
-                $product_id = $loop->posts[0];
-                $product    = wc_get_product($product_id);
-                if ($product) {
-                    $options['maxPrice'] = ceil($product->get_price());
+                if ($loop->have_posts()) {
+                    $product_id = $loop->posts[0];
+                    $product    = wc_get_product($product_id);
+                    if ($product) {
+                        $options['maxPrice'] = ceil($product->get_price());
+                    }
                 }
+                wp_reset_postdata();
             }
-            wp_reset_postdata();
 
             $stripe_settings = get_option('woocommerce_stripe_settings');
             if (!is_array($stripe_settings)) {
@@ -155,12 +158,11 @@ function woonuxt_register_graphql_settings_types()
                 require_once WC()->plugin_path() . '/includes/wc-core-functions.php';
             }
 
-            $options['currencyCode']               = get_woocommerce_currency();
-            $options['currencySymbol']             = html_entity_decode(get_woocommerce_currency_symbol());
+            $options['currencyCode']               = function_exists('get_woocommerce_currency') ? get_woocommerce_currency() : 'USD';
+            $options['currencySymbol']             = function_exists('get_woocommerce_currency_symbol') ? html_entity_decode(get_woocommerce_currency_symbol()) : '$';
             $options['domain']                     = wp_parse_url(home_url(), PHP_URL_HOST);
             $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
             $options['wooNuxtSEO']                 = $options['wooNuxtSEO'] ?? [];
-
             return $options;
         },
     ]);

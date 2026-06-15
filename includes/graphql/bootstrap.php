@@ -23,9 +23,6 @@ function woonuxt_init_graphql()
     if (!class_exists('\\WPGraphQL')) {
         return;
     }
-    if (!class_exists('WooCommerce')) {
-        return;
-    }
 
     add_action('graphql_register_types', 'woonuxt_register_graphql_types');
 }
@@ -39,6 +36,11 @@ function woonuxt_init_graphql()
 function woonuxt_register_graphql_types()
 {
     woonuxt_register_graphql_settings_types();
+
+    if (!class_exists('WooCommerce')) {
+        return;
+    }
+
     woonuxt_register_graphql_yoast_types();
     woonuxt_register_graphql_filters();
     woonuxt_register_stripe_types();

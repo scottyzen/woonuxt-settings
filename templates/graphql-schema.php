@@ -69,6 +69,13 @@ if (!defined('ABSPATH')) {
       account_id
       apple_pay_merchant_identifier
     }
+
+    # PayPal payment settings
+    paypalSettings {
+      enabled
+      sandbox
+      email
+    }
   }
 }</code></pre>
         </div>

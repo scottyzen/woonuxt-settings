@@ -5,7 +5,9 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.13
+Version: 2.5.14
+Tested up to: 7.0.0
+Requires PHP: 8.4
 Text Domain: woonuxt
 GitHub Plugin URI: scottyzen/woonuxt-settings
 GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
@@ -94,6 +96,43 @@ $plugin_list = [
 ];
 
 /**
+ * Get required plugins list.
+ *
+ * @since 2.5.14
+ * @return array Array of required plugins with their configuration.
+ */
+if (!function_exists('woonuxt_get_required_plugins')) {
+    function woonuxt_get_required_plugins()
+    {
+        global $plugin_list;
+
+        return is_array($plugin_list) ? $plugin_list : [];
+    }
+}
+
+/**
+ * Get default plugin options.
+ *
+ * @since 2.5.14
+ * @return array Default options array.
+ */
+if (!function_exists('woonuxt_get_default_options')) {
+    function woonuxt_get_default_options()
+    {
+        return [
+            'primary_color'                       => '#7F54B2',
+            'productsPerPage'                     => 24,
+            'logo'                                => '',
+            'frontEndUrl'                         => '',
+            'build_hook'                          => '',
+            'stripe_apple_pay_merchant_identifier' => '',
+            'global_attributes'                   => [],
+            'wooNuxtSEO'                          => [],
+        ];
+    }
+}
+
+/**
  * Get the latest version number from Github with improved error handling and caching
  *
  * @since 2.0.0
@@ -152,6 +191,74 @@ function woonuxt_add_admin_menu()
     add_options_page(__('WooNuxt Options', 'woonuxt'), __('WooNuxt', 'woonuxt'), 'manage_options', 'woonuxt', 'woonuxt_options_page_html');
 }
 
+add_action('admin_init', 'woonuxt_handle_required_plugin_install');
+
+/**
+ * Install or activate a required plugin before the settings page renders.
+ *
+ * @since 2.5.14
+ * @return void
+ */
+function woonuxt_handle_required_plugin_install()
+{
+    if (!isset($_GET['page'], $_GET['install_plugin'], $_GET['_wpnonce']) || sanitize_key(wp_unslash($_GET['page'])) !== 'woonuxt') {
+        return;
+    }
+
+    if (!current_user_can('manage_options')) {
+        wp_die(esc_html__('Insufficient permissions', 'woonuxt'), '', ['response' => 403]);
+    }
+
+    if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'install_plugin_nonce')) {
+        wp_die(esc_html__('Security check failed', 'woonuxt'));
+    }
+
+    $plugins     = woonuxt_get_required_plugins();
+    $plugin_slug = sanitize_key(wp_unslash($_GET['install_plugin']));
+
+    if (!isset($plugins[$plugin_slug])) {
+        wp_die(esc_html__('Invalid plugin', 'woonuxt'));
+    }
+
+    $plugin   = $plugins[$plugin_slug];
+    $redirect = admin_url('options-general.php?page=woonuxt');
+
+    if (is_plugin_active($plugin['file'])) {
+        wp_safe_redirect($redirect);
+        exit;
+    }
+
+    if (file_exists(WP_PLUGIN_DIR . '/' . $plugin['file'])) {
+        $activation_result = activate_plugin($plugin['file'], $redirect);
+
+        if (is_wp_error($activation_result)) {
+            wp_die(esc_html(sprintf(__('Plugin activation failed: %s', 'woonuxt'), $activation_result->get_error_message())));
+        }
+
+        wp_safe_redirect($redirect);
+        exit;
+    }
+
+    $upgrader = new Plugin_Upgrader();
+    $result   = $upgrader->install($plugin['url']);
+
+    if (is_wp_error($result)) {
+        wp_die(esc_html(sprintf(__('Plugin installation failed: %s', 'woonuxt'), $result->get_error_message())));
+    }
+
+    if (!$result) {
+        wp_die(esc_html__('Plugin installation failed: Unknown error', 'woonuxt'));
+    }
+
+    $activation_result = activate_plugin($plugin['file']);
+    if (is_wp_error($activation_result)) {
+        wp_die(esc_html(sprintf(__('Plugin activation failed: %s', 'woonuxt'), $activation_result->get_error_message())));
+    }
+
+    wp_safe_redirect($redirect);
+    exit;
+}
+
 /**
  * Render the options page HTML
  *
@@ -160,7 +267,7 @@ function woonuxt_add_admin_menu()
  */
 function woonuxt_options_page_html()
 {
-    $options = get_option('woonuxt_options'); ?>
+    $options = wp_parse_args(get_option('woonuxt_options'), woonuxt_get_default_options()); ?>
     <div class="woonuxt-settings-wrap">
         <div class="woonuxt-header">
             <div class="woonuxt-header-content">
@@ -228,12 +335,12 @@ function woonuxt_handle_check_plugin_status()
     $plugin_file = isset($_POST['file']) ? sanitize_text_field(wp_unslash($_POST['file'])) : '';
 
     if ($plugin_slug === '' || $plugin_file === '') {
-        wp_die('invalid_request', 400);
+        wp_die('invalid_request', '', ['response' => 400]);
     }
 
-    $plugin_list = woonuxt_get_required_plugins();
-    if (!isset($plugin_list[$plugin_slug]) || $plugin_list[$plugin_slug]['file'] !== $plugin_file) {
-        wp_die('invalid_request', 400);
+    $plugins = woonuxt_get_required_plugins();
+    if (!isset($plugins[$plugin_slug]) || $plugins[$plugin_slug]['file'] !== $plugin_file) {
+        wp_die('invalid_request', '', ['response' => 400]);
     }
 
     if (is_plugin_active($plugin_file)) {
@@ -522,7 +629,7 @@ function woonuxt_required_plugins_callback()
                             </div>
 
                             <!-- Not Installed -->
-                            <a class="plugin-state_install" style="display:none;" href="/wp-admin/options-general.php?page=woonuxt&install_plugin=<?php echo esc_attr($plugin['slug']); ?>&_wpnonce=<?php echo wp_create_nonce('install_plugin_nonce'); ?>">Install Now</a>
+                            <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url(wp_nonce_url(admin_url('options-general.php?page=woonuxt&install_plugin=' . rawurlencode($plugin['slug'])), 'install_plugin_nonce')); ?>">Install Now</a>
                             <script>
                                 jQuery(document).ready(function($) {
                                     $.ajax({
@@ -558,54 +665,6 @@ function woonuxt_required_plugins_callback()
         </ul>
     </div>
     <?php
-            /**
-             * Check if the plugin is installed.
-             */
-            if (isset($_GET['install_plugin']) && isset($_GET['_wpnonce'])) {
-                if (!current_user_can('manage_options')) {
-                    wp_die(esc_html__('Insufficient permissions', 'woonuxt'), '', ['response' => 403]);
-                }
-
-                // Verify nonce for security
-                if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'install_plugin_nonce')) {
-                    wp_die('Security check failed');
-                }
-
-                global $plugin_list;
-
-                $upgrader = new Plugin_Upgrader();
-                // Sanitize the plugin slug input
-                $plugin_slug = sanitize_key(wp_unslash($_GET['install_plugin']));
-
-                // Validate that the plugin exists in our allowed list
-                if (!isset($plugin_list[$plugin_slug])) {
-                    wp_die('Invalid plugin');
-                }
-
-                $plugin  = $plugin_list[$plugin_slug];
-                $fileURL = WP_PLUGIN_DIR . '/' . $plugin['file'];
-
-                if (!is_plugin_active($plugin['file'])) {
-                    if (file_exists($fileURL)) {
-                        $activation_result = activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
-                        if (is_wp_error($activation_result)) {
-                            wp_die('Plugin activation failed: ' . $activation_result->get_error_message());
-                        }
-                    } else {
-                        $result = $upgrader->install($plugin['url']);
-                        if (is_wp_error($result)) {
-                            wp_die('Plugin installation failed: ' . $result->get_error_message());
-                        } elseif ($result) {
-                            $activation_result = activate_plugin($plugin['file']);
-                            if (is_wp_error($activation_result)) {
-                                wp_die('Plugin activation failed: ' . $activation_result->get_error_message());
-                            }
-                        } else {
-                            wp_die('Plugin installation failed: Unknown error');
-                        }
-                    }
-                }
-            }
 }
 
 /**
@@ -676,6 +735,13 @@ function woonuxt_graphql_schema_callback()
       active_publishable_key
       account_id
       apple_pay_merchant_identifier
+    }
+
+    # PayPal payment settings
+    paypalSettings {
+      enabled
+      sandbox
+      email
     }
   }
 }</code></pre>
@@ -793,7 +859,7 @@ function woonuxt_deploy_button_callback()
  */
 function woonuxt_global_setting_callback()
 {
-    $options            = get_option('woonuxt_options');
+    $options            = wp_parse_args(get_option('woonuxt_options'), woonuxt_get_default_options());
     $product_attributes = woonuxt_get_product_attributes();
     echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
     $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
