@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.15] - 2026-06-28
+
+### Changed
+
+- Update required setup targets to WooCommerce `10.9.1` and WPGraphQL `2.17.0`
+- Bump plugin metadata to `2.5.15`
+
 ## [2.5.14] - 2026-06-15
 
 ### Added
@@ -15,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update required setup targets to WooCommerce `10.8.1` and WPGraphQL `2.16.0`
+- Update required setup targets to WooCommerce `10.9.1` and WPGraphQL `2.17.0`
 - Bump plugin metadata to `2.5.14`
 
 ### Fixed

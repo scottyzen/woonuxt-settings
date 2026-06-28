@@ -5,7 +5,7 @@ Description: This is a WordPress plugin that allows you to use the WooNuxt theme
 Author: Scott Kennedy
 Author URI: http://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.14
+Version: 2.5.15
 Tested up to: 7.0.0
 Requires PHP: 8.4
 Text Domain: woonuxt
