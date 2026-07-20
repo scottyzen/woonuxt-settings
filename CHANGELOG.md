@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.17] - 2026-07-20
+
+### Changed
+
+- Remove the unbounded GraphQL product query limit override
+- Cache the maximum product price returned by GraphQL settings for 15 minutes
+
 ## [2.5.16] - 2026-07-20
 
 ### Changed

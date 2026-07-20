@@ -3,7 +3,7 @@
 defined('ABSPATH') || exit;
 
 // Plugin Version
-define('WOONUXT_SETTINGS_VERSION', '2.5.16');
+define('WOONUXT_SETTINGS_VERSION', '2.5.17');
 
 // Software Versions
 define('WOONUXT_WORDPRESS_TESTED_VERSION', '7.0.0');

@@ -98,8 +98,11 @@ function woonuxt_register_graphql_settings_types()
             $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'] ?? 'off';
             $is_woocommerce_active                 = class_exists('WooCommerce');
 
-            // Get max price efficiently.
-            if ($is_woocommerce_active && function_exists('wc_get_product')) {
+            $max_price = get_transient('woonuxt_max_product_price');
+
+            // Finding the maximum product price requires an ordered meta query.
+            // Cache the aggregate instead of repeating it on every settings query.
+            if ($max_price === false && $is_woocommerce_active && function_exists('wc_get_product')) {
                 $loop = new WP_Query([
                     'post_type'      => 'product',
                     'posts_per_page' => 1,
@@ -121,11 +124,14 @@ function woonuxt_register_graphql_settings_types()
                     $product_id = $loop->posts[0];
                     $product    = wc_get_product($product_id);
                     if ($product) {
-                        $options['maxPrice'] = ceil($product->get_price());
+                        $max_price = ceil((float) $product->get_price());
                     }
                 }
                 wp_reset_postdata();
+                set_transient('woonuxt_max_product_price', $max_price ?: 0, 15 * MINUTE_IN_SECONDS);
             }
+
+            $options['maxPrice'] = is_numeric($max_price) ? (int) $max_price : 0;
 
             $stripe_settings = get_option('woocommerce_stripe_settings');
             if (!is_array($stripe_settings)) {
