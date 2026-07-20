@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.16] - 2026-07-20
+
+### Changed
+
+- Update required WooCommerce version to `10.9.4` and WooGraphQL version to `1.0.3`
+- Bump plugin metadata to `2.5.16`
+
 ## [2.5.15] - 2026-06-28
 
 ### Changed
