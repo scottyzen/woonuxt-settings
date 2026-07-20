@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.18] - 2026-07-21
+
+### Added
+
+- Add a read-only Connection Health panel to the WooNuxt settings screen
+- Report required plugin activation and version status, WooNuxt GraphQL integration readiness, the configured GraphQL endpoint, and frontend URL configuration
+
 ## [2.5.17] - 2026-07-20
 
 ### Changed

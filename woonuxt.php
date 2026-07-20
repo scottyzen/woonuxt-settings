@@ -59,6 +59,7 @@ function woonuxt_plugin_action_links($links)
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
+require_once 'includes/connection-health.php';
 
 $plugin_list = [
     WOONUXT_WOOCOMMERCE_SLUG => [
@@ -433,6 +434,9 @@ function woonuxt_register_settings()
     if (class_exists('WooCommerce')) {
         add_settings_section('global_setting', '', 'woonuxt_global_setting_callback', 'woonuxt');
     }
+
+    // Read-only diagnostics for WordPress and GraphQL prerequisites.
+    add_settings_section('connection_health', '', 'woonuxt_connection_health_callback', 'woonuxt');
 
     // Always show plugins section
     add_settings_section('required_plugins', '', 'woonuxt_required_plugins_callback', 'woonuxt');

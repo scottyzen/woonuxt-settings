@@ -77,6 +77,56 @@
   margin-top: 16px;
 }
 
+.woonuxt-connection-health .description {
+  margin: 0 20px 20px;
+  line-height: 1.6;
+}
+
+.woonuxt-health-checks {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0 20px 20px;
+}
+
+.woonuxt-health-check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  margin: 0;
+  background: #f6f7f7;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+}
+
+.woonuxt-health-check p {
+  margin: 4px 0 0;
+}
+
+.woonuxt-health-check code {
+  display: inline-block;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.woonuxt-health-status {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #d63638;
+}
+
+.woonuxt-health-check--success .woonuxt-health-status {
+  background: #00a32a;
+}
+
+.woonuxt-health-check--warning .woonuxt-health-status {
+  background: #dba617;
+}
+
 /* Section Titles */
 .woonuxt-section .section-title {
   margin: 0;
