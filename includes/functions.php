@@ -22,6 +22,7 @@ function woonuxt_get_required_plugins()
             'name'        => 'WooCommerce',
             'description' => 'An eCommerce toolkit that helps you sell anything.',
             'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . MY_WOOCOMMERCE_VERSION . '.zip',
+            'installable' => true,
             'file'        => WOONUXT_WOOCOMMERCE_FILE,
             'icon'        => plugins_url('assets/WooCommerce.png', dirname(__DIR__) . '/woonuxt.php'),
             'slug'        => WOONUXT_WOOCOMMERCE_SLUG,
@@ -30,24 +31,27 @@ function woonuxt_get_required_plugins()
             'name'        => 'WPGraphQL',
             'description' => 'A GraphQL API for WordPress.',
             'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WP_GRAPHQL_VERSION . '.zip',
+            'installable' => true,
             'file'        => WOONUXT_WPGRAPHQL_FILE,
-            'icon'        => 'https://www.wpgraphql.com/logo-wpgraphql.svg',
+            'icon'        => plugins_url('assets/colored-logo.svg', dirname(__DIR__) . '/woonuxt.php'),
             'slug'        => WOONUXT_WPGRAPHQL_SLUG,
         ],
         WOONUXT_WOOGRAPHQL_SLUG => [
             'name'        => 'WooGraphQL',
             'description' => 'Enables GraphQL to work with WooCommerce.',
-            'url'         => WOONUXT_GITHUB_RELEASES_URL . 'v' . WOO_GRAPHQL_VERSION . '/wp-graphql-woocommerce.zip',
+            'installable' => false,
+            'manual_install_url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases',
             'file'        => WOONUXT_WOOGRAPHQL_FILE,
-            'icon'        => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
+            'icon'        => plugins_url('assets/colored-logo.svg', dirname(__DIR__) . '/woonuxt.php'),
             'slug'        => WOONUXT_WOOGRAPHQL_SLUG,
         ],
         WOONUXT_HEADLESS_LOGIN_SLUG => [
             'name'        => 'WPGraphQL Headless Login',
             'description' => 'Headless Login for WPGraphQL.',
-            'url'         => WOONUXT_HEADLESS_LOGIN_URL . WP_GRAPHQL_HEADLESS_LOGIN_VERSION . '/wp-graphql-headless-login.zip',
+            'installable' => false,
+            'manual_install_url' => 'https://github.com/AxeWP/wp-graphql-headless-login/releases',
             'file'        => WOONUXT_HEADLESS_LOGIN_FILE,
-            'icon'        => 'https://raw.githubusercontent.com/AxeWP/wp-graphql-headless-login/b821095bba231fd8a2258065c43510c7a791b593/packages/admin/assets/logo.svg',
+            'icon'        => plugins_url('assets/colored-logo.svg', dirname(__DIR__) . '/woonuxt.php'),
             'slug'        => WOONUXT_HEADLESS_LOGIN_SLUG,
         ],
     ];
@@ -71,53 +75,6 @@ function woonuxt_get_default_options()
         'global_attributes' => [],
         'wooNuxtSEO'        => [],
     ];
-}
-
-/**
- * Get the latest version number from Github with caching
- *
- * @since 2.0.0
- * @return string The latest version number or '0.0.0' on error
- */
-function woonuxt_get_github_version()
-{
-    $transient_key  = 'woonuxt_github_version';
-    $github_version = get_transient($transient_key);
-
-    if ($github_version === false) {
-        $github_url = WOONUXT_GITHUB_RAW_URL . '/woonuxt.php';
-        $response   = wp_remote_get($github_url, ['timeout' => 10]);
-
-        if (is_wp_error($response)) {
-            return '0.0.0';
-        }
-
-        $github_file = wp_remote_retrieve_body($response);
-        preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
-
-        $github_version = isset($matches[1]) ? $matches[1] : '0.0.0';
-        set_transient($transient_key, $github_version, HOUR_IN_SECONDS);
-    }
-
-    return $github_version;
-}
-
-/**
- * Check if an update is available
- *
- * @since 2.0.0
- * @return bool True if update is available, false otherwise
- */
-function woonuxt_update_available()
-{
-    try {
-        $current_version = WOONUXT_SETTINGS_VERSION;
-        $github_version  = woonuxt_get_github_version();
-
-        return version_compare($current_version, $github_version, '<');
-    } catch (\Exception $e) {
-        return false;
-    }
 }
 
 /**

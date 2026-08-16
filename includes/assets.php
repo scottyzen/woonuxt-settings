@@ -27,5 +27,10 @@ add_action('admin_enqueue_scripts', function () {
             'nonce'   => wp_create_nonce('woonuxt_nonce'),
             'ajaxurl' => admin_url('admin-ajax.php'),
         ]);
+        wp_localize_script(
+            'woonuxt-admin-js',
+            'product_attributes',
+            function_exists('woonuxt_get_product_attributes') ? woonuxt_get_product_attributes() : []
+        );
     }
 });

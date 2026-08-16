@@ -55,6 +55,10 @@ class WooNuxt_Plugin_Manager
         $plugins = woonuxt_get_required_plugins();
         $plugin  = $plugins[$plugin_slug];
 
+        if (empty($plugin['installable'])) {
+            wp_die(esc_html__('This dependency must be installed manually from its official release page.', 'woonuxt'));
+        }
+
         $this->install_and_activate_plugin($plugin);
     }
 
@@ -127,76 +131,4 @@ class WooNuxt_Plugin_Manager
         return is_plugin_active($plugin_file);
     }
 
-    /**
-     * Update WooNuxt Settings plugin from GitHub
-     *
-     * @since 2.3.0
-     * @param string $version Version to update to
-     * @return array Result array with success status and message
-     */
-    public function update_plugin($version)
-    {
-        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/plugin.php';
-
-        // Validate version format
-        if (!preg_match('/^\d+\.\d+\.\d+$/', $version) || $version === '0.0.0') {
-            return [
-                'success' => false,
-                'message' => 'Invalid version number',
-            ];
-        }
-
-        $plugin_url  = "https://downloads.wordpress.org/plugin/woonuxt-settings/{$version}/woonuxt-settings.zip";
-        $plugin_slug = 'woonuxt-settings/woonuxt.php';
-
-        // Deactivate and delete current version
-        deactivate_plugins($plugin_slug);
-        $delete_result = delete_plugins([$plugin_slug]);
-
-        if (is_wp_error($delete_result)) {
-            woonuxt_log('Failed to delete old plugin version', $delete_result->get_error_message());
-
-            return [
-                'success' => false,
-                'message' => 'Failed to delete old plugin version: ' . $delete_result->get_error_message(),
-            ];
-        }
-
-        // Install new version
-        $upgrader = new Plugin_Upgrader();
-        $result   = $upgrader->install($plugin_url);
-
-        if (is_wp_error($result)) {
-            woonuxt_log('Plugin installation failed', $result->get_error_message());
-
-            return [
-                'success' => false,
-                'message' => 'Plugin installation failed: ' . $result->get_error_message(),
-            ];
-        } elseif ($result) {
-            // Activate new version
-            $activation_result = activate_plugin($plugin_slug);
-
-            if (is_wp_error($activation_result)) {
-                woonuxt_log('Plugin activation failed', $activation_result->get_error_message());
-
-                return [
-                    'success' => false,
-                    'message' => 'Plugin activation failed: ' . $activation_result->get_error_message(),
-                ];
-            }
-
-            return [
-                'success' => true,
-                'message' => 'Plugin updated successfully',
-            ];
-        }
-
-        return [
-            'success' => false,
-            'message' => 'Plugin installation failed: Unknown error',
-        ];
-    }
 }

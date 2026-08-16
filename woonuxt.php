@@ -1,16 +1,17 @@
 <?php
 /*
-Plugin Name: WooNuxt Settings
-Description: This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.
+Plugin Name: Settings for WooNuxt
+Description: Configure a WooNuxt storefront and expose its settings through WPGraphQL.
 Author: Scott Kennedy
-Author URI: http://scottyzen.com
+Author URI: https://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
 Version: 2.5.18
+Requires at least: 6.0
 Tested up to: 7.0.0
 Requires PHP: 8.4
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: woonuxt
-GitHub Plugin URI: scottyzen/woonuxt-settings
-GitHub Plugin URI: https://github.com/scottyzen/woonuxt-settings
 */
 
 if (!defined('ABSPATH')) {
@@ -23,18 +24,12 @@ if (defined('WOONUXT_SETTINGS_BOOTSTRAPPED')) {
 
 define('WOONUXT_SETTINGS_BOOTSTRAPPED', __FILE__);
 
-require_once 'plugin-update-checker/plugin-update-checker.php';
 require_once 'includes/constants.php';
 require_once 'includes/assets.php';
 require_once 'includes/graphql.php';
 
 // Define Globals
 global $plugin_list;
-global $github_version;
-
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
-$myUpdateChecker = PucFactory::buildUpdateChecker(WOONUXT_GITHUB_RAW_URL . '/plugin.json', __FILE__, WOONUXT_GITHUB_REPO, 6);
 
 // Add filter to add the settings link to the plugins page
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
@@ -66,6 +61,7 @@ $plugin_list = [
         'name'        => 'WooCommerce',
         'description' => 'An eCommerce toolkit that helps you sell anything.',
         'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . MY_WOOCOMMERCE_VERSION . '.zip',
+        'installable' => true,
         'file'        => WOONUXT_WOOCOMMERCE_FILE,
         'icon'        => plugins_url('assets/WooCommerce.png', __FILE__),
         'slug'        => WOONUXT_WOOCOMMERCE_SLUG,
@@ -74,24 +70,27 @@ $plugin_list = [
         'name'        => 'WPGraphQL',
         'description' => 'A GraphQL API for WordPress.',
         'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WP_GRAPHQL_VERSION . '.zip',
+        'installable' => true,
         'file'        => WOONUXT_WPGRAPHQL_FILE,
-        'icon'        => 'https://www.wpgraphql.com/logo-wpgraphql.svg',
+        'icon'        => plugins_url('assets/colored-logo.svg', __FILE__),
         'slug'        => WOONUXT_WPGRAPHQL_SLUG,
     ],
     WOONUXT_WOOGRAPHQL_SLUG => [
         'name'        => 'WooGraphQL',
         'description' => 'Enables GraphQL to work with WooCommerce.',
-        'url'         => WOONUXT_GITHUB_RELEASES_URL . 'v' . WOO_GRAPHQL_VERSION . '/wp-graphql-woocommerce.zip',
+        'installable' => false,
+        'manual_install_url' => 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases',
         'file'        => WOONUXT_WOOGRAPHQL_FILE,
-        'icon'        => 'https://woographql.com/_next/image?url=https%3A%2F%2Fadasmqnzur.cloudimg.io%2Fsuperduper.axistaylor.com%2Fapp%2Fuploads%2Fsites%2F4%2F2022%2F08%2Flogo-1.png%3Ffunc%3Dbound%26w%3D300%26h%3D300&w=384&q=75',
+        'icon'        => plugins_url('assets/colored-logo.svg', __FILE__),
         'slug'        => WOONUXT_WOOGRAPHQL_SLUG,
     ],
     WOONUXT_HEADLESS_LOGIN_SLUG => [
         'name'        => 'WPGraphQL Headless Login',
         'description' => 'Headless Login for WPGraphQL.',
-        'url'         => WOONUXT_HEADLESS_LOGIN_URL . WP_GRAPHQL_HEADLESS_LOGIN_VERSION . '/wp-graphql-headless-login.zip',
+        'installable' => false,
+        'manual_install_url' => 'https://github.com/AxeWP/wp-graphql-headless-login/releases',
         'file'        => WOONUXT_HEADLESS_LOGIN_FILE,
-        'icon'        => 'https://raw.githubusercontent.com/AxeWP/wp-graphql-headless-login/b821095bba231fd8a2258065c43510c7a791b593/packages/admin/assets/logo.svg',
+        'icon'        => plugins_url('assets/colored-logo.svg', __FILE__),
         'slug'        => WOONUXT_HEADLESS_LOGIN_SLUG,
     ],
 ];
@@ -130,53 +129,6 @@ if (!function_exists('woonuxt_get_default_options')) {
             'global_attributes'                   => [],
             'wooNuxtSEO'                          => [],
         ];
-    }
-}
-
-/**
- * Get the latest version number from Github with improved error handling and caching
- *
- * @since 2.0.0
- * @return string The latest version number or '0.0.0' on error
- */
-function woonuxt_get_github_version()
-{
-    $transient_key  = 'woonuxt_github_version';
-    $github_version = get_transient($transient_key);
-
-    if ($github_version === false) {
-        $github_url = WOONUXT_GITHUB_RAW_URL . '/woonuxt.php';
-        $response   = wp_remote_get($github_url, ['timeout' => 10]);
-
-        if (is_wp_error($response)) {
-            return '0.0.0';
-        }
-
-        $github_file = wp_remote_retrieve_body($response);
-        preg_match('/WOONUXT_SETTINGS_VERSION\', \'(.*?)\'/', $github_file, $matches);
-
-        $github_version = isset($matches[1]) ? $matches[1] : '0.0.0';
-        set_transient($transient_key, $github_version, HOUR_IN_SECONDS);
-    }
-
-    return $github_version;
-}
-
-/**
- * Check if an update is available
- *
- * @since 2.0.0
- * @return bool True if update is available, false otherwise
- */
-function woonuxt_update_available()
-{
-    try {
-        $current_version = WOONUXT_SETTINGS_VERSION;
-        $github_version  = woonuxt_get_github_version();
-
-        return version_compare($current_version, $github_version, '<');
-    } catch (\Exception $e) {
-        return false;
     }
 }
 
@@ -223,6 +175,10 @@ function woonuxt_handle_required_plugin_install()
 
     $plugin   = $plugins[$plugin_slug];
     $redirect = admin_url('options-general.php?page=woonuxt');
+
+    if (empty($plugin['installable'])) {
+        wp_die(esc_html__('This dependency must be installed manually from its official release page.', 'woonuxt'));
+    }
 
     if (is_plugin_active($plugin['file'])) {
         wp_safe_redirect($redirect);
@@ -273,7 +229,7 @@ function woonuxt_options_page_html()
         <div class="woonuxt-header">
             <div class="woonuxt-header-content">
                 <div class="woonuxt-brand">
-                    <a href="https://woonuxt.com" target="_blank" class="woonuxt-logo">
+                    <a href="https://woonuxt.com" target="_blank" rel="noopener noreferrer" class="woonuxt-logo">
                         <img src="<?php echo plugins_url('assets/colored-logo.svg', __FILE__, ); ?>" alt="WooNuxt">
                     </a>
                     <div>
@@ -283,7 +239,7 @@ function woonuxt_options_page_html()
                 </div>
                 <div class="woonuxt-header-actions">
                     <?php if (!empty(trim((string) ($options['frontEndUrl'] ?? '')))): ?>
-                        <a href="<?php echo esc_url($options['frontEndUrl']); ?>" target="_blank" class="woonuxt-visit-btn" title="Open your site in a new tab">
+                        <a href="<?php echo esc_url($options['frontEndUrl']); ?>" target="_blank" rel="noopener noreferrer" class="woonuxt-visit-btn" title="Open your site in a new tab">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -351,64 +307,6 @@ function woonuxt_handle_check_plugin_status()
     }
 }
 
-add_action('wp_ajax_update_woonuxt_plugin', 'woonuxt_handle_update_plugin');
-
-/**
- * AJAX handler to update WooNuxt plugin
- *
- * @since 2.0.0
- * @return void Sends JSON response and dies
- */
-function woonuxt_handle_update_plugin()
-{
-    // Add nonce verification for security
-    check_ajax_referer('woonuxt_nonce', 'security');
-
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Insufficient permissions', 403);
-
-        return;
-    }
-
-    $version = woonuxt_get_github_version();
-
-    // Validate version format
-    if (!preg_match('/^\d+\.\d+\.\d+$/', $version) || $version === '0.0.0') {
-        wp_send_json_error('Invalid version number retrieved');
-
-        return;
-    }
-
-    $plugin_url  = "https://downloads.wordpress.org/plugin/woonuxt-settings/{$version}/woonuxt-settings.zip";
-    $plugin_slug = 'woonuxt-settings/woonuxt.php';
-
-    // Disable and delete the plugin
-    deactivate_plugins($plugin_slug);
-    $delete_result = delete_plugins([$plugin_slug]);
-
-    if (is_wp_error($delete_result)) {
-        wp_send_json_error('Failed to delete old plugin version: ' . $delete_result->get_error_message());
-
-        return;
-    }
-
-    $upgrader = new Plugin_Upgrader();
-    $result   = $upgrader->install($plugin_url);
-
-    if (is_wp_error($result)) {
-        wp_send_json_error('Plugin installation failed: ' . $result->get_error_message());
-    } elseif ($result) {
-        $activation_result = activate_plugin($plugin_slug);
-        if (is_wp_error($activation_result)) {
-            wp_send_json_error('Plugin activation failed: ' . $activation_result->get_error_message());
-        } else {
-            wp_send_json_success('Plugin updated successfully');
-        }
-    } else {
-        wp_send_json_error('Plugin installation failed: Unknown error');
-    }
-}
-
 // Register settings
 add_action('admin_init', 'woonuxt_register_settings');
 
@@ -425,10 +323,6 @@ function woonuxt_register_settings()
     register_setting('woonuxt_options', 'woonuxt_options', [
         'sanitize_callback' => 'woonuxt_legacy_sanitize_options',
     ]);
-
-    if (woonuxt_update_available()) {
-        add_settings_section('update_available', '', 'woonuxt_update_available_callback', 'woonuxt');
-    }
 
     // General settings first
     if (class_exists('WooCommerce')) {
@@ -530,77 +424,6 @@ function woonuxt_get_product_attributes()
 }
 
 /**
- * Callback function to display the update available notice and handle the plugin update
- *
- * @since 2.0.0
- * @return void
- */
-function woonuxt_update_available_callback()
-{
-    $github_version = woonuxt_get_github_version();
-
-    if (empty($github_version)) {
-        return;
-    }
-
-    $current_version = WOONUXT_SETTINGS_VERSION;
-
-    if (version_compare($current_version, $github_version, '>=')) {
-        return;
-    }
-
-    $update_url  = WOONUXT_GITHUB_URL . "/releases/download/{$github_version}/woonuxt-settings.zip";
-    $update_text = 'Update WooNuxt Settings Plugin';
-
-    echo '<div class="notice notice-warning woonuxt-section">';
-    printf(
-        __('<p>There is an update available for the WooNuxt Settings Plugin. Click <u><strong><a id="update_woonuxt_plugin" href="%s">%s</a></strong></u> to update from version <strong>%s</strong> to <strong>%s</strong></p>', 'woonuxt'),
-        esc_url($update_url),
-        esc_html($update_text),
-        esc_html($current_version),
-        esc_html($github_version)
-    );
-    echo '</div>'; ?>
-    <script>
-        jQuery(document).ready(function($) {
-            $('#update_woonuxt_plugin').click(function(e) {
-                e.preventDefault();
-                const $button = $(this);
-                const originalText = $button.text();
-
-                $button.text('Updating...').prop('disabled', true);
-
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    timeout: 60000,
-                    data: {
-                        action: 'update_woonuxt_plugin',
-                        security: '<?php echo wp_create_nonce('woonuxt_nonce') ?>'
-                    },
-                    success(response) {
-                        if (response.success) {
-                            alert('Plugin updated successfully');
-                            location.reload();
-                        } else {
-                            alert('Plugin update failed: ' + (response.data || 'Unknown error'));
-                        }
-                    },
-                    error(xhr, status, error) {
-                        alert('Plugin update failed: ' + (xhr.responseText || error));
-                        console.error('Update failed:', xhr, status, error);
-                    },
-                    complete() {
-                        $button.text(originalText).prop('disabled', false);
-                    }
-                });
-            });
-        });
-    </script>
-<?php
-}
-
-/**
  * Callback function to display required plugins section
  *
  * @since 2.0.0
@@ -633,7 +456,11 @@ function woonuxt_required_plugins_callback()
                             </div>
 
                             <!-- Not Installed -->
-                            <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url(wp_nonce_url(admin_url('options-general.php?page=woonuxt&install_plugin=' . rawurlencode($plugin['slug'])), 'install_plugin_nonce')); ?>">Install Now</a>
+                            <?php if (!empty($plugin['installable'])): ?>
+                                <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url(wp_nonce_url(admin_url('options-general.php?page=woonuxt&install_plugin=' . rawurlencode($plugin['slug'])), 'install_plugin_nonce')); ?>">Install Now</a>
+                            <?php else: ?>
+                                <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url($plugin['manual_install_url']); ?>" target="_blank" rel="noopener noreferrer">Install Manually</a>
+                            <?php endif; ?>
                             <script>
                                 jQuery(document).ready(function($) {
                                     $.ajax({
@@ -811,10 +638,10 @@ function woonuxt_deploy_button_callback()
                     </th>
                     <td>
                         <div class="deploy-buttons-container">
-                            <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo esc_attr($endpoint); ?>&NUXT_IMAGE_DOMAINS=<?php echo esc_attr($image_domain); ?>" target="_blank">
+                            <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo esc_attr($endpoint); ?>&NUXT_IMAGE_DOMAINS=<?php echo esc_attr($image_domain); ?>" target="_blank" rel="noopener noreferrer">
                                 <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="146" height="32">
                             </a>
-                            <a href="https://vercel.com/new/clone?repository-url=https://github.com/scottyzen/woonuxt&repository-name=<?php echo esc_attr($site_name); ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
+                            <a href="https://vercel.com/new/clone?repository-url=https://github.com/scottyzen/woonuxt&repository-name=<?php echo esc_attr($site_name); ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" rel="noopener noreferrer" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
                                 <svg data-testid="geist-icon" fill="none" height="15" width="15" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L2 19.7778H22L12 2Z" fill="#fff" stroke="#fff" stroke-width="1.5"></path>
                                 </svg>
@@ -864,8 +691,6 @@ function woonuxt_deploy_button_callback()
 function woonuxt_global_setting_callback()
 {
     $options            = wp_parse_args(get_option('woonuxt_options'), woonuxt_get_default_options());
-    $product_attributes = woonuxt_get_product_attributes();
-    echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
     $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
     ?>
     <div class="global_setting woonuxt-section">

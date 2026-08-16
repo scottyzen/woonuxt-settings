@@ -70,11 +70,6 @@ class WooNuxt_Admin
             'sanitize_callback' => 'woonuxt_sanitize_options',
         ]);
 
-        // Add update notice if available
-        if (woonuxt_update_available()) {
-            add_settings_section('update_available', '', [$this, 'render_update_notice'], 'woonuxt');
-        }
-
         // Add general settings section if WooCommerce is active
         if (class_exists('WooCommerce')) {
             add_settings_section('global_setting', '', [$this, 'render_general_settings'], 'woonuxt');
@@ -106,23 +101,6 @@ class WooNuxt_Admin
     }
 
     /**
-     * Render update available notice
-     *
-     * @since 2.3.0
-     * @return void
-     */
-    public function render_update_notice()
-    {
-        $github_version = woonuxt_get_github_version();
-
-        if (empty($github_version) || version_compare(WOONUXT_SETTINGS_VERSION, $github_version, '>=')) {
-            return;
-        }
-
-        include dirname(__DIR__) . '/templates/update-notice.php';
-    }
-
-    /**
      * Render general settings section
      *
      * @since 2.3.0
@@ -133,10 +111,6 @@ class WooNuxt_Admin
         $options            = get_option('woonuxt_options');
         $defaults           = woonuxt_get_default_options();
         $options            = wp_parse_args($options, $defaults);
-        $product_attributes = function_exists('woonuxt_get_product_attributes') ? woonuxt_get_product_attributes() : [];
-
-        // Pass product attributes to JavaScript
-        echo '<script>var product_attributes = ' . json_encode($product_attributes) . ';</script>';
 
         include dirname(__DIR__) . '/templates/general-settings.php';
     }

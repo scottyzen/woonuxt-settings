@@ -66,7 +66,6 @@ final class WooNuxt_Plugin
     {
         $this->load_dependencies();
         $this->init_components();
-        $this->setup_update_checker();
     }
 
     /**
@@ -115,24 +114,6 @@ final class WooNuxt_Plugin
         if (is_admin()) {
             $this->admin = new WooNuxt_Admin();
         }
-    }
-
-    /**
-     * Setup plugin update checker
-     *
-     * @since 2.3.0
-     * @return void
-     */
-    private function setup_update_checker()
-    {
-        require_once plugin_dir_path(__FILE__) . '../plugin-update-checker/plugin-update-checker.php';
-
-        $update_checker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-            WOONUXT_GITHUB_RAW_URL . '/plugin.json',
-            dirname(__FILE__) . '/../woonuxt.php',
-            WOONUXT_GITHUB_REPO,
-            6
-        );
     }
 
     /**
