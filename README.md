@@ -1,4 +1,4 @@
-# WooNuxt Settings (WordPress Plugin)
+# Settings for WooNuxt (WordPress Plugin)
 
 This is a WordPress plugin that allows you to use the WooNuxt theme with your WordPress site.
 

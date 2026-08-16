@@ -8,7 +8,6 @@
  */
 
 $finder = PhpCsFixer\Finder::create()
-    ->exclude('plugin-update-checker')
     ->exclude('vendor')
     ->exclude('node_modules')
     ->in(__DIR__)

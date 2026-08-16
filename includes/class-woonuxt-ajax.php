@@ -32,7 +32,6 @@ class WooNuxt_Ajax_Handler
         $this->plugin_manager = $plugin_manager;
 
         add_action('wp_ajax_check_plugin_status', [$this, 'check_plugin_status']);
-        add_action('wp_ajax_update_woonuxt_plugin', [$this, 'update_plugin']);
     }
 
     /**
@@ -73,27 +72,4 @@ class WooNuxt_Ajax_Handler
         }
     }
 
-    /**
-     * Update WooNuxt Settings plugin
-     *
-     * @since 2.3.0
-     * @return void
-     */
-    public function update_plugin()
-    {
-        check_ajax_referer('woonuxt_nonce', 'security');
-
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Insufficient permissions', 403);
-        }
-
-        $version = woonuxt_get_github_version();
-        $result  = $this->plugin_manager->update_plugin($version);
-
-        if ($result['success']) {
-            wp_send_json_success($result['message']);
-        } else {
-            wp_send_json_error($result['message']);
-        }
-    }
 }

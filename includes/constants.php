@@ -28,12 +28,6 @@ define('WOONUXT_WPGRAPHQL_FILE', 'wp-graphql/wp-graphql.php');
 define('WOONUXT_WOOGRAPHQL_FILE', 'wp-graphql-woocommerce/wp-graphql-woocommerce.php');
 define('WOONUXT_HEADLESS_LOGIN_FILE', 'wp-graphql-headless-login/wp-graphql-headless-login.php');
 
-// GitHub Repository
-define('WOONUXT_GITHUB_REPO', 'scottyzen/woonuxt-settings');
-define('WOONUXT_GITHUB_URL', 'https://github.com/' . WOONUXT_GITHUB_REPO);
-define('WOONUXT_GITHUB_RAW_URL', 'https://raw.githubusercontent.com/' . WOONUXT_GITHUB_REPO . '/master');
-
 // Download URLs
 define('WOONUXT_WP_PLUGIN_URL', 'https://downloads.wordpress.org/plugin/');
-define('WOONUXT_GITHUB_RELEASES_URL', 'https://github.com/wp-graphql/wp-graphql-woocommerce/releases/download/');
-define('WOONUXT_HEADLESS_LOGIN_URL', 'https://github.com/AxeWP/wp-graphql-headless-login/releases/download/');
+define('WOONUXT_PLUGIN_URL', plugin_dir_url(dirname(__DIR__) . '/woonuxt.php'));
