@@ -615,6 +615,30 @@ function woonuxt_deploy_button_callback()
     $endpoint     = get_site_url() . '/' . $gql_endpoint;
     $image_domain = wp_parse_url(home_url(), PHP_URL_HOST);
 
+    $netlify_environment = [
+        'GQL_HOST'             => $endpoint,
+        'NUXT_IMAGE_DOMAINS'   => $image_domain,
+        'NUXT_IMAGE_PROVIDER'  => 'netlify',
+    ];
+    $netlify_deploy_url = sprintf(
+        'https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#%s',
+        http_build_query($netlify_environment, '', '&', PHP_QUERY_RFC3986)
+    );
+
+    $vercel_environment = [
+        'GQL_HOST',
+        'NUXT_IMAGE_DOMAINS',
+        'NUXT_IMAGE_PROVIDER',
+    ];
+    $vercel_deploy_url = add_query_arg(
+        [
+            'repository-url'  => 'https://github.com/scottyzen/woonuxt',
+            'repository-name' => $site_name,
+            'env'             => implode(',', $vercel_environment),
+        ],
+        'https://vercel.com/new/clone'
+    );
+
     $isWooCommerceActive  = class_exists('WooCommerce');
     $product_attributes   = $isWooCommerceActive ? woonuxt_get_product_attributes() : [];
     $hasProductAttributes = count($product_attributes) > 0;
@@ -638,10 +662,10 @@ function woonuxt_deploy_button_callback()
                     </th>
                     <td>
                         <div class="deploy-buttons-container">
-                            <a id="netlify-button" href="https://app.netlify.com/start/deploy?repository=https://github.com/scottyzen/woonuxt#GQL_HOST=<?php echo esc_attr($endpoint); ?>&NUXT_IMAGE_DOMAINS=<?php echo esc_attr($image_domain); ?>" target="_blank" rel="noopener noreferrer">
+                            <a id="netlify-button" href="<?php echo esc_url($netlify_deploy_url); ?>" target="_blank" rel="noopener noreferrer">
                                 <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="146" height="32">
                             </a>
-                            <a href="https://vercel.com/new/clone?repository-url=https://github.com/scottyzen/woonuxt&repository-name=<?php echo esc_attr($site_name); ?>&env=GQL_HOST,NUXT_IMAGE_DOMAINS" target="_blank" rel="noopener noreferrer" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
+                            <a href="<?php echo esc_url($vercel_deploy_url); ?>" target="_blank" rel="noopener noreferrer" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
                                 <svg data-testid="geist-icon" fill="none" height="15" width="15" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L2 19.7778H22L12 2Z" fill="#fff" stroke="#fff" stroke-width="1.5"></path>
                                 </svg>
