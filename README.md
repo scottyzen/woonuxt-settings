@@ -27,6 +27,10 @@ The plugin has the following settings:
 
 Just manage your Stripe settings as you would normally do in the WordPress admin. The plugin will automatically add the Stripe settings to the GraphQL schema. It will use either the test or live keys depending on the environment you're in.
 
+Stripe payments are verified on the server against the order amount, currency, and cart session. A payment cannot be reused for another order. Other gateways must use their normal server-side payment flow.
+
+Update the frontend and plugin together. Reconcile any in-progress payments before updating: older Stripe intents lack the session binding required by this version. Recovery after an order failure must reuse the original order.
+
 ## PayPal Settings
 
 PayPal gateway settings are also exposed via the GraphQL schema automatically when the WooCommerce PayPal gateway is configured.
