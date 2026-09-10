@@ -16,4 +16,5 @@ require_once $woonuxt_graphql_path . 'bootstrap.php';
 require_once $woonuxt_graphql_path . 'settings.php';
 require_once $woonuxt_graphql_path . 'yoast.php';
 require_once $woonuxt_graphql_path . 'filters.php';
+require_once $woonuxt_graphql_path . 'payment-validation.php';
 require_once $woonuxt_graphql_path . 'stripe.php';
