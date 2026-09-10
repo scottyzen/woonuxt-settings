@@ -92,10 +92,16 @@ function create_payment_intent($amount, $currency, $customer_id = null, $save_fo
             ];
         }
 
+        $owner = woonuxt_payment_session_binding(true);
+        if ($owner === '') {
+            throw new RuntimeException('Your cart session is unavailable. Refresh your cart before paying.');
+        }
+
         $payment_intent_payload = [
-            'amount'                             => intval($amount * 100),
+            'amount'                             => woonuxt_stripe_amount($amount, $currency),
             'currency'                           => strtolower($currency),
             'automatic_payment_methods[enabled]' => 'true',
+            'metadata[woonuxt_owner]'             => $owner,
         ];
 
         if (!empty($customer_id)) {
@@ -549,18 +555,15 @@ function woonuxt_register_stripe_types()
                     $mappedCustomerId = woonuxt_get_mapped_stripe_customer_id($context_user_id);
                 }
 
-                // Saved-card checkout must prefer the customer ID tied to the saved
-                // payment method. User meta can be stale if Stripe customer records
-                // were recreated.
-                if ($requestedCustomerId !== null) {
-                    if (woonuxt_is_valid_stripe_customer_id($requestedCustomerId)) {
-                        $validatedCustomerId = $requestedCustomerId;
-                    }
+                // Client input may identify a saved card, but never establishes ownership.
+                if ($requestedCustomerId !== null && ($mappedCustomerId === null || !hash_equals($mappedCustomerId, $requestedCustomerId))) {
+                    return [
+                        'clientSecret' => null,
+                        'id' => null,
+                        'error' => 'This saved payment customer does not belong to your account. Choose a payment method from your account.',
+                    ];
                 }
-
-                if (empty($validatedCustomerId) && !empty($mappedCustomerId)) {
-                    $validatedCustomerId = $mappedCustomerId;
-                }
+                $validatedCustomerId = $mappedCustomerId;
 
                 $stripe = create_payment_intent($amount, $currency, $validatedCustomerId, $saveForFuture);
             } else {
@@ -569,7 +572,7 @@ function woonuxt_register_stripe_types()
 
             if (!is_array($stripe)) {
                 return [
-                    'amount'              => intval($amount * 100),
+                    'amount'              => woonuxt_stripe_amount($amount, $currency),
                     'currency'            => $currency,
                     'clientSecret'        => null,
                     'id'                  => null,
@@ -579,7 +582,7 @@ function woonuxt_register_stripe_types()
             }
 
             return [
-                'amount'              => intval($amount * 100),
+                'amount'              => woonuxt_stripe_amount($amount, $currency),
                 'currency'            => $currency,
                 'clientSecret'        => $stripe['client_secret'] ?? null,
                 'id'                  => $stripe['id']            ?? null,
