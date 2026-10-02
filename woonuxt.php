@@ -5,9 +5,9 @@ Description: Configure a WooNuxt storefront and expose its settings through WPGr
 Author: Scott Kennedy
 Author URI: https://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.18
+Version: 2.5.19
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -29,7 +29,7 @@ require_once 'includes/assets.php';
 require_once 'includes/graphql.php';
 
 // Define Globals
-global $plugin_list;
+global $woonuxt_plugin_list;
 
 // Add filter to add the settings link to the plugins page
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'woonuxt_plugin_action_links');
@@ -56,11 +56,11 @@ require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 require_once 'includes/connection-health.php';
 
-$plugin_list = [
+$woonuxt_plugin_list = [
     WOONUXT_WOOCOMMERCE_SLUG => [
         'name'        => 'WooCommerce',
         'description' => 'An eCommerce toolkit that helps you sell anything.',
-        'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . MY_WOOCOMMERCE_VERSION . '.zip',
+        'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . WOONUXT_WOOCOMMERCE_VERSION . '.zip',
         'installable' => true,
         'file'        => WOONUXT_WOOCOMMERCE_FILE,
         'icon'        => plugins_url('assets/WooCommerce.png', __FILE__),
@@ -69,7 +69,7 @@ $plugin_list = [
     WOONUXT_WPGRAPHQL_SLUG => [
         'name'        => 'WPGraphQL',
         'description' => 'A GraphQL API for WordPress.',
-        'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WP_GRAPHQL_VERSION . '.zip',
+        'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WOONUXT_WPGRAPHQL_VERSION . '.zip',
         'installable' => true,
         'file'        => WOONUXT_WPGRAPHQL_FILE,
         'icon'        => plugins_url('assets/colored-logo.svg', __FILE__),
@@ -104,9 +104,9 @@ $plugin_list = [
 if (!function_exists('woonuxt_get_required_plugins')) {
     function woonuxt_get_required_plugins()
     {
-        global $plugin_list;
+        global $woonuxt_plugin_list;
 
-        return is_array($plugin_list) ? $plugin_list : [];
+        return is_array($woonuxt_plugin_list) ? $woonuxt_plugin_list : [];
     }
 }
 
@@ -141,7 +141,7 @@ if (!function_exists('woonuxt_get_default_options')) {
 add_action('admin_menu', 'woonuxt_add_admin_menu');
 function woonuxt_add_admin_menu()
 {
-    add_options_page(__('WooNuxt Options', 'woonuxt'), __('WooNuxt', 'woonuxt'), 'manage_options', 'woonuxt', 'woonuxt_options_page_html');
+    add_options_page(__('WooNuxt Options', 'settings-for-woonuxt'), __('WooNuxt', 'settings-for-woonuxt'), 'manage_options', 'woonuxt', 'woonuxt_options_page_html');
 }
 
 add_action('admin_init', 'woonuxt_handle_required_plugin_install');
@@ -158,26 +158,26 @@ function woonuxt_handle_required_plugin_install()
         return;
     }
 
-    if (!current_user_can('manage_options')) {
-        wp_die(esc_html__('Insufficient permissions', 'woonuxt'), '', ['response' => 403]);
+    if (!current_user_can('manage_options') || !current_user_can('install_plugins') || !current_user_can('activate_plugins')) {
+        wp_die(esc_html__('Insufficient permissions', 'settings-for-woonuxt'), '', ['response' => 403]);
     }
 
-    if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'install_plugin_nonce')) {
-        wp_die(esc_html__('Security check failed', 'woonuxt'));
+    if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'woonuxt_install_plugin_nonce')) {
+        wp_die(esc_html__('Security check failed', 'settings-for-woonuxt'));
     }
 
     $plugins     = woonuxt_get_required_plugins();
     $plugin_slug = sanitize_key(wp_unslash($_GET['install_plugin']));
 
     if (!isset($plugins[$plugin_slug])) {
-        wp_die(esc_html__('Invalid plugin', 'woonuxt'));
+        wp_die(esc_html__('Invalid plugin', 'settings-for-woonuxt'));
     }
 
     $plugin   = $plugins[$plugin_slug];
     $redirect = admin_url('options-general.php?page=woonuxt');
 
     if (empty($plugin['installable'])) {
-        wp_die(esc_html__('This dependency must be installed manually from its official release page.', 'woonuxt'));
+        wp_die(esc_html__('This dependency must be installed manually from its official release page.', 'settings-for-woonuxt'));
     }
 
     if (is_plugin_active($plugin['file'])) {
@@ -189,7 +189,8 @@ function woonuxt_handle_required_plugin_install()
         $activation_result = activate_plugin($plugin['file'], $redirect);
 
         if (is_wp_error($activation_result)) {
-            wp_die(esc_html(sprintf(__('Plugin activation failed: %s', 'woonuxt'), $activation_result->get_error_message())));
+            /* translators: %s: error returned by the plugin installer or activator. */
+            wp_die(esc_html(sprintf(__('Plugin activation failed: %s', 'settings-for-woonuxt'), $activation_result->get_error_message())));
         }
 
         wp_safe_redirect($redirect);
@@ -200,16 +201,18 @@ function woonuxt_handle_required_plugin_install()
     $result   = $upgrader->install($plugin['url']);
 
     if (is_wp_error($result)) {
-        wp_die(esc_html(sprintf(__('Plugin installation failed: %s', 'woonuxt'), $result->get_error_message())));
+        /* translators: %s: error returned by the plugin installer or activator. */
+        wp_die(esc_html(sprintf(__('Plugin installation failed: %s', 'settings-for-woonuxt'), $result->get_error_message())));
     }
 
     if (!$result) {
-        wp_die(esc_html__('Plugin installation failed: Unknown error', 'woonuxt'));
+        wp_die(esc_html__('Plugin installation failed: Unknown error', 'settings-for-woonuxt'));
     }
 
     $activation_result = activate_plugin($plugin['file']);
     if (is_wp_error($activation_result)) {
-        wp_die(esc_html(sprintf(__('Plugin activation failed: %s', 'woonuxt'), $activation_result->get_error_message())));
+        /* translators: %s: error returned by the plugin installer or activator. */
+        wp_die(esc_html(sprintf(__('Plugin activation failed: %s', 'settings-for-woonuxt'), $activation_result->get_error_message())));
     }
 
     wp_safe_redirect($redirect);
@@ -230,11 +233,11 @@ function woonuxt_options_page_html()
             <div class="woonuxt-header-content">
                 <div class="woonuxt-brand">
                     <a href="https://woonuxt.com" target="_blank" rel="noopener noreferrer" class="woonuxt-logo">
-                        <img src="<?php echo plugins_url('assets/colored-logo.svg', __FILE__, ); ?>" alt="WooNuxt">
+                        <img src="<?php echo esc_url(plugins_url('assets/colored-logo.svg', __FILE__, )); ?>" alt="WooNuxt">
                     </a>
                     <div>
                         <h1>WooNuxt Settings</h1>
-                        <p class="woonuxt-version">Version <?php echo WOONUXT_SETTINGS_VERSION; ?></p>
+                        <p class="woonuxt-version">Version <?php echo esc_html(WOONUXT_SETTINGS_VERSION); ?></p>
                     </div>
                 </div>
                 <div class="woonuxt-header-actions">
@@ -272,7 +275,7 @@ function woonuxt_options_page_html()
 }
 
 // Register AJAX handlers
-add_action('wp_ajax_check_plugin_status', 'woonuxt_handle_check_plugin_status');
+add_action('wp_ajax_woonuxt_check_plugin_status', 'woonuxt_handle_check_plugin_status');
 
 /**
  * AJAX handler to check plugin status
@@ -318,7 +321,7 @@ add_action('admin_init', 'woonuxt_register_settings');
  */
 function woonuxt_register_settings()
 {
-    global $plugin_list;
+    global $woonuxt_plugin_list;
 
     register_setting('woonuxt_options', 'woonuxt_options', [
         'sanitize_callback' => 'woonuxt_legacy_sanitize_options',
@@ -326,20 +329,20 @@ function woonuxt_register_settings()
 
     // General settings first
     if (class_exists('WooCommerce')) {
-        add_settings_section('global_setting', '', 'woonuxt_global_setting_callback', 'woonuxt');
+        add_settings_section('woonuxt_global_setting', '', 'woonuxt_global_setting_callback', 'woonuxt');
     }
 
     // Read-only diagnostics for WordPress and GraphQL prerequisites.
-    add_settings_section('connection_health', '', 'woonuxt_connection_health_callback', 'woonuxt');
+    add_settings_section('woonuxt_connection_health', '', 'woonuxt_connection_health_callback', 'woonuxt');
 
     // Always show plugins section
-    add_settings_section('required_plugins', '', 'woonuxt_required_plugins_callback', 'woonuxt');
+    add_settings_section('woonuxt_required_plugins', '', 'woonuxt_required_plugins_callback', 'woonuxt');
 
     // GraphQL schema reference
-    add_settings_section('graphql_schema', '', 'woonuxt_graphql_schema_callback', 'woonuxt');
+    add_settings_section('woonuxt_graphql_schema', '', 'woonuxt_graphql_schema_callback', 'woonuxt');
 
     // Always show deploy section
-    add_settings_section('deploy_button', '', 'woonuxt_deploy_button_callback', 'woonuxt');
+    add_settings_section('woonuxt_deploy_button', '', 'woonuxt_deploy_button_callback', 'woonuxt');
 }
 
 /**
@@ -431,11 +434,11 @@ function woonuxt_get_product_attributes()
  */
 function woonuxt_required_plugins_callback()
 {
-    global $plugin_list; ?>
+    global $woonuxt_plugin_list; ?>
     <div class="woonuxt-section">
         <h3 class="section-title">Required Plugins</h3>
         <ul class="required-plugins-list">
-            <?php foreach ($plugin_list as $plugin): ?>
+            <?php foreach ($woonuxt_plugin_list as $plugin): ?>
                 <li class="required-plugin">
                     <div>
                         <div class="flex items-center gap-4 mb-2">
@@ -443,10 +446,10 @@ function woonuxt_required_plugins_callback()
                             <h4 class="plugin-name"><?php echo esc_html($plugin['name']); ?></h4>
                         </div>
                         <p class="plugin-description"><?php echo esc_html($plugin['description']); ?></p>
-                        <div class="plugin-state plugin-state_<?php echo esc_attr($plugin['slug']); ?>">
+                        <div class="plugin-state" data-plugin="<?php echo esc_attr($plugin['slug']); ?>" data-file="<?php echo esc_attr($plugin['file']); ?>">
                             <!-- Loading -->
                             <div class="plugin-state_loading">
-                                <img src="/wp-admin/images/loading.gif" alt="Loading" width="20" height="20" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;" />
+                                <img src="<?php echo esc_url(admin_url('images/loading.gif')); ?>" alt="Loading" width="20" height="20" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;" />
                                 Checking
                             </div>
 
@@ -457,38 +460,10 @@ function woonuxt_required_plugins_callback()
 
                             <!-- Not Installed -->
                             <?php if (!empty($plugin['installable'])): ?>
-                                <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url(wp_nonce_url(admin_url('options-general.php?page=woonuxt&install_plugin=' . rawurlencode($plugin['slug'])), 'install_plugin_nonce')); ?>">Install Now</a>
+                                <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url(wp_nonce_url(admin_url('options-general.php?page=woonuxt&install_plugin=' . rawurlencode($plugin['slug'])), 'woonuxt_install_plugin_nonce')); ?>">Install Now</a>
                             <?php else: ?>
                                 <a class="plugin-state_install" style="display:none;" href="<?php echo esc_url($plugin['manual_install_url']); ?>" target="_blank" rel="noopener noreferrer">Install Manually</a>
                             <?php endif; ?>
-                            <script>
-                                jQuery(document).ready(function($) {
-                                    $.ajax({
-                                        url: ajaxurl,
-                                        type: 'POST',
-                                        timeout: 10000,
-                                        data: {
-                                            action: 'check_plugin_status',
-                                            security: '<?php echo wp_create_nonce('woonuxt_nonce') ?>',
-                                            plugin: '<?php echo esc_attr($plugin['slug']) ?>',
-                                            file: '<?php echo esc_attr($plugin['file']) ?>',
-                                        },
-                                        success(response) {
-                                            if (response === 'installed') {
-                                                $('.plugin-state_<?php echo esc_js($plugin['slug']); ?> .plugin-state_installed').show();
-                                            } else {
-                                                $('.plugin-state_<?php echo esc_js($plugin['slug']); ?> .plugin-state_install').show();
-                                            }
-                                            $('.plugin-state_<?php echo esc_js($plugin['slug']); ?> .plugin-state_loading').hide();
-                                        },
-                                        error(xhr, status, error) {
-                                            console.error('Plugin status check failed:', xhr, status, error);
-                                            $('.plugin-state_<?php echo esc_js($plugin['slug']); ?> .plugin-state_loading').hide();
-                                            $('.plugin-state_<?php echo $plugin['slug']; ?> .plugin-state_install').show();
-                                        }
-                                    });
-                                });
-                            </script>
                         </div>
                     </div>
                 </li>
@@ -510,7 +485,7 @@ function woonuxt_graphql_schema_callback()
     <div class="woonuxt-section">
         <h3 class="section-title">GraphQL Schema Reference</h3>
         <p class="description" style="margin: 16px 20px; line-height: 1.6;">
-            <?php esc_html_e('This query shows all the fields exposed by the WooNuxt Settings plugin. Use this in your headless frontend to fetch configuration data.', 'woonuxt'); ?>
+            <?php esc_html_e('This query shows all the fields exposed by the WooNuxt Settings plugin. Use this in your headless frontend to fetch configuration data.', 'settings-for-woonuxt'); ?>
         </p>
 
         <div style="padding: 0 20px 20px;">
@@ -519,7 +494,7 @@ function woonuxt_graphql_schema_callback()
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s;">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
-                    <?php esc_html_e('View Query', 'woonuxt'); ?>
+                    <?php esc_html_e('View Query', 'settings-for-woonuxt'); ?>
                 </summary>
                 <pre style="margin: 0 0 16px 0; padding: 20px; background: #f6f7f7; border: 1px solid #c3c4c7; border-radius: 4px; overflow-x: auto; font-family: 'Courier New', Consolas, monospace; font-size: 13px; line-height: 1.8; color: #2c3338;"><code>query {
   woonuxtSettings {
@@ -580,23 +555,11 @@ function woonuxt_graphql_schema_callback()
 
             <div style="padding: 16px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
                 <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #2c3338;">
-                    <strong><?php esc_html_e('Tip:', 'woonuxt'); ?></strong>
-                    <?php esc_html_e('Copy this query and use it in your GraphQL client or headless frontend to fetch all WooNuxt configuration data.', 'woonuxt'); ?>
+                    <strong><?php esc_html_e('Tip:', 'settings-for-woonuxt'); ?></strong>
+                    <?php esc_html_e('Copy this query and use it in your GraphQL client or headless frontend to fetch all WooNuxt configuration data.', 'settings-for-woonuxt'); ?>
                 </p>
             </div>
         </div>
-
-        <style>
-            .woonuxt-section details[open] > summary svg {
-                transform: rotate(90deg);
-            }
-            .woonuxt-section details > summary::-webkit-details-marker {
-                display: none;
-            }
-            .woonuxt-section details > summary:hover {
-                text-decoration: underline;
-            }
-        </style>
     </div>
     <?php
 }
@@ -663,7 +626,7 @@ function woonuxt_deploy_button_callback()
                     <td>
                         <div class="deploy-buttons-container">
                             <a id="netlify-button" href="<?php echo esc_url($netlify_deploy_url); ?>" target="_blank" rel="noopener noreferrer">
-                                <img src="<?php echo plugins_url('assets/netlify.svg', __FILE__, ); ?>" alt="Deploy to Netlify" width="146" height="32">
+                                <img src="<?php echo esc_url(plugins_url('assets/netlify.svg', __FILE__, )); ?>" alt="Deploy to Netlify" width="146" height="32">
                             </a>
                             <a href="<?php echo esc_url($vercel_deploy_url); ?>" target="_blank" rel="noopener noreferrer" class="vercel-button" data-metrics-url="https://vercel.com/p/button">
                                 <svg data-testid="geist-icon" fill="none" height="15" width="15" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
@@ -679,21 +642,21 @@ function woonuxt_deploy_button_callback()
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
                             </svg>
-                            <?php echo esc_html__('Required Settings', 'woonuxt'); ?>
+                            <?php echo esc_html__('Required Settings', 'settings-for-woonuxt'); ?>
                         </h4>
-                        <p class="notice-description"><?php echo esc_html__('These settings are required for WooNuxt to work properly:', 'woonuxt'); ?></p>
+                        <p class="notice-description"><?php echo esc_html__('These settings are required for WooNuxt to work properly:', 'settings-for-woonuxt'); ?></p>
                         <ul class="requirements-list">
                             <li>
-                                <a href="/wp-admin/admin.php?page=graphql-settings"><?php echo esc_html__('WPGraphQL Settings', 'woonuxt'); ?></a>
+                                <a href="/wp-admin/admin.php?page=graphql-settings"><?php echo esc_html__('WPGraphQL Settings', 'settings-for-woonuxt'); ?></a>
                             </li>
                             <li>
                                 <?php if ($isWooCommerceActive): ?>
-                                    <a href="/wp-admin/edit.php?post_type=product&page=product_attributes"><?php echo esc_html__('Product Attributes', 'woonuxt'); ?></a>
+                                    <a href="/wp-admin/edit.php?post_type=product&page=product_attributes"><?php echo esc_html__('Product Attributes', 'settings-for-woonuxt'); ?></a>
                                     <span style="color: <?php echo $hasProductAttributes ? '#00a32a' : '#d63638'; ?>; margin-left: 8px;"><?php echo $hasProductAttributes ? '✅' : '❌'; ?></span>
-                                    <span style="color: #646970; font-size: 12px; margin-left: 4px;"><?php echo esc_html__('At least one product attribute', 'woonuxt'); ?></span>
+                                    <span style="color: #646970; font-size: 12px; margin-left: 4px;"><?php echo esc_html__('At least one product attribute', 'settings-for-woonuxt'); ?></span>
                                 <?php else: ?>
-                                    <span><?php echo esc_html__('Product Attributes', 'woonuxt'); ?></span>
-                                    <span style="color: #646970; font-size: 12px; margin-left: 8px;"><?php echo esc_html__('Install and activate WooCommerce to enable this check', 'woonuxt'); ?></span>
+                                    <span><?php echo esc_html__('Product Attributes', 'settings-for-woonuxt'); ?></span>
+                                    <span style="color: #646970; font-size: 12px; margin-left: 8px;"><?php echo esc_html__('Install and activate WooCommerce to enable this check', 'settings-for-woonuxt'); ?></span>
                                 <?php endif; ?>
                             </li>
                         </ul>
@@ -714,6 +677,7 @@ function woonuxt_deploy_button_callback()
  */
 function woonuxt_global_setting_callback()
 {
+    $product_attributes = woonuxt_get_product_attributes();
     $options            = wp_parse_args(get_option('woonuxt_options'), woonuxt_get_default_options());
     $primary_color = isset($options['primary_color']) ? $options['primary_color'] : '#7F54B2';
     ?>
@@ -731,7 +695,7 @@ function woonuxt_global_setting_callback()
                                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                 <polyline points="21 15 16 10 5 21"></polyline>
                             </svg>
-                            <?php echo esc_html__('Logo', 'woonuxt'); ?>
+                            <?php echo esc_html__('Logo', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
@@ -739,11 +703,11 @@ function woonuxt_global_setting_callback()
                             <img src="<?php echo isset($options['logo']) ? esc_url($options['logo']) : ''; ?>" style="max-width: 300px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #f9f9f9;" alt="Logo Preview" />
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <button type="button" class="button woonuxt-upload-logo-btn" id="woonuxt-upload-logo-btn"><?php echo esc_html__('Choose Image', 'woonuxt'); ?></button>
-                            <button type="button" class="button woonuxt-remove-logo-btn" id="woonuxt-remove-logo-btn" style="<?php echo !isset($options['logo']) || empty($options['logo']) ? 'display:none;' : ''; ?>"><?php echo esc_html__('Remove', 'woonuxt'); ?></button>
+                            <button type="button" class="button woonuxt-upload-logo-btn" id="woonuxt-upload-logo-btn"><?php echo esc_html__('Choose Image', 'settings-for-woonuxt'); ?></button>
+                            <button type="button" class="button woonuxt-remove-logo-btn" id="woonuxt-remove-logo-btn" style="<?php echo !isset($options['logo']) || empty($options['logo']) ? 'display:none;' : ''; ?>"><?php echo esc_html__('Remove', 'settings-for-woonuxt'); ?></button>
                         </div>
                         <input type="hidden" id="woonuxt_logo_url" name="woonuxt_options[logo]" value="<?php echo isset($options['logo']) ? esc_attr($options['logo']) : ''; ?>" />
-                        <p class="description"><?php echo esc_html__('Upload or select an image from the Media Library for your logo.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('Upload or select an image from the Media Library for your logo.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
 
@@ -755,12 +719,12 @@ function woonuxt_global_setting_callback()
                                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                             </svg>
-                            <?php echo esc_html__('Front End URL', 'woonuxt'); ?>
+                            <?php echo esc_html__('Front End URL', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
                         <input type="text" class="widefat" name="woonuxt_options[frontEndUrl]" value="<?php echo isset($options['frontEndUrl']) ? esc_url($options['frontEndUrl']) : ''; ?>" placeholder="e.g. https://mysite.netlify.app" />
-                        <p class="description"><?php echo esc_html__('This is the URL of your Nuxt site not the WordPress site.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('This is the URL of your Nuxt site not the WordPress site.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
 
@@ -772,12 +736,12 @@ function woonuxt_global_setting_callback()
                                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                             </svg>
-                            <?php echo esc_html__('Products Per Page', 'woonuxt'); ?>
+                            <?php echo esc_html__('Products Per Page', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
                         <input type="number" name="woonuxt_options[productsPerPage]" value="<?php echo isset($options['productsPerPage']) ? absint($options['productsPerPage']) : 24; ?>" placeholder="e.g. 12" min="1" />
-                        <p class="description"><?php echo esc_html__('The number of products that will be displayed on the product listing page. Default is 24.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('The number of products that will be displayed on the product listing page. Default is 24.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
 
@@ -788,16 +752,16 @@ function woonuxt_global_setting_callback()
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px; color: #646970;">
                                 <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
                             </svg>
-                            <?php echo esc_html__('Primary Color', 'woonuxt'); ?>
+                            <?php echo esc_html__('Primary Color', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
                         <div>
                             <input id="woonuxt_options[primary_color]" type="text" name="woonuxt_options[primary_color]" value="<?php echo esc_attr($primary_color); ?>" />
                             <input type="color" id="primary_color_picker" name="woonuxt_options[primary_color]" value="<?php echo esc_attr($primary_color); ?>" />
-                            <p><?php echo esc_html__('This is an example of how the elements on the frontend will look like with the selected color.', 'woonuxt'); ?></p>
+                            <p><?php echo esc_html__('This is an example of how the elements on the frontend will look like with the selected color.', 'settings-for-woonuxt'); ?></p>
                         </div>
-                        <img id="color-preview" src="<?php echo plugins_url('assets/preview.png', __FILE__); ?>" alt="Color Picker" width="600" style="background-color:<?php echo esc_attr($primary_color); ?>;" />
+                        <img id="color-preview" src="<?php echo esc_url(plugins_url('assets/preview.png', __FILE__)); ?>" alt="Color Picker" width="600" style="background-color:<?php echo esc_attr($primary_color); ?>;" />
                     </td>
                 </tr>
 
@@ -809,12 +773,12 @@ function woonuxt_global_setting_callback()
                                 <polyline points="16 18 22 12 16 6"></polyline>
                                 <polyline points="8 6 2 12 8 18"></polyline>
                             </svg>
-                            <?php echo esc_html__('Build Hook', 'woonuxt'); ?>
+                            <?php echo esc_html__('Build Hook', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
                         <input type="text" id="build_url" class="widefat" name="woonuxt_options[build_hook]" value="<?php echo isset($options['build_hook']) ? esc_url($options['build_hook']) : ''; ?>" placeholder="e.g. https://api.netlify.com/build_hooks/1234567890" />
-                        <p class="description"><?php echo esc_html__('The build hook is used to trigger a build on Netlify or Vercel. You can find the build hook in your Netlify or Vercel dashboard.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('The build hook is used to trigger a build on Netlify or Vercel. You can find the build hook in your Netlify or Vercel dashboard.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
 
@@ -826,12 +790,12 @@ function woonuxt_global_setting_callback()
                                 <rect x="2" y="5" width="20" height="14" rx="2"></rect>
                                 <path d="M2 10h20"></path>
                             </svg>
-                            <?php echo esc_html__('Apple Pay Merchant ID', 'woonuxt'); ?>
+                            <?php echo esc_html__('Apple Pay Merchant ID', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
                         <input type="text" class="widefat" name="woonuxt_options[stripe_apple_pay_merchant_identifier]" value="<?php echo isset($options['stripe_apple_pay_merchant_identifier']) ? esc_attr($options['stripe_apple_pay_merchant_identifier']) : ''; ?>" placeholder="e.g. merchant.com.example.store" />
-                        <p class="description"><?php echo esc_html__('The Apple Pay merchant identifier used by native Stripe integrations such as Capacitor.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('The Apple Pay merchant identifier used by native Stripe integrations such as Capacitor.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
                 <!-- GLOBAL ATTRIBUTES -->
@@ -841,7 +805,7 @@ function woonuxt_global_setting_callback()
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px; color: #646970;">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg>
-                            <?php echo esc_html__('Global Attributes', 'woonuxt'); ?>
+                            <?php echo esc_html__('Global Attributes', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
@@ -849,11 +813,11 @@ function woonuxt_global_setting_callback()
                             <thead>
                                 <tr>
                                     <th class="manage-column drag-handle-column" style="width: 40px;"></th>
-                                    <th class="manage-column column-primary" scope="col" style="width: 28%;"><?php echo esc_html__('Label', 'woonuxt'); ?></th>
-                                    <th class="manage-column column-primary" scope="col" style="width: 28%;"><?php echo esc_html__('Attribute', 'woonuxt'); ?></th>
-                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Display product count next to filter options', 'woonuxt'); ?>"><?php echo esc_html__('Count', 'woonuxt'); ?></th>
-                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Hide options with no products', 'woonuxt'); ?>"><?php echo esc_html__('Empty', 'woonuxt'); ?></th>
-                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Filter starts expanded', 'woonuxt'); ?>"><?php echo esc_html__('Open', 'woonuxt'); ?></th>
+                                    <th class="manage-column column-primary" scope="col" style="width: 28%;"><?php echo esc_html__('Label', 'settings-for-woonuxt'); ?></th>
+                                    <th class="manage-column column-primary" scope="col" style="width: 28%;"><?php echo esc_html__('Attribute', 'settings-for-woonuxt'); ?></th>
+                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Display product count next to filter options', 'settings-for-woonuxt'); ?>"><?php echo esc_html__('Count', 'settings-for-woonuxt'); ?></th>
+                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Hide options with no products', 'settings-for-woonuxt'); ?>"><?php echo esc_html__('Empty', 'settings-for-woonuxt'); ?></th>
+                                    <th class="text-center manage-column column-primary" scope="col" style="width: 12%;" title="<?php echo esc_attr__('Filter starts expanded', 'settings-for-woonuxt'); ?>"><?php echo esc_html__('Open', 'settings-for-woonuxt'); ?></th>
                                     <th class="manage-column" style="width: 40px;"></th>
                                 </tr>
                             </thead>
@@ -871,24 +835,24 @@ function woonuxt_global_setting_callback()
                                                 <input type="text" class="flex-1" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][label]" value="<?php echo esc_attr($value['label']); ?>" placeholder="e.g. Filter by Color" />
                                             </td>
                                             <td>
-                                                <select name="woonuxt_options[global_attributes][<?php echo $key; ?>][slug]">
+                                                <select name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][slug]">
                                                     <?php foreach ($product_attributes as $attribute):
                                                         $slected_attribute = $value['slug'] == 'pa_' . $attribute->attribute_name ? 'selected' : '';
                                                         ?>
-                                                        <option value="pa_<?php echo $attribute->attribute_name; ?>"<?php echo $slected_attribute; ?>>
-                                                            <?php echo $attribute->attribute_label; ?>
+                                                        <option value="pa_<?php echo esc_attr($attribute->attribute_name); ?>"<?php echo esc_attr($slected_attribute); ?>>
+                                                            <?php echo esc_html($attribute->attribute_label); ?>
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
                                             </td>
                                             <td class="text-center">
-                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][showCount]" value="1"<?php echo isset($value['showCount']) ? 'checked' : ''; ?> />
+                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][showCount]" value="1"<?php echo !empty($value['showCount']) ? 'checked' : ''; ?> />
                                             </td>
                                             <td class="text-center">
-                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][hideEmpty]" value="1"<?php echo isset($value['hideEmpty']) ? 'checked' : ''; ?> />
+                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][hideEmpty]" value="1"<?php echo !empty($value['hideEmpty']) ? 'checked' : ''; ?> />
                                             </td>
                                             <td class="text-center">
-                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][openByDefault]" value="1"<?php echo isset($value['openByDefault']) ? 'checked' : ''; ?> />
+                                                <input type="checkbox" name="woonuxt_options[global_attributes][<?php echo esc_attr($key); ?>][openByDefault]" value="1"<?php echo !empty($value['openByDefault']) ? 'checked' : ''; ?> />
                                             </td>
                                             <td class="text-center">
                                                 <button type="button" class="remove_global_attribute icon-button" title="Delete">
@@ -906,7 +870,7 @@ function woonuxt_global_setting_callback()
                                 <tr class="empty-state">
                                     <td colspan="7">
                                         <span class="dashicons dashicons-filter" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 10px;"></span>
-                                        <?php echo esc_html__('No global attributes configured yet. Click "Add New" to create your first filter.', 'woonuxt'); ?>
+                                        <?php echo esc_html__('No global attributes configured yet. Click "Add New" to create your first filter.', 'settings-for-woonuxt'); ?>
                                     </td>
                                 </tr>
 <?php endif; ?>
@@ -914,12 +878,12 @@ function woonuxt_global_setting_callback()
                             <tfoot>
                                 <tr>
                                     <th colspan="7" style="text-align: right; padding: 16px;">
-                                        <button class="add_global_attribute button button-primary" type="button"><?php echo esc_html__('Add New Attribute', 'woonuxt'); ?></button>
+                                        <button class="add_global_attribute button button-primary" type="button"><?php echo esc_html__('Add New Attribute', 'settings-for-woonuxt'); ?></button>
                                     </th>
                                 </tr>
                             </tfoot>
                         </table>
-                        <p class="description"><?php echo esc_html__('This will be used to manage the filters on the product listing page.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('This will be used to manage the filters on the product listing page.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
                 <!-- SEO SETTINGS -->
@@ -933,7 +897,7 @@ function woonuxt_global_setting_callback()
                                 <line x1="10" y1="1" x2="10" y2="4"></line>
                                 <line x1="14" y1="1" x2="14" y2="4"></line>
                             </svg>
-                            <?php echo esc_html__('SEO', 'woonuxt'); ?>
+                            <?php echo esc_html__('SEO', 'settings-for-woonuxt'); ?>
                         </label>
                     </th>
                     <td>
@@ -941,9 +905,9 @@ function woonuxt_global_setting_callback()
                             <thead>
                                 <tr>
                                     <th class="manage-column drag-handle-column" style="width: 40px;"></th>
-                                    <th class="manage-column column-primary" style="width: 15%"><?php echo esc_html__('Provider', 'woonuxt'); ?></th>
-                                    <th class="manage-column column-primary" style="width: 25%"><?php echo esc_html__('Handle', 'woonuxt'); ?></th>
-                                    <th class="manage-column column-primary" style="width: 60%"><?php echo esc_html__('URL', 'woonuxt'); ?></th>
+                                    <th class="manage-column column-primary" style="width: 15%"><?php echo esc_html__('Provider', 'settings-for-woonuxt'); ?></th>
+                                    <th class="manage-column column-primary" style="width: 25%"><?php echo esc_html__('Handle', 'settings-for-woonuxt'); ?></th>
+                                    <th class="manage-column column-primary" style="width: 60%"><?php echo esc_html__('URL', 'settings-for-woonuxt'); ?></th>
                                     <th class="manage-column" style="width: 40px;"></th>
                                 </tr>
                             </thead>
@@ -982,82 +946,11 @@ function woonuxt_global_setting_callback()
                                     <td></td>
                                     <td></td>
                                     <td></td>
-                                    <td><button class="add_new_seo_item button button-primary" type="button"><?php echo esc_html__('Add New', 'woonuxt'); ?></button></td>
+                                    <td><button class="add_new_seo_item button button-primary" type="button"><?php echo esc_html__('Add New', 'settings-for-woonuxt'); ?></button></td>
                                 </tr>
                             </tbody>
-                            <script>
-                                jQuery(document).ready(function($) {
-                                    // Delete line with confirmation
-                                    $('.woo-seo-table').on('click', '.remove_seo_item', function(e) {
-                                        e.preventDefault();
-                                        const $row = $(this).closest('tr');
-                                        if (confirm('Are you sure you want to delete this social media link?')) {
-                                            $row.addClass('removing');
-                                            setTimeout(() => {
-                                                $row.remove();
-                                            }, 300);
-                                        }
-                                    });
-                                    // Add new line to table
-                                    $('.woo-seo-table').on('click', '.add_new_seo_item', function() {
-                                        const popularProviders = [
-                                            'facebook',
-                                            'twitter',
-                                            'instagram',
-                                            'tiktok',
-                                            'snapchat',
-                                            'whatsapp',
-                                            'pinterest',
-                                            'youtube',
-                                            'github',
-                                            'reddit',
-                                            'linkedin',
-                                            'tumblr',
-                                            'medium',
-                                            'vimeo',
-                                            'soundcloud',
-                                            'spotify',
-                                        ];
-                                        const bestSuggestion = popularProviders.filter(provider => !$('.seo_item_provider:contains(' + provider + ')').length);
-                                        const provider = window.prompt('Enter the social media provider', bestSuggestion[0] || '');
-                                        if (provider === null || provider === '') return;
-
-                                        // Add new line to table based on the provider
-                                        const html = `<td class="drag-handle" style="cursor: grab;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.4;">
-                                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                                    <line x1="3" y1="15" x2="21" y2="15"></line>
-                                </svg>
-                            </td>
-                            <td><span class="seo_item_provider">${provider}</span>
-                                <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][${provider}][provider]" value="${provider}" /></td>
-                                <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][${provider}][handle]" value="" /></td>
-                                <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][${provider}][url]" value="" /></td>
-                                <td class="text-center">
-                                    <button type="button" class="remove_seo_item icon-button" title="Delete">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                                        </svg>
-                                    </button>
-                                </td>`;
-
-                                        const $newRow = $(`<tr class="seo_item sortable-item adding">${html}</tr>`);
-                                        $(this).closest('tr').before($newRow);
-
-                                        // Make new row draggable and animate
-                                        $newRow.attr('draggable', 'true');
-                                        setTimeout(() => {
-                                            $newRow.removeClass('adding');
-                                        }, 300);
-
-                                    });
-                                });
-                            </script>
                         </table>
-                        <p class="description"><?php echo esc_html__('These settings are used to generate the meta tags for social media.', 'woonuxt'); ?></p>
+                        <p class="description"><?php echo esc_html__('These settings are used to generate the meta tags for social media.', 'settings-for-woonuxt'); ?></p>
                     </td>
                 </tr>
             </tbody>

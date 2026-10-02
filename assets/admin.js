@@ -1,10 +1,38 @@
 jQuery(document).ready(function ($) {
+  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+  })[character]);
+
+  $('.plugin-state[data-plugin]').each(function () {
+    const $state = $(this);
+    $.ajax({
+      url: woonuxtData.ajaxurl,
+      type: 'POST',
+      timeout: 10000,
+      data: {
+        action: 'woonuxt_check_plugin_status',
+        security: woonuxtData.nonce,
+        plugin: $state.attr('data-plugin'),
+        file: $state.attr('data-file'),
+      },
+    }).done(function (response) {
+      $state.find(response === 'installed' ? '.plugin-state_installed' : '.plugin-state_install').show();
+    }).fail(function () {
+      $state.find('.plugin-state_install').show();
+    }).always(function () {
+      $state.find('.plugin-state_loading').hide();
+    });
+  });
+
+  $('.woonuxt-section-header').on('click', function () {
+    $(this).parent().toggleClass('collapsed');
+  });
   const globalAttributes = $('.global_attribute_table');
   let uniqueId = Math.random().toString(36).slice(2, 11);
 
   // Tab navigation removed - using single page layout
 
-  // product_attributes is an object that contains the product attributes
+  // woonuxtProductAttributes is an object that contains the product attributes
 
   // deploy-button FROM build_hook
   const buildUrl = $('#build_url');
@@ -52,8 +80,8 @@ jQuery(document).ready(function ($) {
     e.preventDefault();
 
     try {
-      // Check if product_attributes exists and has content
-      if (typeof product_attributes === 'undefined' || !product_attributes || Object.keys(product_attributes).length === 0) {
+      // Check if woonuxtProductAttributes exists and has content
+      if (typeof woonuxtProductAttributes === 'undefined' || !woonuxtProductAttributes || Object.keys(woonuxtProductAttributes).length === 0) {
         alert('No product attributes available. Please create product attributes first.');
         return;
       }
@@ -71,9 +99,9 @@ jQuery(document).ready(function ($) {
         </td>
         <td>
 			<select name="woonuxt_options[global_attributes][${uniqueId}][slug]" required>
-				${Object.keys(product_attributes)
+				${Object.keys(woonuxtProductAttributes)
           .map((key) => {
-            return `<option value="pa_${product_attributes[key].attribute_name}">${product_attributes[key].attribute_label}</option>`;
+            return `<option value="pa_${escapeHtml(woonuxtProductAttributes[key].attribute_name)}">${escapeHtml(woonuxtProductAttributes[key].attribute_label)}</option>`;
           })
           .join('')}
 			</select>
@@ -103,7 +131,7 @@ jQuery(document).ready(function ($) {
       // Remove empty state if it exists
       globalAttributes.find('tbody tr.empty-state').remove();
 
-      const $newRow = $(newAttribute);
+      const $newRow = $(newAttribute).attr('draggable', 'true');
       globalAttributes.find('tbody').append($newRow);
 
       // Focus on the label input
@@ -239,10 +267,6 @@ jQuery(document).ready(function ($) {
     initDragAndDrop('.global_attribute_table');
   }
 
-  // Reinitialize when new rows are added
-  $(document).on('DOMNodeInserted', '.sortable-list', function () {
-    $(this).find('.sortable-item').attr('draggable', 'true');
-  });
 
   // Handle color picker
   $('#primary-color-setting input').on('change input', function () {
@@ -319,4 +343,76 @@ jQuery(document).ready(function ($) {
     // Hide the remove button
     $(this).hide();
   });
+
+
+  // Delete line with confirmation
+  $('.woo-seo-table').on('click', '.remove_seo_item', function(e) {
+      e.preventDefault();
+      const $row = $(this).closest('tr');
+      if (confirm('Are you sure you want to delete this social media link?')) {
+          $row.addClass('removing');
+          setTimeout(() => {
+              $row.remove();
+          }, 300);
+      }
+  });
+  // Add new line to table
+  $('.woo-seo-table').on('click', '.add_new_seo_item', function() {
+      const popularProviders = [
+          'facebook',
+          'twitter',
+          'instagram',
+          'tiktok',
+          'snapchat',
+          'whatsapp',
+          'pinterest',
+          'youtube',
+          'github',
+          'reddit',
+          'linkedin',
+          'tumblr',
+          'medium',
+          'vimeo',
+          'soundcloud',
+          'spotify',
+      ];
+      const bestSuggestion = popularProviders.filter(provider => !$('.seo_item_provider:contains(' + provider + ')').length);
+      const providerInput = window.prompt('Enter the social media provider', bestSuggestion[0] || '');
+      if (providerInput === null || providerInput.trim() === '') return;
+    const provider = escapeHtml(providerInput);
+    const rowKey = 'seo_' + Math.random().toString(36).slice(2);
+
+      // Add new line to table based on the provider
+      const html = `<td class="drag-handle" style="cursor: grab;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.4;">
+  <line x1="3" y1="9" x2="21" y2="9"></line>
+  <line x1="3" y1="15" x2="21" y2="15"></line>
+    </svg>
+</td>
+<td><span class="seo_item_provider">${provider}</span>
+    <input type="hidden" class="w-full" name="woonuxt_options[wooNuxtSEO][${rowKey}][provider]" value="${provider}" /></td>
+    <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][${rowKey}][handle]" value="" /></td>
+    <td><input type="text" class="w-full" name="woonuxt_options[wooNuxtSEO][${rowKey}][url]" value="" /></td>
+    <td class="text-center">
+  <button type="button" class="remove_seo_item icon-button" title="Delete">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+      </svg>
+  </button>
+    </td>`;
+
+      const $newRow = $(`<tr class="seo_item sortable-item adding">${html}</tr>`);
+      $(this).closest('tr').before($newRow);
+
+      // Make new row draggable and animate
+      $newRow.attr('draggable', 'true');
+      setTimeout(() => {
+          $newRow.removeClass('adding');
+      }, 300);
+
+  });
+
 });

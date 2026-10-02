@@ -18,9 +18,7 @@ if (!defined('ABSPATH')) {
  */
 function woonuxt_register_graphql_filters()
 {
-    add_filter('graphql_data_is_private', function ($is_private, $model_name) {
-        return 'PluginObject' === $model_name ? false : $is_private;
-    }, 10, 6);
+    // Preserve WPGraphQL's access controls for installed-plugin information.
 
 }
 

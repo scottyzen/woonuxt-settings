@@ -36,27 +36,27 @@ class WooNuxt_Plugin_Manager
             return;
         }
 
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Insufficient permissions', 'woonuxt'), '', ['response' => 403]);
+        if (!current_user_can('manage_options') || !current_user_can('install_plugins') || !current_user_can('activate_plugins')) {
+            wp_die(esc_html__('Insufficient permissions', 'settings-for-woonuxt'), '', ['response' => 403]);
         }
 
         // Verify nonce for security
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'install_plugin_nonce')) {
-            wp_die(esc_html__('Security check failed', 'woonuxt'));
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'woonuxt_install_plugin_nonce')) {
+            wp_die(esc_html__('Security check failed', 'settings-for-woonuxt'));
         }
 
         // Sanitize and validate plugin slug
         $plugin_slug = sanitize_key(wp_unslash($_GET['install_plugin']));
 
         if (!woonuxt_validate_plugin_slug($plugin_slug)) {
-            wp_die(esc_html__('Invalid plugin', 'woonuxt'));
+            wp_die(esc_html__('Invalid plugin', 'settings-for-woonuxt'));
         }
 
         $plugins = woonuxt_get_required_plugins();
         $plugin  = $plugins[$plugin_slug];
 
         if (empty($plugin['installable'])) {
-            wp_die(esc_html__('This dependency must be installed manually from its official release page.', 'woonuxt'));
+            wp_die(esc_html__('This dependency must be installed manually from its official release page.', 'settings-for-woonuxt'));
         }
 
         $this->install_and_activate_plugin($plugin);
@@ -83,7 +83,7 @@ class WooNuxt_Plugin_Manager
                 $activation_result = activate_plugin($plugin['file'], '/wp-admin/options-general.php?page=woonuxt');
 
                 if (is_wp_error($activation_result)) {
-                    wp_die('Plugin activation failed: ' . $activation_result->get_error_message());
+                    wp_die(esc_html('Plugin activation failed: ' . $activation_result->get_error_message()));
                 }
             } else {
                 // Install then activate
@@ -95,7 +95,7 @@ class WooNuxt_Plugin_Manager
                         'plugin' => $plugin['name'],
                         'error'  => $result->get_error_message(),
                     ]);
-                    wp_die('Plugin installation failed: ' . $result->get_error_message());
+                    wp_die(esc_html('Plugin installation failed: ' . $result->get_error_message()));
                 } elseif ($result) {
                     $activation_result = activate_plugin($plugin['file']);
 
@@ -104,7 +104,7 @@ class WooNuxt_Plugin_Manager
                             'plugin' => $plugin['name'],
                             'error'  => $activation_result->get_error_message(),
                         ]);
-                        wp_die('Plugin activation failed: ' . $activation_result->get_error_message());
+                        wp_die(esc_html('Plugin activation failed: ' . $activation_result->get_error_message()));
                     }
                 } else {
                     wp_die('Plugin installation failed: Unknown error');
@@ -112,7 +112,7 @@ class WooNuxt_Plugin_Manager
             }
 
             // Redirect back to settings page
-            wp_redirect(admin_url('options-general.php?page=woonuxt'));
+            wp_safe_redirect(admin_url('options-general.php?page=woonuxt'));
             exit;
         }
     }

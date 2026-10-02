@@ -18,8 +18,14 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           coverage: none
 
       - name: Lint PHP files
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Check admin JavaScript syntax
+        run: node --check assets/admin.js
+
+      - name: Build submission ZIP
+        run: python3 scripts/build-release.py

@@ -20,19 +20,19 @@ function woonuxt_register_graphql_yoast_types()
 {
     register_graphql_field('Product', 'fullYoastHead', [
         'type'        => 'String',
-        'description' => __('Yoast SEO head output for this product (if Yoast is installed).', 'woonuxt'),
+        'description' => __('Yoast SEO head output for this product (if Yoast is installed).', 'settings-for-woonuxt'),
         'args'        => [
             'frontendUrl' => [
                 'type'        => 'String',
-                'description' => __('Frontend base URL to replace site URLs in the Yoast head output.', 'woonuxt'),
+                'description' => __('Frontend base URL to replace site URLs in the Yoast head output.', 'settings-for-woonuxt'),
             ],
             'imageUrl'    => [
                 'type'        => 'String',
-                'description' => __('Image base URL to replace uploaded media URLs in the Yoast head output.', 'woonuxt'),
+                'description' => __('Image base URL to replace uploaded media URLs in the Yoast head output.', 'settings-for-woonuxt'),
             ],
             'sanitize'    => [
                 'type'        => 'Boolean',
-                'description' => __('Whether to sanitize the Yoast head output using an allowlist.', 'woonuxt'),
+                'description' => __('Whether to sanitize the Yoast head output using an allowlist.', 'settings-for-woonuxt'),
             ],
         ],
         'resolve'     => function ($source, $args) {
@@ -158,7 +158,7 @@ if (!function_exists('woonuxt_replace_yoast_head_urls')) {
         }
 
         if (!empty($uploads_variants)) {
-            $uploads_path = $uploads_base ? parse_url($uploads_base, PHP_URL_PATH) : '';
+            $uploads_path = $uploads_base ? wp_parse_url($uploads_base, PHP_URL_PATH) : '';
             $uploads_path = $uploads_path ?: '';
 
             if (!empty($image_url)) {

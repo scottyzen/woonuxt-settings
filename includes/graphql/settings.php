@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 function woonuxt_register_graphql_settings_types()
 {
     register_graphql_object_type('woonuxtOptionsGlobalAttributes', [
-        'description' => __('Woonuxt Global attributes for filtering', 'woonuxt'),
+        'description' => __('Woonuxt Global attributes for filtering', 'settings-for-woonuxt'),
         'fields'      => [
             'label'         => ['type' => 'String'],
             'slug'          => ['type' => 'String'],
@@ -50,7 +50,7 @@ function woonuxt_register_graphql_settings_types()
     ]);
 
     register_graphql_object_type('wooNuxtSocialItems', [
-        'description' => __('Woonuxt Social Items', 'woonuxt'),
+        'description' => __('Woonuxt Social Items', 'settings-for-woonuxt'),
         'fields'      => [
             'provider' => ['type' => 'String'],
             'url'      => ['type' => 'String'],
@@ -59,7 +59,7 @@ function woonuxt_register_graphql_settings_types()
     ]);
 
     register_graphql_object_type('woonuxtOptions', [
-        'description' => __('Woonuxt Settings', 'woonuxt'),
+        'description' => __('Woonuxt Settings', 'settings-for-woonuxt'),
         'fields'      => [
             'primary_color'              => ['type' => 'String'],
             'logo'                       => ['type' => 'String'],

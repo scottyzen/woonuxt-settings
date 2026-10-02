@@ -2,9 +2,9 @@
 Contributors: scottyzen
 Tags: woonuxt, headless commerce, graphql, woocommerce, stripe
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.4
-Stable tag: 2.5.18
+Stable tag: 2.5.19
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,9 +22,11 @@ WooCommerce, WPGraphQL, WPGraphQL for WooCommerce, and WPGraphQL Headless Login 
 
 This plugin connects to the following services only for the functionality described below:
 
-* Stripe API: GraphQL payment resolvers communicate with `https://api.stripe.com/` to create Payment Intents, Setup Intents, and Customer Sessions and to retrieve payment-method details. This occurs only when a client invokes the corresponding payment mutation and WooCommerce Stripe is configured. Stripe's terms of use: https://stripe.com/legal
-* GitHub: an administrator can open the official GitHub release pages for WPGraphQL for WooCommerce or WPGraphQL Headless Login to install those dependencies manually. GitHub's privacy statement: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
-* Configured build hook: when an administrator clicks the rebuild control, the browser sends a POST request to the build-hook URL entered by that administrator. This can be a Netlify, Vercel, or other deployment-provider endpoint.
+* Stripe API: when a storefront requests a payment or setup intent through GraphQL, this plugin sends the cart amount, currency, and (for an authenticated customer) the mapped Stripe customer ID to https://api.stripe.com/. Payment verification sends the payment intent ID and checks its status, amount, currency, mode, and a pseudonymous cart-session ownership marker. Saved-payment lookups may send a payment-method ID. These requests use the secret API key configured in WooCommerce Stripe for authentication; secret keys are never exposed as GraphQL settings. No Stripe PHP SDK is bundled. Terms: https://stripe.com/legal ; Privacy: https://stripe.com/privacy
+* WordPress.org: when an administrator explicitly installs a supported directory dependency, WordPress downloads its plugin ZIP from https://downloads.wordpress.org/. The request identifies the plugin and version and includes normal network request information. Privacy: https://wordpress.org/about/privacy/
+* GitHub: dependency release links and deployment links direct the administrator to repositories hosted on GitHub. This plugin does not automatically download or execute code from GitHub. Terms: https://docs.github.com/site-policy/github-terms/github-terms-of-service ; Privacy: https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
+* Netlify and Vercel: clicking a deployment link opens the selected provider with the WooNuxt repository URL and deployment configuration (including the GraphQL endpoint and image domain for Netlify, or site name and environment-variable names for Vercel). Netlify terms: https://www.netlify.com/legal/terms-of-use/ ; Privacy: https://www.netlify.com/privacy/ . Vercel terms: https://vercel.com/legal/terms ; Privacy: https://vercel.com/legal/privacy-policy
+* Configured build hook: only when an administrator clicks Trigger Rebuild, their browser sends an empty POST request to the saved build-hook URL, with normal network request information such as IP address and any referrer allowed by the browser. The URL may contain a provider-issued authentication token. The destination and its terms/privacy policy depend on the provider selected by the administrator. Build-hook URLs are not exposed in the public GraphQL settings schema.
 
 == Installation ==
 
@@ -53,6 +55,11 @@ After installation from WordPress.org, updates are delivered through WordPress's
 
 == Changelog ==
 
+= 2.5.19 =
+* Enqueue admin assets, escape output, and use consistent plugin prefixes and translation domains.
+* Protect saved payment details and validate prepaid Stripe orders against their cart session.
+* Document external services and retain unchecked product-filter options correctly.
+
 = 2.5.18 =
 * Added a read-only Connection Health panel for required plugin activation and versions, WooNuxt GraphQL readiness, GraphQL endpoint configuration, and frontend URL configuration.
 
@@ -60,6 +67,9 @@ After installation from WordPress.org, updates are delivered through WordPress's
 * Improved GraphQL query performance and cached the maximum product price used by settings.
 
 == Upgrade Notice ==
+
+= 2.5.19 =
+* Security and WordPress directory review fixes. Test your storefront checkout after updating.
 
 = 2.5.18 =
 * Adds a Connection Health panel for checking required plugins and WooNuxt storefront configuration.

@@ -31,7 +31,7 @@ class WooNuxt_Ajax_Handler
     {
         $this->plugin_manager = $plugin_manager;
 
-        add_action('wp_ajax_check_plugin_status', [$this, 'check_plugin_status']);
+        add_action('wp_ajax_woonuxt_check_plugin_status', [$this, 'check_plugin_status']);
     }
 
     /**

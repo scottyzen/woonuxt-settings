@@ -50,8 +50,8 @@ class WooNuxt_Admin
     public function add_admin_menu()
     {
         add_options_page(
-            __('WooNuxt Options', 'woonuxt'),
-            __('WooNuxt', 'woonuxt'),
+            __('WooNuxt Options', 'settings-for-woonuxt'),
+            __('WooNuxt', 'settings-for-woonuxt'),
             'manage_options',
             'woonuxt',
             [$this, 'render_settings_page']
@@ -72,17 +72,17 @@ class WooNuxt_Admin
 
         // Add general settings section if WooCommerce is active
         if (class_exists('WooCommerce')) {
-            add_settings_section('global_setting', '', [$this, 'render_general_settings'], 'woonuxt');
+            add_settings_section('woonuxt_global_setting', '', [$this, 'render_general_settings'], 'woonuxt');
         }
 
         // Add required plugins section
-        add_settings_section('required_plugins', '', [$this, 'render_required_plugins'], 'woonuxt');
+        add_settings_section('woonuxt_required_plugins', '', [$this, 'render_required_plugins'], 'woonuxt');
 
         // Add GraphQL schema reference section
-        add_settings_section('graphql_schema', '', [$this, 'render_graphql_schema'], 'woonuxt');
+        add_settings_section('woonuxt_graphql_schema', '', [$this, 'render_graphql_schema'], 'woonuxt');
 
         // Add deploy section
-        add_settings_section('deploy_button', '', [$this, 'render_deploy_section'], 'woonuxt');
+        add_settings_section('woonuxt_deploy_button', '', [$this, 'render_deploy_section'], 'woonuxt');
     }
 
     /**

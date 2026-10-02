@@ -96,3 +96,11 @@ query getWooNuxtSettings {
   }
 }
 ```
+
+## WordPress.org submission build
+
+Run `python3 scripts/build-release.py` to create `output/settings-for-woonuxt-<version>.zip`.
+The ZIP uses the assigned `settings-for-woonuxt` directory name and includes runtime assets, including the color preview image. Development files and the unused class-based refactoring scaffolding are excluded; `woonuxt.php` remains the active bootstrap.
+
+On a disposable WordPress installation with the WooNuxt dependencies active, run `wp eval-file tests/review-regression.php` for settings, GraphQL privacy, and mocked Stripe payment-verification checks. This creates temporary customer/order fixtures and changes test-site settings; never run it on production.
+For the admin JavaScript tests, install `jsdom` and `jquery` in a temporary directory, then run `NODE_PATH=/path/to/node_modules node tests/admin-regression.cjs`.

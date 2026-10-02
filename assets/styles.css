@@ -1635,3 +1635,33 @@ html {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.woonuxt-section details[open] > summary svg {
+    transform: rotate(90deg);
+}
+.woonuxt-section details > summary::-webkit-details-marker {
+    display: none;
+}
+.woonuxt-section details > summary:hover {
+    text-decoration: underline;
+}
+
+.woonuxt-section.collapsed .woonuxt-section-content {
+    display: none;
+}
+
+.woonuxt-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.toggle-icon {
+    transition: transform 0.2s ease;
+    user-select: none;
+}
+
+.woonuxt-section-header:hover {
+    background: #f6f7f7;
+    margin: -8px;
+    padding: 8px;
+    border-radius: 4px;
+}

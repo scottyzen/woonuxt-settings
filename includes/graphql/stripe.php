@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
  * @param string $secret_key  Stripe secret key.
  * @return string|null CustomerSession client_secret or null on failure.
  */
-function create_stripe_customer_session($customer_id, $secret_key)
+function woonuxt_create_stripe_customer_session($customer_id, $secret_key)
 {
     if (empty($customer_id) || empty($secret_key)) {
         return null;
@@ -66,7 +66,7 @@ function create_stripe_customer_session($customer_id, $secret_key)
  * @param bool        $save_for_future Whether to set setup_future_usage to off_session.
  * @return array Payment intent data with client_secret, id, and error.
  */
-function create_payment_intent($amount, $currency, $customer_id = null, $save_for_future = false)
+function woonuxt_create_payment_intent($amount, $currency, $customer_id = null, $save_for_future = false)
 {
     try {
         $stripe_settings = get_option('woocommerce_stripe_settings');
@@ -357,7 +357,7 @@ function woonuxt_get_mapped_stripe_customer_id($user_id)
  * @param string $currency The payment currency.
  * @return array Setup intent data with client_secret, id, and error.
  */
-function create_setup_intent($amount, $currency)
+function woonuxt_create_setup_intent($amount, $currency)
 {
     try {
         $stripe_settings = get_option('woocommerce_stripe_settings');
@@ -455,7 +455,7 @@ function woonuxt_register_stripe_types()
     register_graphql_enum_type(
         'StripePaymentMethodEnum',
         [
-            'description'  => __('The Stripe Payment Method. Payment or Setup.', 'wp-graphql'),
+            'description'  => __('The Stripe Payment Method. Payment or Setup.', 'settings-for-woonuxt'),
             'defaultValue' => 'SETUP',
             'values'       => [
                 'PAYMENT' => ['value' => 'PAYMENT'],
@@ -565,9 +565,9 @@ function woonuxt_register_stripe_types()
                 }
                 $validatedCustomerId = $mappedCustomerId;
 
-                $stripe = create_payment_intent($amount, $currency, $validatedCustomerId, $saveForFuture);
+                $stripe = woonuxt_create_payment_intent($amount, $currency, $validatedCustomerId, $saveForFuture);
             } else {
-                $stripe = create_setup_intent($amount, $currency);
+                $stripe = woonuxt_create_setup_intent($amount, $currency);
             }
 
             if (!is_array($stripe)) {
@@ -634,7 +634,7 @@ function woonuxt_register_stripe_types()
                 }
             }
 
-            if (empty($user_id)) {
+            if (empty($user_id) || $user_id !== (int) get_current_user_id()) {
                 return null;
             }
 
@@ -698,7 +698,7 @@ function woonuxt_register_stripe_types()
                 $user_id = intval(get_current_user_id());
             }
 
-            if (empty($user_id) || !class_exists('WC_Payment_Tokens')) {
+            if (empty($user_id) || $user_id !== (int) get_current_user_id() || !class_exists('WC_Payment_Tokens')) {
                 return [];
             }
 

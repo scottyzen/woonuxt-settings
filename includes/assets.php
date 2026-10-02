@@ -5,8 +5,8 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-add_action('admin_enqueue_scripts', function () {
-    if (isset($_GET['page']) && sanitize_key($_GET['page']) === 'woonuxt') {
+add_action('admin_enqueue_scripts', function ($hook_suffix) {
+    if ($hook_suffix === 'settings_page_woonuxt') {
         // Enqueue WordPress media uploader
         wp_enqueue_media();
 
@@ -29,7 +29,7 @@ add_action('admin_enqueue_scripts', function () {
         ]);
         wp_localize_script(
             'woonuxt-admin-js',
-            'product_attributes',
+            'woonuxtProductAttributes',
             function_exists('woonuxt_get_product_attributes') ? woonuxt_get_product_attributes() : []
         );
     }

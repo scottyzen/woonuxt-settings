@@ -21,7 +21,7 @@ function woonuxt_get_required_plugins()
         WOONUXT_WOOCOMMERCE_SLUG => [
             'name'        => 'WooCommerce',
             'description' => 'An eCommerce toolkit that helps you sell anything.',
-            'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . MY_WOOCOMMERCE_VERSION . '.zip',
+            'url'         => WOONUXT_WP_PLUGIN_URL . 'woocommerce.' . WOONUXT_WOOCOMMERCE_VERSION . '.zip',
             'installable' => true,
             'file'        => WOONUXT_WOOCOMMERCE_FILE,
             'icon'        => plugins_url('assets/WooCommerce.png', dirname(__DIR__) . '/woonuxt.php'),
@@ -30,7 +30,7 @@ function woonuxt_get_required_plugins()
         WOONUXT_WPGRAPHQL_SLUG => [
             'name'        => 'WPGraphQL',
             'description' => 'A GraphQL API for WordPress.',
-            'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WP_GRAPHQL_VERSION . '.zip',
+            'url'         => WOONUXT_WP_PLUGIN_URL . 'wp-graphql.' . WOONUXT_WPGRAPHQL_VERSION . '.zip',
             'installable' => true,
             'file'        => WOONUXT_WPGRAPHQL_FILE,
             'icon'        => plugins_url('assets/colored-logo.svg', dirname(__DIR__) . '/woonuxt.php'),

@@ -18,4 +18,15 @@ REFACTORING.md
 .distignore
 assets/banner-big.jpg
 assets/banner-small.jpg
-assets/preview.png
+
+output
+tests
+scripts
+
+includes/class-woonuxt-plugin.php
+includes/class-woonuxt-admin.php
+includes/class-woonuxt-ajax.php
+includes/class-woonuxt-plugin-manager.php
+includes/functions.php
+templates/admin-page.php
+templates/graphql-schema.php
