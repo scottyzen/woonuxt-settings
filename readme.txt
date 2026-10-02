@@ -4,7 +4,7 @@ Tags: woonuxt, headless commerce, graphql, woocommerce, stripe
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.4
-Stable tag: 2.5.19
+Stable tag: 2.5.20
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -55,6 +55,9 @@ After installation from WordPress.org, updates are delivered through WordPress's
 
 == Changelog ==
 
+= 2.5.20 =
+* Replace the WordPress.org listing icon with the WooNuxt logo.
+
 = 2.5.19 =
 * Enqueue admin assets, escape output, and use consistent plugin prefixes and translation domains.
 * Protect saved payment details and validate prepaid Stripe orders against their cart session.
@@ -67,6 +70,9 @@ After installation from WordPress.org, updates are delivered through WordPress's
 * Improved GraphQL query performance and cached the maximum product price used by settings.
 
 == Upgrade Notice ==
+
+= 2.5.20 =
+* Refreshes the WooNuxt plugin listing icon.
 
 = 2.5.19 =
 * Security and WordPress directory review fixes. Test your storefront checkout after updating.

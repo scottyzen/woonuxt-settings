@@ -5,7 +5,7 @@ Description: Configure a WooNuxt storefront and expose its settings through WPGr
 Author: Scott Kennedy
 Author URI: https://scottyzen.com
 Plugin URI: https://github.com/scottyzen/woonuxt-settings
-Version: 2.5.19
+Version: 2.5.20
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.4

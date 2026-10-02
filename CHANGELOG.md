@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.20] - 2026-10-03
+
+### Changed
+
+- Replace the WordPress.org listing icon with the WooNuxt logo
+
 ## [2.5.18] - 2026-07-21
 
 ### Added
