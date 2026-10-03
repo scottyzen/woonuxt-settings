@@ -3,7 +3,7 @@ Contributors: scottyzen
 Tags: woonuxt, headless commerce, graphql, woocommerce, stripe
 Requires at least: 6.0
 Tested up to: 7.1
-Requires PHP: 8.4
+Requires PHP: 8.2
 Stable tag: 2.5.20
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html

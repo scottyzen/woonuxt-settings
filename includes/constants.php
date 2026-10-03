@@ -8,7 +8,7 @@ define('WOONUXT_SETTINGS_VERSION', '2.5.20');
 // Software Versions
 define('WOONUXT_WORDPRESS_TESTED_VERSION', '7.1.0');
 define('WOONUXT_NODE_VERSION', '22.22.2');
-define('WOONUXT_PHP_VERSION', '8.4');
+define('WOONUXT_PHP_VERSION', '8.2');
 
 // Required Plugin Versions
 define('WOONUXT_WOOCOMMERCE_VERSION', '10.9.4');
