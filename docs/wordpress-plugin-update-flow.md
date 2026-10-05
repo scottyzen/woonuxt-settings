@@ -31,8 +31,9 @@ The deployment workflow is [`.github/workflows/deploy-wordpress-org.yml`](../.gi
 After CI succeeds for `master`, it validates the version metadata, creates the
 matching GitHub Release if needed, and uses the WordPress.org SVN credentials
 stored in the GitHub `wordpress-org` environment to deploy it. Only the first
-successful CI run for a new version deploys; later commits with that version are
-skipped.
+successful deployment for a new version publishes; a rerun will retry the
+WordPress.org deployment if the GitHub Release was created but the directory is
+still behind. Later runs are skipped once the directory has that version.
 
 ## Releasing a new plugin version
 

@@ -47,8 +47,26 @@ jobs:
             --generate-notes
           echo "created=true" >> "$GITHUB_OUTPUT"
 
+      - name: Check whether WordPress.org needs this version
+        id: wordpress
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          directory_version="$(curl --fail --silent --show-error \
+            'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=settings-for-woonuxt' \
+            | jq -r '.version')"
+          test -n "$directory_version"
+          if [ "$directory_version" = "$VERSION" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          elif [ "$(printf '%s\n%s\n' "$directory_version" "$VERSION" | sort -V | tail -n1)" = "$VERSION" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Refusing to deploy $VERSION because WordPress.org already has newer version $directory_version" >&2
+            exit 1
+          fi
+
       - name: Deploy plugin
-        if: steps.release.outputs.created == 'true'
+        if: steps.wordpress.outputs.deploy == 'true'
         uses: 10up/action-wordpress-plugin-deploy@stable
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
