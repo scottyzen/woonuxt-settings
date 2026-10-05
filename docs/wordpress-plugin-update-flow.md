@@ -15,10 +15,10 @@ Change merged to master
 GitHub Actions CI: PHP lint, JavaScript syntax check, release ZIP build
         |
         v
-Create and publish a GitHub Release for that commit
+CI passes on the release commit
         |
         v
-Deploy to WordPress.org workflow
+Create the matching GitHub Release and deploy to WordPress.org
         |
         v
 WordPress.org serves the new version through normal WordPress updates
@@ -28,9 +28,11 @@ Site owner updates it from Dashboard > Updates / Plugins
 ```
 
 The deployment workflow is [`.github/workflows/deploy-wordpress-org.yml`](../.github/workflows/deploy-wordpress-org.yml).
-It runs **only** when a GitHub Release is published, then uses the WordPress.org
-SVN credentials stored in the GitHub `wordpress-org` environment. A pushed commit
-or Git tag by itself does not publish a plugin update.
+After CI succeeds for `master`, it validates the version metadata, creates the
+matching GitHub Release if needed, and uses the WordPress.org SVN credentials
+stored in the GitHub `wordpress-org` environment to deploy it. Only the first
+successful CI run for a new version deploys; later commits with that version are
+skipped.
 
 ## Releasing a new plugin version
 
@@ -67,12 +69,11 @@ Work from a clean branch/working tree and use a new semantic version, for exampl
    The ZIP will be created at
    `output/settings-for-woonuxt-<version>.zip`. It uses the required top-level
    directory name, `settings-for-woonuxt/`, and contains only runtime files.
-5. Commit and push the release commit to `master`. GitHub Actions repeats the
-   checks above for pushes and pull requests.
-6. In GitHub, create a release from the release commit and **publish** it. Use the
-   same version number as the plugin metadata. Publishing triggers the
-   WordPress.org deployment workflow.
-7. Confirm the workflow completed successfully, then check the WordPress.org
+5. Commit and push the release commit to `master`. After CI passes, the release
+   workflow validates the three version values, creates the matching GitHub
+   release if it does not already exist, and deploys that version to
+   WordPress.org. The release bump must be the final commit for that version.
+6. Confirm the release-and-deploy workflow completed successfully, then check the WordPress.org
    listing and a staging WordPress installation for the available update.
 
 Do not publish a release from a commit whose plugin header, constant, and

@@ -1,19 +1,54 @@
-name: Deploy to WordPress.org
+name: Release and deploy to WordPress.org
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
-    name: Deploy
+    name: Release and deploy
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'master'
     runs-on: ubuntu-latest
     environment: wordpress-org
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Read and validate release version
+        id: version
+        run: |
+          version="$(sed -n 's/^Version: //p' woonuxt.php)"
+          test -n "$version"
+          grep -Fx "Stable tag: $version" readme.txt
+          grep -Fqx "define('WOONUXT_SETTINGS_VERSION', '$version');" includes/constants.php
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release when this version is new
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          gh release create "$VERSION" \
+            --target "${{ github.event.workflow_run.head_sha }}" \
+            --title "$VERSION" \
+            --generate-notes
+          echo "created=true" >> "$GITHUB_OUTPUT"
 
       - name: Deploy plugin
+        if: steps.release.outputs.created == 'true'
         uses: 10up/action-wordpress-plugin-deploy@stable
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
